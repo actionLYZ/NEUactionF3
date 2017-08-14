@@ -19,14 +19,13 @@
 
 OS_EXT INT8U OSCPUUsage;
 OS_EVENT *PeriodSem;
-
-
-/*=====================================================全局变量声明===================================================*/
-POSITION_T Position_t;	//定位系统
-int g_plan = 1;							//跑场方案（顺逆时针）
-
 static OS_STK App_ConfigStk[Config_TASK_START_STK_SIZE];
 static OS_STK WalkTaskStk[Walk_TASK_STK_SIZE];
+
+/*=====================================================全局变量声明===================================================*/
+POSITION_T Position_t;		//定位系统
+int g_plan = 1;						//跑场方案（顺逆时针）
+int g_camera = 1;					//摄像头收到的数
 
 void App_Task()
 {
@@ -65,6 +64,7 @@ void ConfigTask(void)
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
 	USART3_Init(115200);
 	USART1_Init(115200);
+	UART5_Init(115200);
 	
 	//驱动器初始化
 	elmo_Init(CAN1);
@@ -104,7 +104,7 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		USART_OUT(USART1,(uint8_t*) "x:%d\ty:%d\tangle:%d\t\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+		USART_OUT(USART1,(uint8_t*) "x:%d\ty:%d\tangle:%d\tcamera:%d\t\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,g_camera);
 		
 		GoGoGo();
 		

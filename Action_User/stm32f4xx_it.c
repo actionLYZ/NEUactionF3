@@ -340,7 +340,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 }
 
 
-
+extern int g_camera;
 
 void UART5_IRQHandler(void)
 {
@@ -352,7 +352,7 @@ void UART5_IRQHandler(void)
 
 	if (USART_GetITStatus(UART5, USART_IT_RXNE) == SET)
 	{
-
+		g_camera = USART_ReceiveData(UART5);
 		USART_ClearITPendingBit(UART5, USART_IT_RXNE);
 	}
 	OSIntExit();

@@ -3,8 +3,8 @@
 int IfStart();																												//通过激光判断是否开始
 float Piont2Straight(float aimx,float aimy,float angle);							//计算点到直线距离
 void StaightCLose(float aimx,float aimy,float angle,float speed);			//点斜式直线闭环
-void GoGoGo();																								//跑场
-int FirstRound(float speed);																		//第一圈(放球区附近)
+void GoGoGo();																												//跑场
+int FirstRound(float speed);																					//第一圈(放球区附近)
 
 
 /*=====================================================结构体定义===================================================*/
