@@ -12,7 +12,7 @@
 #include "elmo.h"
 #include "stm32f4xx_it.h"
 #include "stm32f4xx_usart.h"
-#include "lyzPID.h"
+#include "lyz.h"
 #include "stm32f4xx_adc.h"
 
 /*=====================================================信号量定义===================================================*/
@@ -25,7 +25,7 @@ static OS_STK WalkTaskStk[Walk_TASK_STK_SIZE];
 /*=====================================================全局变量声明===================================================*/
 POSITION_T Position_t;		//定位系统
 int g_plan = 1;						//跑场方案（顺逆时针）
-int g_camera = 1;					//摄像头收到的数
+int g_camera = 0;					//摄像头收到的数
 
 void App_Task()
 {
@@ -107,7 +107,6 @@ void WalkTask(void)
 		USART_OUT(USART1,(uint8_t*) "x:%d\ty:%d\tangle:%d\tcamera:%d\t\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,g_camera);
 		
 		GoGoGo();
-		
 	}
 }
 

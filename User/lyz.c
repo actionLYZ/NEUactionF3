@@ -1,5 +1,5 @@
 /*==============================================头文件声明区============================================*/
-#include "lyzPID.h"
+#include "lyz.h"
 #include "can.h"
 #include "stdio.h"
 #include "usart.h"
