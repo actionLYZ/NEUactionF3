@@ -22,8 +22,8 @@ OS_EVENT *PeriodSem;
 
 
 /*=====================================================全局变量声明===================================================*/
-POSITION_T Position_t;//定位系统
-
+POSITION_T Position_t;	//定位系统
+int g_plan = 1;							//跑场方案（顺逆时针）
 
 static OS_STK App_ConfigStk[Config_TASK_START_STK_SIZE];
 static OS_STK WalkTaskStk[Walk_TASK_STK_SIZE];
@@ -94,10 +94,11 @@ void WalkTask(void)
 	
 	int plan;		//执行方案
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
+	
 	//等待激光被触发
 	while(IfStart() == 0)	{};
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);			//关闭蜂鸣器
-	plan = IfStart();
+	g_plan = IfStart();
 		
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
@@ -105,7 +106,7 @@ void WalkTask(void)
 		OSSemPend(PeriodSem, 0, &os_err);
 		USART_OUT(USART1,(uint8_t*) "x:%d\ty:%d\tangle:%d\t\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 		
-		GoGoGo(plan);
+		GoGoGo();
 		
 	}
 }
