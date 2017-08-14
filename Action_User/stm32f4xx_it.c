@@ -38,13 +38,14 @@
 #include "can.h"
 #include "gpio.h"
 #include "elmo.h"
-#include "lyzPID.h"
+#include "lyz.h"
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Exceptions Handlers                         */
 /******************************************************************************/
 
-extern POSITION_T Position_t;//定位系统
+extern POSITION_T Position_t;	//定位系统
+extern int g_plan;								//跑场方案（顺逆时针）
 
 void CAN1_RX0_IRQHandler(void)
 {
@@ -304,9 +305,11 @@ void USART3_IRQHandler(void) //更新频率200Hz
 				getPosition_t.X = posture.ActVal[3];
 				getPosition_t.Y = posture.ActVal[4];
 				
-				//计算实际坐标
-				Position_t.angle = getPosition_t.angle;
-				Position_t.X			=	getPosition_t.X;
+				//计算实际坐标,角度与x坐标镜像对称
+				Position_t.angle 	= g_plan * getPosition_t.angle;	
+				if(Position_t.angle > 	180)  Position_t.angle -= 360;
+				if(Position_t.angle <= -180) 	Position_t.angle += 360;
+				Position_t.X			=	g_plan * getPosition_t.X;		
 				Position_t.Y			=	getPosition_t.Y;
 				
 			}
@@ -337,7 +340,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 }
 
 
-
+extern int g_camera;
 
 void UART5_IRQHandler(void)
 {
@@ -349,9 +352,24 @@ void UART5_IRQHandler(void)
 
 	if (USART_GetITStatus(UART5, USART_IT_RXNE) == SET)
 	{
-
+		g_camera = USART_ReceiveData(UART5);
 		USART_ClearITPendingBit(UART5, USART_IT_RXNE);
 	}
+//	else
+//	{
+//		USART_ClearITPendingBit(UART5, USART_IT_PE);
+//		USART_ClearITPendingBit(UART5, USART_IT_TXE);
+//		USART_ClearITPendingBit(UART5, USART_IT_TC);
+//		USART_ClearITPendingBit(UART5, USART_IT_ORE_RX);
+//		USART_ClearITPendingBit(UART5, USART_IT_IDLE);
+//		USART_ClearITPendingBit(UART5, USART_IT_LBD);
+//		USART_ClearITPendingBit(UART5, USART_IT_CTS);
+//		USART_ClearITPendingBit(UART5, USART_IT_ERR);
+//		USART_ClearITPendingBit(UART5, USART_IT_ORE_ER);
+//		USART_ClearITPendingBit(UART5, USART_IT_NE);
+//		USART_ClearITPendingBit(UART5, USART_IT_FE);
+//		USART_ReceiveData(UART5);
+//	}
 	OSIntExit();
 }
 
