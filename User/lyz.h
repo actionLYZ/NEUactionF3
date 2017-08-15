@@ -9,6 +9,7 @@ int 	FirstRound(float speed);																					//第一圈(放球区附近)
 bool 	IfStuck();																												//是否卡住不动，是返回true，不是返回false
 bool	RunRectangle(int length,int wide,float speed);										//长方形跑场
 void	CheckPosition();																									//坐标校正
+void	RunCamera();																											//利用摄像头跑场
 /*=====================================================结构体定义===================================================*/
 
 //定位系统

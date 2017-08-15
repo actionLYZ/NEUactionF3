@@ -13,6 +13,7 @@
 /*==============================================全局变量声明区============================================*/
 extern POSITION_T Position_t;
 extern int g_plan;
+extern int g_camera;
 
 
 /*================================================函数定义区==============================================*/
@@ -75,29 +76,21 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 
 		//计算距离输出
 		Ddis = Piont2Straight(aimx,aimy,angle);
-		if(fabs(speed) <= 500)
-			Dinput = 9 * Ddis + 1.5 * (Ddis - LDdis);
-		else if(fabs(speed) <= 1000)
-			Dinput = 12 * Ddis + 3 * (Ddis - LDdis);
-		else if(fabs(speed) <= 1500)
-			Dinput = 18 * Ddis + 3 * (Ddis - LDdis);
-		else
-			Dinput = 24 * Ddis + 3 * (Ddis - LDdis);
+		if		 (fabs(speed) <=  500) 	Dinput = 9 * Ddis;
+		else if(fabs(speed) <= 1000) 	Dinput = 12 * Ddis;
+		else if(fabs(speed) <= 1500) 	Dinput = 15 * Ddis;
+		else 													Dinput = 18 * Ddis;
 		LDdis = Ddis;
 		
 		//计算角度输出
 		Dangle = (angle - Position_t.angle);
-		if(Dangle > 180)  Dangle -= 360;
+		if(Dangle >  180)  Dangle -= 360;
 		if(Dangle < -180) Dangle += 360;
 		
-		if(fabs(speed) <= 500)
-			Ainput = 100*Dangle + (Dangle - LDangle);			
-		else if(fabs(speed) <= 1000)
-			Ainput = 160*Dangle + 30*(Dangle - LDangle);			
-		else if(fabs(speed) <= 1500)
-			Ainput = 250*Dangle + 30*(Dangle - LDangle);	
-		else
-			Ainput = 350*Dangle + 30*(Dangle - LDangle);
+		if		 (fabs(speed) <=  500) 	Ainput = 100*Dangle;
+		else if(fabs(speed) <= 1000) 	Ainput = 160*Dangle;
+		else if(fabs(speed) <= 1500) 	Ainput = 250*Dangle;
+		else 													Ainput = 350*Dangle;
 		LDangle = Dangle;
 		
 		//计算脉冲
@@ -120,7 +113,7 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 =======================================================================================*/
 void GoGoGo()
 {
-	static int state = 1;													//应该执行的状态
+	static int state = 5;													//应该执行的状态
 	static int length = WIDTH/2,wide = WIDTH/2;		//长方形跑场参数
 	switch(state)
 	{
@@ -152,6 +145,14 @@ void GoGoGo()
 		case 3:
 		{
 			CheckPosition();
+		}break;
+		case 4:
+		{
+			//射球
+		}break;
+		case 5:
+		{
+			RunCamera();
 		}break;
 	}
 }
@@ -291,4 +292,33 @@ void CheckPosition()
 {
 	VelCrl(CAN1, 1, 0);
 	VelCrl(CAN1, 2, 0);
+}
+
+/*======================================================================================
+函数定义		：			利用摄像头跑场
+函数参数		：			无
+函数返回值	：			无
+=======================================================================================*/
+void	RunCamera()
+{
+	if(g_camera == 2)
+	{
+		VelCrl(CAN1, 1,  500*SP2PULSE);
+		VelCrl(CAN1, 2, -500*SP2PULSE);
+	}
+	else if(g_camera == 1)
+	{
+		VelCrl(CAN1, 1,  500*SP2PULSE - 200);
+		VelCrl(CAN1, 2, -500*SP2PULSE + 200);
+	}
+	else if(g_camera == 3)
+	{
+		VelCrl(CAN1, 1,  500*SP2PULSE + 200);
+		VelCrl(CAN1, 2, -500*SP2PULSE - 200);
+	}
+	else
+	{
+		VelCrl(CAN1, 1,  200*SP2PULSE);
+		VelCrl(CAN1, 2, -200*SP2PULSE);
+	}
 }
