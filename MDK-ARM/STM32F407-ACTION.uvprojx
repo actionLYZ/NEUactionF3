@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\CMSIS;..\Libraries\CMSIS\startup;..\Action_User;..\uCOS-ii\Port;..\uCOS-ii\Source;..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\Action_User</IncludePath>
+              <IncludePath>..\Libraries\CMSIS;..\Libraries\CMSIS\startup;..\Action_User;..\uCOS-ii\Port;..\uCOS-ii\Source;..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\Action_User;..\User</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -425,9 +425,14 @@
               <FilePath>..\Action_User\moveBase.c</FilePath>
             </File>
             <File>
-              <FileName>lyzPID.c</FileName>
+              <FileName>lyz.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Action_User\lyzPID.c</FilePath>
+              <FilePath>..\User\lyz.c</FilePath>
+            </File>
+            <File>
+              <FileName>wan.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\wan.c</FilePath>
             </File>
           </Files>
         </Group>
