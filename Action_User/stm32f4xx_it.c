@@ -44,7 +44,7 @@
 /*            Cortex-M4 Processor Exceptions Handlers                         */
 /******************************************************************************/
 
-extern POSITION_T Position_t;	//定位系统
+extern POSITION_T Position_t;			//定位系统
 extern int g_plan;								//跑场方案（顺逆时针）
 
 void CAN1_RX0_IRQHandler(void)
@@ -302,8 +302,8 @@ void USART3_IRQHandler(void) //更新频率200Hz
 			{
 					//获取当前坐标
 				getPosition_t.angle = posture.ActVal[0];
-				getPosition_t.X = posture.ActVal[3];
-				getPosition_t.Y = posture.ActVal[4];
+				getPosition_t.X 		= posture.ActVal[3];
+				getPosition_t.Y 		= posture.ActVal[4];
 				
 				//计算实际坐标,角度与x坐标镜像对称
 				Position_t.angle 	= g_plan * getPosition_t.angle;	
@@ -355,21 +355,21 @@ void UART5_IRQHandler(void)
 		g_camera = USART_ReceiveData(UART5);
 		USART_ClearITPendingBit(UART5, USART_IT_RXNE);
 	}
-//	else
-//	{
-//		USART_ClearITPendingBit(UART5, USART_IT_PE);
-//		USART_ClearITPendingBit(UART5, USART_IT_TXE);
-//		USART_ClearITPendingBit(UART5, USART_IT_TC);
-//		USART_ClearITPendingBit(UART5, USART_IT_ORE_RX);
-//		USART_ClearITPendingBit(UART5, USART_IT_IDLE);
-//		USART_ClearITPendingBit(UART5, USART_IT_LBD);
-//		USART_ClearITPendingBit(UART5, USART_IT_CTS);
-//		USART_ClearITPendingBit(UART5, USART_IT_ERR);
-//		USART_ClearITPendingBit(UART5, USART_IT_ORE_ER);
-//		USART_ClearITPendingBit(UART5, USART_IT_NE);
-//		USART_ClearITPendingBit(UART5, USART_IT_FE);
-//		USART_ReceiveData(UART5);
-//	}
+	else			//清除一些标志位
+	{
+		USART_ClearITPendingBit(UART5, USART_IT_PE);
+		USART_ClearITPendingBit(UART5, USART_IT_TXE);
+		USART_ClearITPendingBit(UART5, USART_IT_TC);
+		USART_ClearITPendingBit(UART5, USART_IT_ORE_RX);
+		USART_ClearITPendingBit(UART5, USART_IT_IDLE);
+		USART_ClearITPendingBit(UART5, USART_IT_LBD);
+		USART_ClearITPendingBit(UART5, USART_IT_CTS);
+		USART_ClearITPendingBit(UART5, USART_IT_ERR);
+		USART_ClearITPendingBit(UART5, USART_IT_ORE_ER);
+		USART_ClearITPendingBit(UART5, USART_IT_NE);
+		USART_ClearITPendingBit(UART5, USART_IT_FE);
+		USART_ReceiveData(UART5);
+	}
 	OSIntExit();
 }
 

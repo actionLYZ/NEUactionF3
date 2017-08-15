@@ -78,7 +78,7 @@ void ConfigTask(void)
 	delay_ms(2000);
 
 	//等待定位系统
-		delay_s(10);
+		//delay_s(10);
 		
 	//配置电基速度
 	//VelCrl(CAN1, 1, 5552);
@@ -92,7 +92,8 @@ void WalkTask(void)
 	CPU_INT08U os_err;
 	os_err = os_err;
 	
-	int plan;		//执行方案
+	int plan;							//执行方案
+	int ifEscape = 0;			//是否执行逃逸函数
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
 	
 	//等待激光被触发
@@ -104,9 +105,19 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		USART_OUT(USART1,(uint8_t*) "x:%d\ty:%d\tangle:%d\tcamera:%d\t\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,g_camera);
-		
-		GoGoGo();
+		USART_OUT(USART1,(uint8_t*) "%d\t%d\t%d\t%d\t\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,g_camera);
+		if(IfStuck() == 1) ifEscape = 1;
+		if(ifEscape)
+		{
+			/*
+			if(IfEscape())  ifEscape = 0;
+			逃逸函数结束返回1，未结束返回0
+			*/
+		}
+		else
+		{
+			GoGoGo();
+		}
 	}
 }
 
