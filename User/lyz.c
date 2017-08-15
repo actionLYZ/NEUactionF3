@@ -13,6 +13,7 @@
 /*==============================================全局变量声明区============================================*/
 extern POSITION_T Position_t;
 extern int g_plan;
+extern int g_camera;
 
 
 /*================================================函数定义区==============================================*/
@@ -28,7 +29,7 @@ extern int g_plan;
 int IfStart()
 {
 	
-	if(Get_Adc_Average(RIGHT_LASER,30) < 500)			//右侧激光触发
+	if(Get_Adc_Average(RIGHT_LASER,30) < 500)				//右侧激光触发
 		return 1;
 	else if(Get_Adc_Average(LEFT_LASER,30) < 500)		//左侧激光触发
 		return -1;
@@ -65,7 +66,7 @@ float Piont2Straight(float aimx,float aimy,float angle)
 函数定义	：		直线闭环
 函数参数	：		直线上一点x，y坐标，直线角度，速度(mm)
 函数返回值：		无
-(fabs 为取float型变量的绝对值)
+(fabs 为取float型变量的绝对值)  PID的值需调节
 =======================================================================================*/
 void StaightCLose(float aimx,float aimy,float angle,float speed)
 {
@@ -75,41 +76,33 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 
 		//计算距离输出
 		Ddis = Piont2Straight(aimx,aimy,angle);
-		if(fabs(speed) <= 500)
-			Dinput = 9 * Ddis + 1.5 * (Ddis - LDdis);
-		else if(fabs(speed) <= 1000)
-			Dinput = 12 * Ddis + 3 * (Ddis - LDdis);
-		else if(fabs(speed) <= 1500)
-			Dinput = 18 * Ddis + 3 * (Ddis - LDdis);
-		else
-			Dinput = 24 * Ddis + 3 * (Ddis - LDdis);
+		if		 (fabs(speed) <=  500) 	Dinput = 9 * Ddis;
+		else if(fabs(speed) <= 1000) 	Dinput = 12 * Ddis;
+		else if(fabs(speed) <= 1500) 	Dinput = 15 * Ddis;
+		else 													Dinput = 18 * Ddis;
 		LDdis = Ddis;
 		
 		//计算角度输出
 		Dangle = (angle - Position_t.angle);
-		if(Dangle > 180)  Dangle -= 360;
+		if(Dangle >  180)  Dangle -= 360;
 		if(Dangle < -180) Dangle += 360;
 		
-		if(fabs(speed) <= 500)
-			Ainput = 100*Dangle + (Dangle - LDangle);			
-		else if(fabs(speed) <= 1000)
-			Ainput = 160*Dangle + 30*(Dangle - LDangle);			
-		else if(fabs(speed) <= 1500)
-			Ainput = 250*Dangle + 30*(Dangle - LDangle);	
-		else
-			Ainput = 350*Dangle + 30*(Dangle - LDangle);
+		if		 (fabs(speed) <=  500) 	Ainput = 100*Dangle;
+		else if(fabs(speed) <= 1000) 	Ainput = 160*Dangle;
+		else if(fabs(speed) <= 1500) 	Ainput = 250*Dangle;
+		else 													Ainput = 350*Dangle;
 		LDangle = Dangle;
 		
 		//计算脉冲
 		if(speed >= 0)
 		{
-			VelCrl(CAN1,1,  (int)(speed * SP2PULSE) + Ainput + Dinput);
-			VelCrl(CAN1,2, -(int)(speed * SP2PULSE) + Ainput + Dinput);
+			VelCrl(CAN1,1,  (int)(speed * SP2PULSE) + g_plan * (Ainput + Dinput));
+			VelCrl(CAN1,2, -(int)(speed * SP2PULSE) + g_plan * (Ainput + Dinput));
 		}
 		else
 		{
-			VelCrl(CAN1,1,  (int)(speed * SP2PULSE) + Ainput - Dinput);
-			VelCrl(CAN1,2, -(int)(speed * SP2PULSE) + Ainput - Dinput);
+			VelCrl(CAN1,1,  (int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
+			VelCrl(CAN1,2, -(int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
 		}
 }
 
@@ -120,8 +113,8 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 =======================================================================================*/
 void GoGoGo()
 {
-	static int state = 1;							//应该执行的状态
-	static int length = 0,wide = 0;		//长方形跑场参数
+	static int state = 5;													//应该执行的状态
+	static int length = WIDTH/2,wide = WIDTH/2;		//长方形跑场参数
 	switch(state)
 	{
 		//第一圈放球区附近跑场
@@ -153,6 +146,14 @@ void GoGoGo()
 		{
 			CheckPosition();
 		}break;
+		case 4:
+		{
+			//射球
+		}break;
+		case 5:
+		{
+			RunCamera();
+		}break;
 	}
 }
 
@@ -167,27 +168,33 @@ int FirstRound(float speed)
 {
 	int ret = 0;	//返回值
 	static int state = 1;
-
 		switch(state)
 		{
+			//右边，目标角度0度
 			case 1:
 			{
-				StaightCLose(g_plan * (275 + WIDTH/2 + 100),0,0,FIRST_SPEED);
+				StaightCLose((275 + WIDTH/2 + 100),0,0,FIRST_SPEED);
 				if(Position_t.Y >= 3100 + WIDTH/2 - FIR_ADV)
 					state = 2;
 			}break;
+			
+			//上边，目标角度90度
 			case 2:
 			{
 				StaightCLose(0,3100 + WIDTH/2 + 100,90,FIRST_SPEED);
 				if(Position_t.X <= -275 - WIDTH/2 + FIR_ADV)
 					state = 3;
 			}break;
+			
+			//左边，目标角度180度
 			case 3:
 			{
-				StaightCLose(g_plan * (-275 - WIDTH/2 - 150),0,180,FIRST_SPEED);
+				StaightCLose((-275 - WIDTH/2 - 150),0,180,FIRST_SPEED);
 				if(Position_t.Y <= 1700 - WIDTH/2 + FIR_ADV - 300)
 					state = 4;
 			}break;
+			
+			//下边，目标角度-90度
 			case 4:
 			{
 				StaightCLose(0,1700 - WIDTH/2 - 100,-90,RUN_SPEED);
@@ -243,7 +250,7 @@ bool	RunRectangle(int length,int wide,float speed)
 		{
 			if(Position_t.Y >= 3100 + length - ADV_TUEN)
 				state = 2;
-			StaightCLose(275+wide,0,0,speed);
+			StaightCLose(275 + wide,0,0,speed);
 		}break;
 		
 		//长方形上边，目标角度90度
@@ -251,7 +258,7 @@ bool	RunRectangle(int length,int wide,float speed)
 		{
 			if(Position_t.X <= -275 - wide + ADV_TUEN)
 				state = 3;
-			StaightCLose(0,3100+length,90,speed);
+			StaightCLose(0,3100 + length,90,speed);
 		}break;
 		
 		//长方形左边，目标角度180度
@@ -285,4 +292,33 @@ void CheckPosition()
 {
 	VelCrl(CAN1, 1, 0);
 	VelCrl(CAN1, 2, 0);
+}
+
+/*======================================================================================
+函数定义		：			利用摄像头跑场
+函数参数		：			无
+函数返回值	：			无
+=======================================================================================*/
+void	RunCamera()
+{
+	if(g_camera == 2)
+	{
+		VelCrl(CAN1, 1,  500*SP2PULSE);
+		VelCrl(CAN1, 2, -500*SP2PULSE);
+	}
+	else if(g_camera == 1)
+	{
+		VelCrl(CAN1, 1,  500*SP2PULSE - 200);
+		VelCrl(CAN1, 2, -500*SP2PULSE + 200);
+	}
+	else if(g_camera == 3)
+	{
+		VelCrl(CAN1, 1,  500*SP2PULSE + 200);
+		VelCrl(CAN1, 2, -500*SP2PULSE - 200);
+	}
+	else
+	{
+		VelCrl(CAN1, 1,  200*SP2PULSE);
+		VelCrl(CAN1, 2, -200*SP2PULSE);
+	}
 }
