@@ -28,7 +28,7 @@ extern int g_plan;
 int IfStart()
 {
 	
-	if(Get_Adc_Average(RIGHT_LASER,30) < 500)			//右侧激光触发
+	if(Get_Adc_Average(RIGHT_LASER,30) < 500)				//右侧激光触发
 		return 1;
 	else if(Get_Adc_Average(LEFT_LASER,30) < 500)		//左侧激光触发
 		return -1;
@@ -65,7 +65,7 @@ float Piont2Straight(float aimx,float aimy,float angle)
 函数定义	：		直线闭环
 函数参数	：		直线上一点x，y坐标，直线角度，速度(mm)
 函数返回值：		无
-(fabs 为取float型变量的绝对值)
+(fabs 为取float型变量的绝对值)  PID的值需调节
 =======================================================================================*/
 void StaightCLose(float aimx,float aimy,float angle,float speed)
 {
@@ -103,13 +103,13 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 		//计算脉冲
 		if(speed >= 0)
 		{
-			VelCrl(CAN1,1,  (int)(speed * SP2PULSE) + Ainput + Dinput);
-			VelCrl(CAN1,2, -(int)(speed * SP2PULSE) + Ainput + Dinput);
+			VelCrl(CAN1,1,  (int)(speed * SP2PULSE) + g_plan * (Ainput + Dinput));
+			VelCrl(CAN1,2, -(int)(speed * SP2PULSE) + g_plan * (Ainput + Dinput));
 		}
 		else
 		{
-			VelCrl(CAN1,1,  (int)(speed * SP2PULSE) + Ainput - Dinput);
-			VelCrl(CAN1,2, -(int)(speed * SP2PULSE) + Ainput - Dinput);
+			VelCrl(CAN1,1,  (int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
+			VelCrl(CAN1,2, -(int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
 		}
 }
 
@@ -120,8 +120,8 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 =======================================================================================*/
 void GoGoGo()
 {
-	static int state = 1;							//应该执行的状态
-	static int length = 0,wide = 0;		//长方形跑场参数
+	static int state = 1;													//应该执行的状态
+	static int length = WIDTH/2,wide = WIDTH/2;		//长方形跑场参数
 	switch(state)
 	{
 		//第一圈放球区附近跑场
@@ -167,27 +167,33 @@ int FirstRound(float speed)
 {
 	int ret = 0;	//返回值
 	static int state = 1;
-
 		switch(state)
 		{
+			//右边，目标角度0度
 			case 1:
 			{
-				StaightCLose(g_plan * (275 + WIDTH/2 + 100),0,0,FIRST_SPEED);
+				StaightCLose((275 + WIDTH/2 + 100),0,0,FIRST_SPEED);
 				if(Position_t.Y >= 3100 + WIDTH/2 - FIR_ADV)
 					state = 2;
 			}break;
+			
+			//上边，目标角度90度
 			case 2:
 			{
 				StaightCLose(0,3100 + WIDTH/2 + 100,90,FIRST_SPEED);
 				if(Position_t.X <= -275 - WIDTH/2 + FIR_ADV)
 					state = 3;
 			}break;
+			
+			//左边，目标角度180度
 			case 3:
 			{
-				StaightCLose(g_plan * (-275 - WIDTH/2 - 150),0,180,FIRST_SPEED);
+				StaightCLose((-275 - WIDTH/2 - 150),0,180,FIRST_SPEED);
 				if(Position_t.Y <= 1700 - WIDTH/2 + FIR_ADV - 300)
 					state = 4;
 			}break;
+			
+			//下边，目标角度-90度
 			case 4:
 			{
 				StaightCLose(0,1700 - WIDTH/2 - 100,-90,RUN_SPEED);
@@ -243,7 +249,7 @@ bool	RunRectangle(int length,int wide,float speed)
 		{
 			if(Position_t.Y >= 3100 + length - ADV_TUEN)
 				state = 2;
-			StaightCLose(275+wide,0,0,speed);
+			StaightCLose(275 + wide,0,0,speed);
 		}break;
 		
 		//长方形上边，目标角度90度
@@ -251,7 +257,7 @@ bool	RunRectangle(int length,int wide,float speed)
 		{
 			if(Position_t.X <= -275 - wide + ADV_TUEN)
 				state = 3;
-			StaightCLose(0,3100+length,90,speed);
+			StaightCLose(0,3100 + length,90,speed);
 		}break;
 		
 		//长方形左边，目标角度180度

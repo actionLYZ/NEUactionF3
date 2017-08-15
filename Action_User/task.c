@@ -105,7 +105,7 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		USART_OUT(USART1,(uint8_t*) "x:%d\ty:%d\tangle:%d\tcamera:%d\t\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,g_camera);
+		USART_OUT(USART1,(uint8_t*) "%d\t%d\%d\t\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 		
 		if(IfStuck() == 1) ifEscape = 1;
 		if(ifEscape)
