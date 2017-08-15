@@ -60,6 +60,7 @@ float Piont2Straight(float aimx,float aimy,float angle)
 	
 	return dis;
 }
+
 /*======================================================================================
 函数定义	：		直线闭环
 函数参数	：		直线上一点x，y坐标，直线角度，速度(mm)
@@ -111,6 +112,7 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 			VelCrl(CAN1,2, -(int)(speed * SP2PULSE) + Ainput - Dinput);
 		}
 }
+
 /*======================================================================================
 函数定义	：		开始跑场
 函数参数	：		方案：暂定1为逆时针(右侧激光触发)，-1为顺时针(左侧激光触发)
@@ -118,26 +120,47 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 =======================================================================================*/
 void GoGoGo()
 {
-	static int state = 1;//应该执行的状态
+	static int state = 1;							//应该执行的状态
+	static int length = 0,wide = 0;		//长方形跑场参数
 	switch(state)
 	{
+		//第一圈放球区附近跑场
 		case 1:
 		{
 			if(FirstRound(FIRST_SPEED) == 1)
+			{
+				length += SPREAD_DIS;				//初始化长方形跑场参数
+				wide	 += SPREAD_DIS;
 				state = 2;
+			}
 		}break;
+		
+		//向外扩散扫场
 		case 2:
 		{
-			VelCrl(CAN1, 1, 0);
-			VelCrl(CAN1, 2, 0);
+			if(RunRectangle(length,wide,RUN_SPEED))
+			{
+				length += SPREAD_DIS;				//逐渐增加长方形跑场参数
+				wide	 += SPREAD_DIS;
+				if(length >= 1700 - WIDTH) length = 1700 - WIDTH;
+			}
+			if(length >= 1700 - WIDTH && wide >= 2125 - WIDTH)
+				state = 3;
+		}break;
+		
+		//进行坐标校正
+		case 3:
+		{
+			CheckPosition();
 		}break;
 	}
 }
 
 /*======================================================================================
-函数定义	：				第一圈
-函数参数	：				plan:方案，speed:速度(mm)
-函数返回值：				0未结束，1第一圈结束
+函数定义		：			第一圈
+函数参数		：			plan:方案，speed:速度(mm)
+函数返回值	：			0未结束，1第一圈结束
+用时				：			未测算
 (WIDTH为小车宽度)
 =======================================================================================*/
 int FirstRound(float speed)
@@ -176,3 +199,90 @@ int FirstRound(float speed)
 	return ret;
 }
 
+/*======================================================================================
+函数定义		：			判断小车是否卡住不动，
+函数参数		：			判断卡住时长(s)
+函数返回值	：			false 未卡住，true卡住了
+=======================================================================================*/
+bool IfStuck()
+{
+	static int count = 0;
+	static int lx = 0,ly = 0;	//记录上一次的坐标
+	if((int)Position_t.X == lx && (int)Position_t.Y == ly)
+	{
+		count++;
+		if(count >= 100 * STUCK_TIME)
+		{
+			count = 0;
+			return true;					//卡住了
+		}
+	}
+	else count = 0;
+	
+	//保存上一次坐标
+	lx = (int)Position_t.X;
+	ly = (int)Position_t.Y;
+	return false;
+}
+
+/*======================================================================================
+函数定义		：			长方形扫场
+函数参数		：			length	:小车中线与放球区y=y1的距离
+										wide		:小车中线与放球区x=x1的距离
+										speed		:速度
+函数返回值	：			true扫场结束,false未结束
+暂时未加入x的镜像对称
+=======================================================================================*/
+bool	RunRectangle(int length,int wide,float speed)
+{
+	static int state = 1;
+	switch(state)
+	{
+		//长方形右边，目标角度0度
+		case 1:
+		{
+			if(Position_t.Y >= 3100 + length - ADV_TUEN)
+				state = 2;
+			StaightCLose(275+wide,0,0,speed);
+		}break;
+		
+		//长方形上边，目标角度90度
+		case 2:
+		{
+			if(Position_t.X <= -275 - wide + ADV_TUEN)
+				state = 3;
+			StaightCLose(0,3100+length,90,speed);
+		}break;
+		
+		//长方形左边，目标角度180度
+		case 3:
+		{
+			if(Position_t.Y <= 1700 - wide + ADV_TUEN)
+				state = 4;
+			StaightCLose(-275 - wide,0,180,speed);
+		}break;
+		
+		//长方形下边，目标角度-90度
+		case 4:
+		{
+			if(Position_t.X >= 275 + wide - ADV_TUEN)
+			{
+				state = 1;
+				return true;
+			}
+			StaightCLose(0,1700 - length,-90,speed);
+		}break;
+	}
+	return false;
+}
+
+/*======================================================================================
+函数定义		：			坐标校正
+函数参数		：			无
+函数返回值	：			无
+=======================================================================================*/
+void CheckPosition()
+{
+	VelCrl(CAN1, 1, 0);
+	VelCrl(CAN1, 2, 0);
+}
