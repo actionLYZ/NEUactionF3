@@ -1,0 +1,10 @@
+diff a/MDK-ARM/STM32F407-ACTION.uvprojx b/MDK-ARM/STM32F407-ACTION.uvprojx	(rejected hunks)
+@@ -335,7 +335,7 @@
+               <MiscControls></MiscControls>
+               <Define></Define>
+               <Undefine></Undefine>
+-              <IncludePath>..\Libraries\CMSIS;..\Libraries\CMSIS\startup;..\Action_User;..\uCOS-ii\Port;..\uCOS-ii\Source;..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\Action_User</IncludePath>
++              <IncludePath>..\Libraries\CMSIS;..\Libraries\CMSIS\startup;..\Action_User;..\uCOS-ii\Port;..\uCOS-ii\Source;..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\Action_User;..\User</IncludePath>
+             </VariousControls>
+           </Cads>
+           <Aads>

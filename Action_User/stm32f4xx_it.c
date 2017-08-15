@@ -355,21 +355,21 @@ void UART5_IRQHandler(void)
 		g_camera = USART_ReceiveData(UART5);
 		USART_ClearITPendingBit(UART5, USART_IT_RXNE);
 	}
-//	else
-//	{
-//		USART_ClearITPendingBit(UART5, USART_IT_PE);
-//		USART_ClearITPendingBit(UART5, USART_IT_TXE);
-//		USART_ClearITPendingBit(UART5, USART_IT_TC);
-//		USART_ClearITPendingBit(UART5, USART_IT_ORE_RX);
-//		USART_ClearITPendingBit(UART5, USART_IT_IDLE);
-//		USART_ClearITPendingBit(UART5, USART_IT_LBD);
-//		USART_ClearITPendingBit(UART5, USART_IT_CTS);
-//		USART_ClearITPendingBit(UART5, USART_IT_ERR);
-//		USART_ClearITPendingBit(UART5, USART_IT_ORE_ER);
-//		USART_ClearITPendingBit(UART5, USART_IT_NE);
-//		USART_ClearITPendingBit(UART5, USART_IT_FE);
-//		USART_ReceiveData(UART5);
-//	}
+	else			//清除一些标志位
+	{
+		USART_ClearITPendingBit(UART5, USART_IT_PE);
+		USART_ClearITPendingBit(UART5, USART_IT_TXE);
+		USART_ClearITPendingBit(UART5, USART_IT_TC);
+		USART_ClearITPendingBit(UART5, USART_IT_ORE_RX);
+		USART_ClearITPendingBit(UART5, USART_IT_IDLE);
+		USART_ClearITPendingBit(UART5, USART_IT_LBD);
+		USART_ClearITPendingBit(UART5, USART_IT_CTS);
+		USART_ClearITPendingBit(UART5, USART_IT_ERR);
+		USART_ClearITPendingBit(UART5, USART_IT_ORE_ER);
+		USART_ClearITPendingBit(UART5, USART_IT_NE);
+		USART_ClearITPendingBit(UART5, USART_IT_FE);
+		USART_ReceiveData(UART5);
+	}
 	OSIntExit();
 }
 

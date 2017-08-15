@@ -434,6 +434,11 @@
               <FileType>1</FileType>
               <FilePath>..\User\wan.c</FilePath>
             </File>
+            <File>
+              <FileName>c0.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\c0.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
