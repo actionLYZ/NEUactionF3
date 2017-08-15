@@ -44,7 +44,7 @@
 /*            Cortex-M4 Processor Exceptions Handlers                         */
 /******************************************************************************/
 
-extern POSITION_T Position_t;	//定位系统
+extern POSITION_T Position_t;			//定位系统
 extern int g_plan;								//跑场方案（顺逆时针）
 
 void CAN1_RX0_IRQHandler(void)
@@ -302,8 +302,8 @@ void USART3_IRQHandler(void) //更新频率200Hz
 			{
 					//获取当前坐标
 				getPosition_t.angle = posture.ActVal[0];
-				getPosition_t.X = posture.ActVal[3];
-				getPosition_t.Y = posture.ActVal[4];
+				getPosition_t.X 		= posture.ActVal[3];
+				getPosition_t.Y 		= posture.ActVal[4];
 				
 				//计算实际坐标,角度与x坐标镜像对称
 				Position_t.angle 	= g_plan * getPosition_t.angle;	

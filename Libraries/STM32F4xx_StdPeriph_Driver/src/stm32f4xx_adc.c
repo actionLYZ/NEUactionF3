@@ -1798,7 +1798,7 @@ void BEEP_Init(void)
 {   
   GPIO_InitTypeDef  GPIO_InitStructure;
 
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);//使能GPIOF时钟
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);//使能GPIOE时钟
   
   //初始化蜂鸣器对应引脚GPIOF8
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
@@ -1808,7 +1808,7 @@ void BEEP_Init(void)
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;//下拉
   GPIO_Init(GPIOE, &GPIO_InitStructure);//初始化GPIO
 	
-  GPIO_ResetBits(GPIOF,GPIO_Pin_7);  //蜂鸣器对应引脚GPIOF8拉低， 
+  GPIO_ResetBits(GPIOE,GPIO_Pin_7);  //蜂鸣器对应引脚GPIOE7拉低， 
 }
 
 
