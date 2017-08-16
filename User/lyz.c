@@ -23,8 +23,8 @@ extern int g_camera;
 函数定义	：		通过激光判断是否开始
 函数参数	：		无
 函数返回值：		0	:为激光未触发
-								1	:为右侧激光触发,逆时针
-								-1:为左侧激光触发,顺时针
+				    1	:为右侧激光触发,逆时针
+				   -1   :为左侧激光触发,顺时针
 =======================================================================================*/
 int IfStart()
 {
@@ -40,12 +40,12 @@ int IfStart()
 /*======================================================================================
 函数定义	：		计算点到直线的距离
 函数参数	：		直线上一点x，y坐标，直线角度
-函数返回值：		返回距离值
+函数返回值  ：		返回距离值
 =======================================================================================*/
 float Piont2Straight(float aimx,float aimy,float angle)
 {
 	float dis;	//返回值
-	float k;		//斜率
+	float k;	//斜率
 	
 	if(angle == 0)
 		dis = Position_t.X - aimx;
@@ -76,10 +76,10 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 
 		//计算距离输出
 		Ddis = Piont2Straight(aimx,aimy,angle);
-		if		 (fabs(speed) <=  500) 	Dinput = 9 * Ddis;
+		if		 (fabs(speed) <=  500) 	Dinput = 9 	* Ddis;
 		else if(fabs(speed) <= 1000) 	Dinput = 12 * Ddis;
 		else if(fabs(speed) <= 1500) 	Dinput = 15 * Ddis;
-		else 													Dinput = 18 * Ddis;
+		else 							Dinput = 18 * Ddis;
 		LDdis = Ddis;
 		
 		//计算角度输出
@@ -87,10 +87,10 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 		if(Dangle >  180)  Dangle -= 360;
 		if(Dangle < -180) Dangle += 360;
 		
-		if		 (fabs(speed) <=  500) 	Ainput = 100*Dangle;
-		else if(fabs(speed) <= 1000) 	Ainput = 160*Dangle;
-		else if(fabs(speed) <= 1500) 	Ainput = 250*Dangle;
-		else 													Ainput = 350*Dangle;
+		if		 (fabs(speed) <=  500) 	Ainput = 100 * Dangle;
+		else if(fabs(speed) <= 1000) 	Ainput = 160 * Dangle;
+		else if(fabs(speed) <= 1500) 	Ainput = 250 * Dangle;
+		else 							Ainput = 350 * Dangle;
 		LDangle = Dangle;
 		
 		//计算脉冲
@@ -113,7 +113,7 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 =======================================================================================*/
 void GoGoGo()
 {
-	static int state = 5;													//应该执行的状态
+	static int state = 5;							//应该执行的状态
 	static int length = WIDTH/2,wide = WIDTH/2;		//长方形跑场参数
 	switch(state)
 	{
@@ -160,8 +160,8 @@ void GoGoGo()
 /*======================================================================================
 函数定义		：			第一圈
 函数参数		：			plan:方案，speed:速度(mm)
-函数返回值	：			0未结束，1第一圈结束
-用时				：			未测算
+函数返回值	    ：			0未结束，1第一圈结束
+用时		    ：		    未测算
 (WIDTH为小车宽度)
 =======================================================================================*/
 int FirstRound(float speed)
@@ -234,10 +234,10 @@ bool IfStuck()
 
 /*======================================================================================
 函数定义		：			长方形扫场
-函数参数		：			length	:小车中线与放球区y=y1的距离
-										wide		:小车中线与放球区x=x1的距离
-										speed		:速度
-函数返回值	：			true扫场结束,false未结束
+函数参数		：			length	    :小车中线与放球区y=y1的距离
+							wide		:小车中线与放球区x=x1的距离
+							speed		:速度
+函数返回值	    ：			true扫场结束,false未结束
 暂时未加入x的镜像对称
 =======================================================================================*/
 bool	RunRectangle(int length,int wide,float speed)
@@ -305,7 +305,7 @@ void	RunCamera()
 	{
 		VelCrl(CAN1, 1,  500*SP2PULSE);
 		VelCrl(CAN1, 2, -500*SP2PULSE);
-	}
+	} 
 	else if(g_camera == 1)
 	{
 		VelCrl(CAN1, 1,  500*SP2PULSE - 200);
