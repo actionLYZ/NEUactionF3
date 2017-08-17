@@ -23,7 +23,8 @@ static OS_STK App_ConfigStk[Config_TASK_START_STK_SIZE];
 static OS_STK WalkTaskStk[Walk_TASK_STK_SIZE];
 
 /*=====================================================全局变量声明===================================================*/
-POSITION_T Position_t;		//定位系统
+POSITION_T Position_t;		//矫正的定位
+POSITION_T getPosition_t;	//获得的定位
 int g_plan = 1;						//跑场方案（顺逆时针）
 int g_camera = 0;					//摄像头收到的数
 
@@ -78,7 +79,7 @@ void ConfigTask(void)
 	delay_ms(2000);
 
 	//等待定位系统
-		//delay_s(10);
+		delay_s(10);
 		
 	//配置电基速度
 	//VelCrl(CAN1, 1, 5552);
@@ -92,7 +93,6 @@ void WalkTask(void)
 	CPU_INT08U os_err;
 	os_err = os_err;
 	
-	int plan;							//执行方案
 	int ifEscape = 0;			//是否执行逃逸函数
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
 	
@@ -105,7 +105,7 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		USART_OUT(USART1,(uint8_t*) "%d\t%d\t%d\t%d\t\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,g_camera);
+		USART_OUT(USART1,(uint8_t*) "%d\t%d\t%d\t\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 		if(IfStuck() == 1) ifEscape = 1;
 		if(ifEscape)
 		{

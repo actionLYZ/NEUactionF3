@@ -44,8 +44,10 @@
 /*            Cortex-M4 Processor Exceptions Handlers                         */
 /******************************************************************************/
 
-extern POSITION_T Position_t;			//定位系统
+extern POSITION_T Position_t;			//校正后定位
+extern POSITION_T getPosition_t;	//获得的定位
 extern int g_plan;								//跑场方案（顺逆时针）
+extern float angleError,xError,yError;
 
 void CAN1_RX0_IRQHandler(void)
 {
@@ -241,7 +243,6 @@ void USART2_IRQHandler(void)
 //定位系统
 void USART3_IRQHandler(void) //更新频率200Hz
 {
-	POSITION_T getPosition_t;
 	static uint8_t ch;
 	static union {
 		uint8_t data[24];
@@ -305,12 +306,24 @@ void USART3_IRQHandler(void) //更新频率200Hz
 				getPosition_t.X 		= posture.ActVal[3];
 				getPosition_t.Y 		= posture.ActVal[4];
 				
-				//计算实际坐标,角度与x坐标镜像对称
-				Position_t.angle 	= g_plan * getPosition_t.angle;	
+				//计算角度误差
+				Position_t.angle = getPosition_t.angle - angleError;
 				if(Position_t.angle > 	180)  Position_t.angle -= 360;
 				if(Position_t.angle <= -180) 	Position_t.angle += 360;
-				Position_t.X			=	g_plan * getPosition_t.X;		
-				Position_t.Y			=	getPosition_t.Y;
+				
+				//旋转坐标系
+				Position_t.X = getPosition_t.X * cos(Angel2PI(angleError)) - tempy*sin(Angel2PI(angleError));
+				Position_t.Y = getPosition_t.Y * cos(Angel2PI(angleError)) + tempx*sin(Angel2PI(angleError));
+				
+				//平移坐标系
+				Position_t.X -= xError;
+				Position_t.Y -= yError;
+				
+				//计算,角度与x坐标镜像对称
+				Position_t.angle 	*= g_plan;	
+				Position_t.X			*= g_plan;
+				if(Position_t.angle > 	180)  Position_t.angle -= 360;
+				if(Position_t.angle <= -180) 	Position_t.angle += 360;
 				
 			}
 			count = 0;
