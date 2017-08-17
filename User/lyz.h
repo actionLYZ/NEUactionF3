@@ -14,14 +14,15 @@ void	CheckPosition(void);																							//坐标校正
 void	RunCamera(void);																									//利用摄像头跑场
 bool	LaserCheck(void);																									//激光矫正,矫正成功返回true,不成功返回false
 float Angel2PI(float angel);																						//将角度转换为PI
+void InputArr(char[],unsigned char[],int);								//输出两个数组
 
 /*=====================================================宏定义区域===================================================*/
 #define STUCK_TIME		0.8						//判断卡住时长(s)
 #define FIRST_SPEED 	1000 					//第一圈速度
 #define RUN_SPEED			1500					//正常跑场速度
 #define FIR_ADV				700						//first_advance:第一圈提前量
-#define ADV_TUEN 			1000					//提前变向距离
-#define SPREAD_DIS		500						//扩散距离（每圈边长增大距离）
+#define ADV_TUEN 			1200					//提前变向距离
+#define SPREAD_DIS		400						//扩散距离（每圈边长增大距离）
 #define RIGHT_LASER		14						//右侧激光信道
 #define LEFT_LASER		15						//左侧激光信道
 #define SP2PULSE			12.207				//速度转换为脉冲值

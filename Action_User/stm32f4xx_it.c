@@ -48,6 +48,9 @@ extern POSITION_T Position_t;			//校正后定位
 extern POSITION_T getPosition_t;	//获得的定位
 extern int g_plan;								//跑场方案（顺逆时针）
 extern float angleError,xError,yError;
+extern char arr1[20];
+extern unsigned char arr2[20];
+extern int arr_number;
 
 void CAN1_RX0_IRQHandler(void)
 {
@@ -312,8 +315,8 @@ void USART3_IRQHandler(void) //更新频率200Hz
 				if(Position_t.angle <= -180) 	Position_t.angle += 360;
 				
 				//旋转坐标系
-				Position_t.X = getPosition_t.X * cos(Angel2PI(angleError)) - tempy*sin(Angel2PI(angleError));
-				Position_t.Y = getPosition_t.Y * cos(Angel2PI(angleError)) + tempx*sin(Angel2PI(angleError));
+				Position_t.X = getPosition_t.X * cos(Angel2PI(angleError)) - getPosition_t.Y*sin(Angel2PI(angleError));
+				Position_t.Y = getPosition_t.Y * cos(Angel2PI(angleError)) + getPosition_t.X*sin(Angel2PI(angleError));
 				
 				//平移坐标系
 				Position_t.X -= xError;
@@ -361,10 +364,39 @@ void UART5_IRQHandler(void)
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
-
+	static bool c2u = 0;
 	if (USART_GetITStatus(UART5, USART_IT_RXNE) == SET)
 	{
 		g_camera = USART_ReceiveData(UART5);
+		switch(g_camera)
+		{
+			case 0xC8:
+			{
+				arr_number = 0;
+			}break;
+			case 0xC9:
+			{
+				InputArr(arr1,arr2,arr_number);
+			}break;
+			default:
+			{
+				if(c2u == 0)
+				{
+					arr1[arr_number] = g_camera;
+					c2u = 1;
+				}
+				else
+				{
+					arr2[arr_number] = g_camera;
+					c2u = 0;
+					arr_number++;
+				}
+			}break;
+		}
+		
+		
+		
+		
 		USART_ClearITPendingBit(UART5, USART_IT_RXNE);
 	}
 	else			//清除一些标志位

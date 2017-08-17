@@ -27,6 +27,9 @@ POSITION_T Position_t;		//矫正的定位
 POSITION_T getPosition_t;	//获得的定位
 int g_plan = 1;						//跑场方案（顺逆时针）
 int g_camera = 0;					//摄像头收到的数
+char arr1[20];
+unsigned char arr2[20];
+int arr_number;
 
 void App_Task()
 {
@@ -92,7 +95,6 @@ void WalkTask(void)
 {
 	CPU_INT08U os_err;
 	os_err = os_err;
-	
 	int ifEscape = 0;			//是否执行逃逸函数
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
 	

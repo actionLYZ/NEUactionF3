@@ -16,6 +16,9 @@ extern POSITION_T getPosition_t;	//获得的定位
 extern int g_plan;
 extern int g_camera;
 float angleError = 0,xError = 0,yError = 0;
+extern char arr1[20];
+extern unsigned char arr2[20];
+extern int arr_number;
 
 /*================================================函数定义区==============================================*/
 
@@ -249,7 +252,7 @@ bool IfStuck2()
 	{
 		USART_OUT(USART1,(uint8_t*) "count:%d\t",count);
 		count++;
-		if(count >= 100 * (STUCK_TIME - 0.3))	//卡住了
+		if(count >= 100 * (STUCK_TIME - 0.3))	//卡住了  这里-0.3是防止程序进入逃逸模式
 		{
 			count = 0;
 			return true;
@@ -455,4 +458,19 @@ float Angel2PI(float angel)
 	float res;
 	res = PI*(angel) / 180;
 	return res;
+}
+
+/*======================================================================================
+
+只是帮梁晨测试个程序
+
+=======================================================================================*/
+void InputArr(char arr[],unsigned char uarr[],int number)
+{
+	for(int i = 0;i<number;i++)
+	{
+		USART_OUT(USART1,(uint8_t*) "arr1:%d\t",(int)arr[i]);
+		USART_OUT(USART1,(uint8_t*) "arr2:%d\t",(int)uarr[i]);
+	}
+	USART_OUT(USART1,(uint8_t*) "\r\n");
 }
