@@ -20,7 +20,7 @@ float Angel2PI(float angel);																						//将角度转换为PI
 #define FIRST_SPEED 	1000 					//第一圈速度
 #define RUN_SPEED			1500					//正常跑场速度
 #define FIR_ADV				700						//first_advance:第一圈提前量
-#define ADV_TUEN 			1400					//提前变向距离
+#define ADV_TUEN 			1000					//提前变向距离
 #define SPREAD_DIS		500						//扩散距离（每圈边长增大距离）
 #define RIGHT_LASER		14						//右侧激光信道
 #define LEFT_LASER		15						//左侧激光信道

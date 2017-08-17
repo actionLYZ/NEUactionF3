@@ -322,8 +322,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 				//计算,角度与x坐标镜像对称
 				Position_t.angle 	*= g_plan;	
 				Position_t.X			*= g_plan;
-				if(Position_t.angle > 	180)  Position_t.angle -= 360;
-				if(Position_t.angle <= -180) 	Position_t.angle += 360;
+				if(Position_t.angle == -180) Position_t.angle = 180;
 				
 			}
 			count = 0;

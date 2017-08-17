@@ -200,7 +200,7 @@ bool FirstRound(float speed)
 			case 4:
 			{
 				StaightCLose(0,1700 - WIDTH/2 - 100,-90,RUN_SPEED);
-				if(Position_t.X >= 275 + WIDTH/2)
+				if(Position_t.X >= 275 + WIDTH/2 - FIR_ADV)
 				return true;
 			}break;
 		}
@@ -249,7 +249,7 @@ bool IfStuck2()
 	{
 		USART_OUT(USART1,(uint8_t*) "count:%d\t",count);
 		count++;
-		if(count >= 100 * STUCK_TIME)	//卡住了
+		if(count >= 100 * (STUCK_TIME - 0.3))	//卡住了
 		{
 			count = 0;
 			return true;
