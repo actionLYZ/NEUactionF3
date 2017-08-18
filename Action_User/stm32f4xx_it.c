@@ -340,8 +340,11 @@ void USART3_IRQHandler(void) //更新频率200Hz
 }
 
 
-extern int g_camera;
-
+extern uint8_t g_camera;
+extern int8_t g_cameraAng[10];
+extern uint8_t g_cameraDis[10];
+extern int8_t g_cameraFin;
+extern int8_t g_cameraNum;
 void UART5_IRQHandler(void)
 {
 
@@ -349,11 +352,44 @@ void UART5_IRQHandler(void)
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
-
+	static bool AngOrDis=0,flag=0;
 	if (USART_GetITStatus(UART5, USART_IT_RXNE) == SET)
 	{
 		g_camera = USART_ReceiveData(UART5);
+		
+		//接收到终止位，表明接收数据停止
+		if(g_camera==0xc9)
+		{
+			
+			//g_cameraFin置1表明接收完成，在传参到主函数中
+			g_cameraFin=1;
+			flag=0;
+		}
+		if(flag)
+		{
+			//接受角度数据
+			if(AngOrDis==0)
+			{
+				g_cameraAng[g_cameraNum]=g_camera;
+				AngOrDis=1;
+			}
+			
+			//接受距离数据
+			else
+			{
+				g_cameraDis[g_cameraNum]=g_camera;
+				AngOrDis=0;
+				g_cameraNum++;
+			}
+	  }
+		
+		//接受到起始位，表明下一次数据为可以接收的数据
+		if(g_camera==0xc8)
+		{
+			flag=1;
+		}
 		USART_ClearITPendingBit(UART5, USART_IT_RXNE);
+		
 	}
 	else			//清除一些标志位
 	{

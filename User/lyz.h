@@ -24,7 +24,7 @@ typedef struct position_t
 /*=====================================================宏定义区域===================================================*/
 #define RIGHT_LASER		14						//右侧激光信道
 #define LEFT_LASER		15						//左侧激光信道
-#define SP2PULSE			12.207				//速度转换为脉冲值
+#define SP2PULSE			12.207				//速度转换为脉冲值(速度mm/s)
 #define FIRST_SPEED 	1000 					//第一圈速度
 #define RUN_SPEED			1500					//正常跑场速度
 #define FIR_ADV				700						//first_advance:第一圈提前量
