@@ -49,7 +49,7 @@ float AngCamera2Gyro(float distance,float angle)
 /*======================================================================================
 函数定义	  ：		计算左中右各区域小球的数量
 函数参数	  ：		无
-                  
+备注        :     超出中间区域边界线(左8cm)(右10cm)左右，小车仍会认为小球还在中间区域             
 函数返回值  ：	  Ballnum.leftNum   左区域的球数
                   Ballnum.midNum    中间区域的球数
                   Ballnum.rightNum  右区域的球数
