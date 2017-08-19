@@ -14,7 +14,7 @@
 #include "stm32f4xx_usart.h"
 #include "lyz.h"
 #include "stm32f4xx_adc.h"
-
+#include "wan.h"
 /*=====================================================信号量定义===================================================*/
 
 OS_EXT INT8U OSCPUUsage;
@@ -108,23 +108,21 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-//		USART_OUT(USART1,(uint8_t*)"ACTION\r\n");
-//		USART_OUT(USART1,(uint8_t*)"g_cameraFin%d\r\n",g_cameraFin);
-//		USART_OUT(USART1,(uint8_t*)"g_cameraNum%d\r\n",g_cameraNum);
-		if(g_cameraFin)
-		{
-			for(j=0;j<g_cameraNum;j++)
-			{
-				USART_OUT(USART1,(uint8_t*)"Ang%d\t",g_cameraAng[j]);	 										
-				USART_OUT(USART1,(uint8_t*)"Dis%d\t",g_cameraDis[j]);
-			}
-			
-			//别忘记清零 
-			g_cameraNum=0;
-			g_cameraFin=0;
-			USART_OUT(USART1,(uint8_t*)"\r\n");
-			USART_OUT(USART1,(uint8_t*)"\r\n");
-		}
+    SeekMaxBall();
+//		if(g_cameraFin)
+//		{
+//			for(j=0;j<g_cameraNum;j++)
+//			{
+//				USART_OUT(USART1,(uint8_t*)"Ang%d\t",g_cameraAng[j]);	 										
+//				USART_OUT(USART1,(uint8_t*)"Dis%d\t",g_cameraDis[j]);
+//			}
+//			
+//			//别忘记清零 
+//			g_cameraNum=0;
+//			g_cameraFin=0;
+//			USART_OUT(USART1,(uint8_t*)"\r\n");
+//			USART_OUT(USART1,(uint8_t*)"\r\n");
+//		}
 //		USART_OUT(USART1,(uint8_t*) "%d\t%d\t\r\n",(int)g_cameraDis[0],(int)g_cameraDis[1]);
 //		if(IfStuck() == 1) ifEscape = 1;
 //		if(ifEscape)
