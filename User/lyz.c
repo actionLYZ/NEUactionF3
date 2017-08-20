@@ -9,6 +9,8 @@
 #include "stm32f4xx_adc.h"
 #include "timer.h"
 #include "moveBase.h"
+#include "stm32f4xx_it.h"
+#include "c0.h"
 
 /*==============================================全局变量声明区============================================*/
 extern POSITION_T Position_t;
@@ -26,7 +28,7 @@ extern int g_camera;
 								1	:为右侧激光触发,逆时针
 								-1:为左侧激光触发,顺时针
 =======================================================================================*/
-int IfStart()
+int IfStart(void)
 {
 	
 	if(Get_Adc_Average(RIGHT_LASER,30) < 500)				//右侧激光触发
@@ -111,9 +113,9 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 函数参数	：		方案：暂定1为逆时针(右侧激光触发)，-1为顺时针(左侧激光触发)
 函数返回值：		无
 =======================================================================================*/
-void GoGoGo()
+void GoGoGo(void)
 {
-	static int state = 5;													//应该执行的状态
+	static int state = 1;													//应该执行的状态
 	static int length = WIDTH/2,wide = WIDTH/2;		//长方形跑场参数
 	switch(state)
 	{
@@ -137,7 +139,7 @@ void GoGoGo()
 				wide	 += SPREAD_DIS;
 				if(length >= 1700 - WIDTH) length = 1700 - WIDTH;
 			}
-			if(length >= 1700 - WIDTH && wide >= 2125 - WIDTH)
+			  if(length >= 1700 - WIDTH && wide >= 2125 - WIDTH)
 				state = 3;
 		}break;
 		
@@ -164,9 +166,8 @@ void GoGoGo()
 用时				：			未测算
 (WIDTH为小车宽度)
 =======================================================================================*/
-int FirstRound(float speed)
+bool FirstRound(float speed)
 {
-	int ret = 0;	//返回值
 	static int state = 1;
 		switch(state)
 		{
@@ -199,11 +200,11 @@ int FirstRound(float speed)
 			{
 				StaightCLose(0,1700 - WIDTH/2 - 100,-90,RUN_SPEED);
 				if(Position_t.X >= 275 + WIDTH/2)
-				ret = 1;
+				return true;
 			}break;
 		}
 	
-	return ret;
+	return false;
 }
 
 /*======================================================================================
@@ -211,7 +212,7 @@ int FirstRound(float speed)
 函数参数		：			判断卡住时长(s)
 函数返回值	：			false 未卡住，true卡住了
 =======================================================================================*/
-bool IfStuck()
+bool IfStuck(void)
 {
 	static int count = 0;
 	static int lx = 0,ly = 0;	//记录上一次的坐标
@@ -288,7 +289,7 @@ bool	RunRectangle(int length,int wide,float speed)
 函数参数		：			无
 函数返回值	：			无
 =======================================================================================*/
-void CheckPosition()
+void CheckPosition(void)
 {
 	VelCrl(CAN1, 1, 0);
 	VelCrl(CAN1, 2, 0);
@@ -299,8 +300,98 @@ void CheckPosition()
 函数参数		：			无
 函数返回值	：			无
 =======================================================================================*/
-void	RunCamera()
+void	RunCamera(void)
 {
+	extern  int8_t arr1[20];
+	extern uint8_t arr2[20]; 
+	extern int go,arr_number;
+	int haveBall=0,run=0,ballAngle,trace[10][10]={0},s[10][10],stagger=0,left,right,up,down;
+	int * s0=s[0],* s1=s[1],* s2=s[2],* s3=s[3],* s4=s[4],* s5=s[5],* s6=s[6],* s7=s[7],* s8=s[8],* s9=s[9];
+	//中断里接收到数据结束位0xc9时 go置一 算出目标角度
+	if(go==1)
+	{
+		go=0;
+		if(arr_number==0)		
+		{
+			haveBall=0;
+		}
+		else 
+		{
+			haveBall=1;
+			ballAngle=AngCamera2Gyro(Closer_Point(arr1,arr2,arr_number).dis,Closer_Point(arr1,arr2,arr_number).ang);
+	//		USART_OUT(USART1,(uint8_t*) "%d\t%d\r\n",ballAngle,arr_number);
+		}			
+	}
+	
+	//到边界要拐弯了
+	if(fabs(Position_t.X)>2000||Position_t.Y<400||Position_t.Y>4400)
+	{
+		haveBall=0;
+	}
+	
+	//一环连一环 上部分是偶数则加一 下部分是奇数则加一 让stagger(错开)等于一
+	if(Position_t.X>-115&&Position_t.X<-85&&Position_t.Y<1700)
+	{
+		if(((int)(run/2)+(int)(run/2))!=run)
+		{
+			 run++;
+			 stagger=1;
+		}	
+	}
+	if(Position_t.X>-115&&Position_t.X<-85&&Position_t.Y>3100)
+	{
+		if(((int)(run/2)+(int)(run/2))==run)
+		{
+			 run++;
+		}
+	}
+	
+	//记录走过的位置（区域）
+	trace[Zoning(Position_t.X,Position_t.Y).hor][Zoning(Position_t.X,Position_t.Y).ver]=1;
+	//计算走过的路线 寻找一条错开的路线
+	if(run>0&&((int)(run/2)+(int)(run/2))==run&&stagger==1)
+	{ 
+		stagger=0;
+    change(s0,trace,0); 
+    change(s1,trace,1); 
+    change(s2,trace,2); 
+    change(s3,trace,3); 
+    change(s4,trace,4); 
+    change(s5,trace,5); 
+    change(s6,trace,6);
+		change(s7,trace,7);
+    change(s8,trace,8);
+    change(s9,trace,9);
+    left=Least_S(trace[0],trace[1],trace[2],trace[3]);
+    right=Least_S(trace[6],trace[7],trace[8],trace[9]);	
+    down=Least_H(s[0],s[1],s[2]);	
+    up=Least_H(s[7],s[8],s[9]);	
+	}
+
+  switch(haveBall)
+	{
+		case 0:
+		{
+			if(run<2)
+			{
+				First_Scan();
+			}
+      else 
+			{
+				
+			}
+	  }break;				 
+		case 1:
+	  {
+       ClLineAngle((Position_t.angle+ballAngle),800);
+		}break;
+	  default:
+		 break;
+	}	
+
+	
+	//走有最多球的地方
+	/*
 	if(g_camera == 2)
 	{
 		VelCrl(CAN1, 1,  500*SP2PULSE);
@@ -321,4 +412,5 @@ void	RunCamera()
 		VelCrl(CAN1, 1,  200*SP2PULSE);
 		VelCrl(CAN1, 2, -200*SP2PULSE);
 	}
+	*/
 }

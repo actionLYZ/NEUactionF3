@@ -54,6 +54,7 @@
 //两个轮子中心距离（单位：mm）
 #define WHEEL_TREAD (355.4f)
 
+#define PI 						3.1415926f
 
 /**
   * @}

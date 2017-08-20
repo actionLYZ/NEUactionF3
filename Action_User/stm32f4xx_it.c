@@ -43,8 +43,12 @@
 /******************************************************************************/
 /*            Cortex-M4 Processor Exceptions Handlers                         */
 /******************************************************************************/
+//定位系统
+//定位系统
 
-extern POSITION_T Position_t;			//定位系统
+
+
+POSITION_T Position_t;			//定位系统
 extern int g_plan;								//跑场方案（顺逆时针）
 
 void CAN1_RX0_IRQHandler(void)
@@ -340,11 +344,13 @@ void USART3_IRQHandler(void) //更新频率200Hz
 }
 
 
-extern int g_camera;
-
+ int8_t arr1[20];
+ uint8_t arr2[20];
+ int go,arr_number;
 void UART5_IRQHandler(void)
 {
-
+	uint8_t camera;
+	static uint8_t i=0,data=1;
 	OS_CPU_SR cpu_sr;
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
 	OSIntNesting++;
@@ -352,9 +358,35 @@ void UART5_IRQHandler(void)
 
 	if (USART_GetITStatus(UART5, USART_IT_RXNE) == SET)
 	{
-		g_camera = USART_ReceiveData(UART5);
 		USART_ClearITPendingBit(UART5, USART_IT_RXNE);
-	}
+		camera = USART_ReceiveData(UART5);
+		if(camera==0xc9)
+		{
+			go=1;i=0;
+		}
+	    if(i==1)
+		{
+			switch (data)
+			{
+				case 1:
+				{
+					arr1[arr_number] = camera;
+					data=2;
+				}break;
+				case 2:
+				{
+					arr2[arr_number] = camera;
+					data=1;
+					arr_number++;
+				}break;
+				default:
+					break;
+			}
+		}
+		if(camera==0xc8)
+		{
+			i=1;arr_number=0;
+		}
 	else			//清除一些标志位
 	{
 		USART_ClearITPendingBit(UART5, USART_IT_PE);
@@ -372,7 +404,7 @@ void UART5_IRQHandler(void)
 	}
 	OSIntExit();
 }
-
+}
 /**
   * @brief   This function handles NMI exception.
   * @param  None

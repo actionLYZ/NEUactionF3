@@ -23,7 +23,7 @@ static OS_STK App_ConfigStk[Config_TASK_START_STK_SIZE];
 static OS_STK WalkTaskStk[Walk_TASK_STK_SIZE];
 
 /*=====================================================全局变量声明===================================================*/
-POSITION_T Position_t;		//定位系统
+extern POSITION_T Position_t;			//定位系统
 int g_plan = 1;						//跑场方案（顺逆时针）
 int g_camera = 0;					//摄像头收到的数
 
@@ -78,13 +78,15 @@ void ConfigTask(void)
 	delay_ms(2000);
 
 	//等待定位系统
-		//delay_s(10);
+	delay_s(12);
 		
 	//配置电基速度
 	//VelCrl(CAN1, 1, 5552);
 	//VelCrl(CAN1, 2, -4096);
 
 }
+//增加函数声明
+int In_Or_Out(void);
 
 /*=====================================================执行函数===================================================*/
 void WalkTask(void)
@@ -92,8 +94,7 @@ void WalkTask(void)
 	CPU_INT08U os_err;
 	os_err = os_err;
 	
-	int plan;							//执行方案
-	int ifEscape = 0;			//是否执行逃逸函数
+	int ifEscape = 0,time=0;			//是否执行逃逸函数
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
 	
 	//等待激光被触发
@@ -111,11 +112,31 @@ void WalkTask(void)
 		{
 			/*
 			if(IfEscape())  ifEscape = 0;
-			逃逸函数结束返回1，未结束返回0
+			逃逸函数结束返回true，未结束返回false
 			*/
+			time++;
+			if(time<100)
+			{
+				VelCrl(CAN1, 1, -8000);
+				VelCrl(CAN1, 2, 8000);	
+			}
+			else 
+			{
+                if(!In_Or_Out())
+				{
+					VelCrl(CAN1, 1, 4000);
+					VelCrl(CAN1, 2, -10000);
+			    }
+ 		        else
+			    {
+					VelCrl(CAN1, 1, 10000);
+					VelCrl(CAN1, 2, -4000);      
+			    }	
+			}
 		}
 		else
 		{
+			time=0;
 			GoGoGo();
 		}
 	}
