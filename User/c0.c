@@ -2,7 +2,7 @@
 
 extern POSITION_T Position_t;
 extern int g_plan;
-float angleP,distantP,pid1,pid2,leadDis;//angle,co_X,co_Y,
+float angleP,distantP,pid1,pid2;//angle,co_X,co_Y,
 int	yiquan,line,SPE=0; 
 
 /*======================================================================================
@@ -147,7 +147,7 @@ void ShunClSquare(int speed,float lineLong,float beginX,float beginY)
 		{
 			 ClLine(beginX,0,0,speed);
 		}
-		if(line==1&&Position_t.Y>(beginY+lineLong-leadDis))
+		if(line==1&&Position_t.Y>(beginY+lineLong-AD_HIGH_SP))
 		{  
 			 line=2;
 		}
@@ -156,7 +156,7 @@ void ShunClSquare(int speed,float lineLong,float beginX,float beginY)
 			 ClLine(0,(beginY+lineLong),-90,speed);
 		}
 
-		if(line==2&&Position_t.X>(beginX+lineLong-leadDis))
+		if(line==2&&Position_t.X>(beginX+lineLong-AD_HIGH_SP))
 		{
 			 line=3;
 		}
@@ -165,7 +165,7 @@ void ShunClSquare(int speed,float lineLong,float beginX,float beginY)
 			 ClLine((beginX+lineLong),0,180,speed);
 		}
 
-		if(line==3&&Position_t.Y<(beginY+leadDis))
+		if(line==3&&Position_t.Y<(beginY+AD_HIGH_SP))
 		{
 			 line=4;yiquan=1;
 		}
@@ -183,7 +183,7 @@ void NiClSquare(int speed,float lineLong,float beginX,float beginY)
 		{
 			 ClLine(beginX,0,0,speed);
 		}
-		if(line==1&&Position_t.Y>(beginY+lineLong-leadDis))
+		if(line==1&&Position_t.Y>(beginY+lineLong-AD_HIGH_SP))
 		{  
 			 line=2;
 		}
@@ -192,7 +192,7 @@ void NiClSquare(int speed,float lineLong,float beginX,float beginY)
 			 ClLine(0,(beginY+lineLong),90,speed);
 		}
 
-		if(line==2&&Position_t.X<(beginX-lineLong+leadDis))
+		if(line==2&&Position_t.X<(beginX-lineLong+AD_HIGH_SP))
 		{
 			 line=3;
 		}
@@ -201,7 +201,7 @@ void NiClSquare(int speed,float lineLong,float beginX,float beginY)
 			 ClLine((beginX-lineLong),0,180,speed);
 		}
 
-		if(line==3&&Position_t.X<(beginY+leadDis))
+		if(line==3&&Position_t.X<(beginY+AD_HIGH_SP))
 		{
 			 line=4;yiquan=1;
 		}
@@ -331,8 +331,7 @@ void First_Scan(void)
 		{
 			 area=4;
 		}
-	}		 
-	
+	}		 	
 	if(g_plan==1)
 	{
     if(Position_t.X>275&&Position_t.Y<3100)
@@ -442,5 +441,46 @@ void change(int ar[10],int arr[10][10],int e)
 	for(k=0;k<10;k++)
 	{
 		ar[k] = arr[k][e];
+	}
+}
+void New_Route(int down,int right,int up,int left)
+{
+	int side=1;
+	if(side==1&&Position_t.X>(240+right*480-AD_MID_SP))
+	{
+		side=2;
+	}
+	if(side==2&&Position_t.Y>(3120+up*480-AD_MID_SP))
+	{
+		side=3;
+	}
+	if(side==3&&Position_t.X<(-2640+left*480+AD_MID_SP))
+	{
+		side=4;
+	}
+	if(side==4&&Position_t.Y<(-240+down*480+AD_MID_SP))
+	{
+		side=1;
+	}
+	switch(side)
+	{
+		case 1:
+		{
+			ClLine(0,-240+down*480,-90,800);
+		}break;
+		case 2:
+		{
+			ClLine(240+right*480,0,0,800);
+		}break;
+		case 3:
+		{
+			ClLine(0,3120+up*480,90,800);
+		}break;
+		case 4:
+		{
+			ClLine(-2640+left*480,0,180,800);
+		}break;
+		default:
+		 break;
 	}
 }

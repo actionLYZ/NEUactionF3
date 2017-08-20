@@ -305,7 +305,7 @@ void	RunCamera(void)
 	extern  int8_t arr1[20];
 	extern uint8_t arr2[20]; 
 	extern int go,arr_number;
-	int haveBall=0,run=0,ballAngle,trace[10][10]={0},s[10][10],stagger=0,left,right,up,down;
+	int haveBall=0,run=0,ballAngle,trace[10][10]={0},s[10][10],stagger=0,left=1,right=1,up=1,down=1;
 	int * s0=s[0],* s1=s[1],* s2=s[2],* s3=s[3],* s4=s[4],* s5=s[5],* s6=s[6],* s7=s[7],* s8=s[8],* s9=s[9];
 	//中断里接收到数据结束位0xc9时 go置一 算出目标角度
 	if(go==1)
@@ -352,12 +352,12 @@ void	RunCamera(void)
 	if(run>0&&((int)(run/2)+(int)(run/2))==run&&stagger==1)
 	{ 
 		stagger=0;
-    change(s0,trace,0); 
-    change(s1,trace,1); 
-    change(s2,trace,2); 
-    change(s3,trace,3); 
-    change(s4,trace,4); 
-    change(s5,trace,5); 
+    change(s0,trace,0);
+    change(s1,trace,1);
+    change(s2,trace,2);
+    change(s3,trace,3);
+    change(s4,trace,4);
+    change(s5,trace,5);
     change(s6,trace,6);
 		change(s7,trace,7);
     change(s8,trace,8);
@@ -378,7 +378,7 @@ void	RunCamera(void)
 			}
       else 
 			{
-				
+				New_Route(down,right,up,left);
 			}
 	  }break;				 
 		case 1:

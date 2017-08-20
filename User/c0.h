@@ -15,6 +15,11 @@
 #define BASKE_LOCATION_WY (2335.35f)
 #define BASKE_LOCATION_BX (275.0f)
 #define BASKE_LOCATION_BY (2335.35f)
+
+//转圈时提前量
+#define AD_MID_SP (700)
+#define AD_HIGH_SP (1000)
+
 //高度
 #define BASKE_HEIGHT (600.0f)
 #define GUN_HEIGHT (175.4f)
@@ -56,3 +61,4 @@ int In_Or_Out(void);
 int Least_H(int a1[10],int a2[10],int a3[10]);
 int Least_S(int a1[10],int a2[10],int a3[10],int a4[10]);
 void change(int ar[10],int arr[10][10],int e);
+void New_Route(int down,int right,int up,int left);
