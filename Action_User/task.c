@@ -23,13 +23,18 @@ static OS_STK App_ConfigStk[Config_TASK_START_STK_SIZE];
 static OS_STK WalkTaskStk[Walk_TASK_STK_SIZE];
 
 /*=====================================================全局变量声明===================================================*/
-POSITION_T Position_t;		         //定位系统
-int g_plan = 1;						         //跑场方案（顺逆时针）
+
 uint8_t g_camera = 0;					     //摄像头收到的数
 int8_t g_cameraAng[50]={0};        //存储摄像头接受到的角度
 uint8_t g_cameraDis[50]={0};       //存储摄像头接受到的距离
 int8_t g_cameraFin=0;              //摄像头接收到0xc9置1
 int8_t g_cameraNum=0;              //摄像头接收到的数据的个数
+
+POSITION_T Position_t;		         //矫正的定位
+POSITION_T getPosition_t;	         //获得的定位
+int g_plan = 1;						         //跑场方案（顺逆时针）
+
+
 void App_Task()
 {
 	CPU_INT08U os_err;
@@ -83,7 +88,9 @@ void ConfigTask(void)
 	VelCrl(CAN1, 1, 0);
 	VelCrl(CAN1, 2, 0);
 
+
 	OSTaskSuspend(OS_PRIO_SELF);
+
 }
 
 /*=====================================================执行函数===================================================*/
@@ -91,11 +98,13 @@ void WalkTask(void)
 {
 	CPU_INT08U os_err;
 	os_err = os_err;
+
 	delay_s(12);
 	OSSemSet(PeriodSem, 0, &os_err);
 	int j=0;
 	int plan;							                  //执行方案
 	int ifEscape = 0;			                  //是否执行逃逸函数
+
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
 	 
 	//等待激光被触发(BUG有时会进入void HardFault_Handler(void)循环中)
@@ -106,6 +115,7 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
+
 //		CollecMostBall();
 //    SeekMostBall();
 //		CollectMostBall();
@@ -124,6 +134,7 @@ void WalkTask(void)
 //			USART_OUT(USART1,(uint8_t*)"\r\n");
 //		}
 		USART_OUT(USART1,(uint8_t*) "%d\t%d\t\r\n",(int)g_cameraDis[0],(int)g_cameraDis[1]);
+
 		if(IfStuck() == 1) ifEscape = 1;
 		if(ifEscape)
 		{
