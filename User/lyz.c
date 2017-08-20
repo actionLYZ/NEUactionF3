@@ -113,7 +113,7 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 =======================================================================================*/
 void GoGoGo()
 {
-	static int state = 5;							//应该执行的状态
+	static int state = 1;							//应该执行的状态
 	static int length = WIDTH/2,wide = WIDTH/2;		//长方形跑场参数
 	switch(state)
 	{

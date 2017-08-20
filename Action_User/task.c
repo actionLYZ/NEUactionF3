@@ -78,15 +78,12 @@ void ConfigTask(void)
 	Vel_cfg(CAN1, 1, 50000, 50000);
 	Vel_cfg(CAN1, 2, 50000, 50000);
 
-//	delay_ms(2000);
+	delay_ms(2000);
+	
+	VelCrl(CAN1, 1, 0);
+	VelCrl(CAN1, 2, 0);
 
-	//等待定位系统
-		//delay_s(10);
-		
-	//配置电基速度
-	//VelCrl(CAN1, 1, 5552);
-	//VelCrl(CAN1, 2, -4096);
-
+	OSTaskSuspend(OS_PRIO_SELF);
 }
 
 /*=====================================================执行函数===================================================*/
@@ -94,6 +91,8 @@ void WalkTask(void)
 {
 	CPU_INT08U os_err;
 	os_err = os_err;
+	delay_s(12);
+	OSSemSet(PeriodSem, 0, &os_err);
 	int j=0;
 	int plan;							                  //执行方案
 	int ifEscape = 0;			                  //是否执行逃逸函数
@@ -104,7 +103,6 @@ void WalkTask(void)
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);			//关闭蜂鸣器
 	g_plan = IfStart();
 		
-	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);

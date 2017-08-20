@@ -1,0 +1,11 @@
+diff a/Action_User/stm32f4xx_it.c b/Action_User/stm32f4xx_it.c	(rejected hunks)
+@@ -48,6 +48,9 @@
+ extern POSITION_T getPosition_t;	//获得的定位
+ extern int g_plan;								//跑场方案（顺逆时针）
+ extern float angleError,xError,yError;
++extern char arr1[20];
++extern unsigned char arr2[20];
++extern int arr_number;
+ 
+ void CAN1_RX0_IRQHandler(void)
+ {
