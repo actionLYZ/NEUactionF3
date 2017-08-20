@@ -315,8 +315,9 @@ void USART3_IRQHandler(void) //更新频率200Hz
 				if(Position_t.angle <= -180) 	Position_t.angle += 360;
 				
 				//旋转坐标系
-				Position_t.X = getPosition_t.X * cos(Angel2PI(angleError)) - getPosition_t.Y*sin(Angel2PI(angleError));
-				Position_t.Y = getPosition_t.Y * cos(Angel2PI(angleError)) + getPosition_t.X*sin(Angel2PI(angleError));
+				
+				Position_t.X = getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y*sin(Angel2PI(angleError));
+				Position_t.Y = getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X*sin(Angel2PI(angleError));
 				
 				//平移坐标系
 				Position_t.X -= xError;
@@ -377,7 +378,7 @@ void UART5_IRQHandler(void)
 		if(g_camera==0xc9)
 		{
 			
-			//g_cameraFin置1表明接收完成，在传参到主函数中
+			//g_cameraFin置1表明接收完成，再传参到主函数中
 			g_cameraFin=1;
 			flag=0;
 		}

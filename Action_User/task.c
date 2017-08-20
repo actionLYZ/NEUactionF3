@@ -88,9 +88,7 @@ void ConfigTask(void)
 	VelCrl(CAN1, 1, 0);
 	VelCrl(CAN1, 2, 0);
 
-
 	OSTaskSuspend(OS_PRIO_SELF);
-
 }
 
 /*=====================================================执行函数===================================================*/
@@ -115,7 +113,7 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-
+    LaserCheck();
 //		CollecMostBall();
 //    SeekMostBall();
 //		CollectMostBall();
@@ -133,20 +131,18 @@ void WalkTask(void)
 //			USART_OUT(USART1,(uint8_t*)"\r\n");
 //			USART_OUT(USART1,(uint8_t*)"\r\n");
 //		}
-		USART_OUT(USART1,(uint8_t*) "%d\t%d\t\r\n",(int)g_cameraDis[0],(int)g_cameraDis[1]);
-
-		if(IfStuck() == 1) ifEscape = 1;
-		if(ifEscape)
-		{
-			/*
-			if(IfEscape())  ifEscape = 0;
-			逃逸函数结束返回1，未结束返回0
-			*/
-		}
-		else
-		{
-			GoGoGo();
-		}
+//		if(IfStuck() == 1) ifEscape = 1;
+//		if(ifEscape)
+//		{
+//			/*
+//			if(IfEscape())  ifEscape = 0;
+//			逃逸函数结束返回1，未结束返回0
+//			*/
+//		}
+//		else
+//		{
+//			GoGoGo();
+//		}
 	}
 }
 

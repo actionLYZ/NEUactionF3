@@ -98,7 +98,7 @@ float DisBall2Gyro(float distance,float angle)
 	return ThirdSide;
 }
 /*======================================================================================
-函数定义	  ：		计算左中右各区域小球的数量
+函数定义	  ：		计算左中右各区域小球的数量(莫名的不好用了)
 函数参数	  ：		无
 备注        :     超出中间区域边界线(左8cm)(右10cm)左右，小车仍会认为小球还在中间区域             
 函数返回值  ：	  Ballnum.leftNum   左区域的球数
@@ -157,7 +157,7 @@ BALLNUM_T SeekMostBall(void)
 	return ballNum;
 }
 /*======================================================================================
-函数定义	  ：		在球最多的区域收集球(精细化调整)
+函数定义	  ：		在球最多的区域收集球(精细化调整)(未验证)
 函数参数	  ：		无
              
 函数返回值  ：	  
@@ -214,7 +214,7 @@ void CollectMostBall(void)
 	angClose(500,aimAngle,100);
 }
 /*======================================================================================
-函数定义	  ：		在球最多的区域收集球(粗略调整角度方案)
+函数定义	  ：		在球最多的区域收集球(粗略调整角度方案)(未验证)
 函数参数	  ：		无
              
 函数返回值  ：	  
@@ -238,6 +238,19 @@ void CollecMostBall(void)
 		angleAdjust=12.5;
 	nowAngle=GetAng();
 	aimAngle=nowAngle+angleAdjust;
+	aimAngle=AvoidOverAngle(aimAngle);
 	USART_OUT(USART1,(u8*)"left%d\tmid%d\tright%d\tangleAdjust%d\tnowAngle%d\r\n",num.leftNum,num.midNum,num.rightNum,angleAdjust,nowAngle);
 	angClose(500,aimAngle,100);
+	
 }
+ /*======================================================================================
+函数定义	  ：		在球最多的区域收集球(粗略调整角度方案)(未验证)
+函数参数	  ：		无
+             
+函数返回值  ：	  
+=======================================================================================*/
+void ContinueCorrect(void)
+{
+	
+}
+	

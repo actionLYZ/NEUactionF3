@@ -226,7 +226,6 @@ bool IfStuck()
 	static int lx = 0,ly = 0;	//记录上一次的坐标
 	if((int)Position_t.X == lx && (int)Position_t.Y == ly)
 	{
-		USART_OUT(USART1,(uint8_t*) "count:%d\t",count);
 		count++;
 		if(count >= 100 * STUCK_TIME)	//卡住了
 		{
@@ -254,7 +253,6 @@ bool IfStuck2()
 	static int lx = 0,ly = 0;	//记录上一次的坐标
 	if((int)Position_t.X == lx && (int)Position_t.Y == ly)
 	{
-		USART_OUT(USART1,(uint8_t*) "count:%d\t",count);
 		count++;
 		if(count >= 100 * (STUCK_TIME - 0.3))	//卡住了  这里-0.3是防止程序进入逃逸模式
 		{
@@ -334,7 +332,7 @@ void CheckPosition()
 	count++;
 	switch(state)
 	{
-		//后退到 y = 0
+		//后退到 x = 0
 		case 1:
 		{
 			StaightCLose(0,500,-90,-500);
@@ -351,7 +349,6 @@ void CheckPosition()
 			TurnAngle(0,3000);
 			if(count >= 120)
 			{
-				USART_OUT(USART1,(uint8_t*) "case = 3\r\n");
 				tempx = Position_t.X;			//记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
 				tempy = Position_t.Y;
 				state = 3;
@@ -364,7 +361,6 @@ void CheckPosition()
 			StaightCLose(tempx,tempy,0,-800);
 			if(IfStuck2())								//到时候改成两个行程开关被触发
 			{
-				USART_OUT(USART1,(uint8_t*) "case = 4\r\n");
 				state = 4;
 			}
 		}break;
@@ -372,9 +368,11 @@ void CheckPosition()
 		//激光校正
 		case 4:
 		{
-			USART_OUT(USART1,(uint8_t*) "start check\r\n");
 			if(LaserCheck())	
+			{
 				state = 5;	//矫正成功，开始第二阶段跑场
+			  USART_OUT(USART1,(u8*)"x%d\t y%d\t angle%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+			}
 			else							
 				state = 6;	//矫正失败，继续矫正
 		}break;
@@ -450,19 +448,29 @@ void TurnAngle(float angel,int speed)
 /*======================================================================================
 函数定义		：			利用激光矫正坐标
 函数参数		：			无
-函数返回值	：			矫正成功返回true，矫正不成功记录角度与y的误差后返回false
+函数返回值	：			矫正成功返回1，失败返回0
 =======================================================================================*/
-bool	LaserCheck()
+int	LaserCheck()
 {
-	int laserGet;
-	USART_OUT(USART1,(uint8_t*) "change:\t\r\n");
-	angleError = angleError + Position_t.angle;		//纠正角度坐标
-	yError = (getPosition_t.Y*cos(Angel2PI(angleError))+getPosition_t.X*sin(Angel2PI(angleError)));
-	laserGet = Get_Adc_Average(RIGHT_LASER,20);
-	xError = (getPosition_t.X*cos(Angel2PI(angleError))-getPosition_t.Y*sin(Angel2PI(angleError)))-(2400-laserGet);//纠正X坐标
-	USART_OUT(USART1,(uint8_t*) "laserGet:%d\t\r\n",(int)laserGet);
+	int laserGetRight=0,laserGetLeft=0;
+	laserGetRight = Get_Adc_Average(RIGHT_LASER,20);
+	laserGetLeft = Get_Adc_Average(LEFT_LASER,20);
 
-	return true;
+	//如果激光被挡，返回 0 
+	if(laserGetRight+laserGetLeft<4700)
+	{
+		return 0;
+	}
+	
+	//没有被挡，返回
+	else
+	{
+		angleError = angleError + Position_t.angle;		//纠正角度坐标
+		yError = (getPosition_t.Y*cos(Angel2PI(angleError))-getPosition_t.X*sin(Angel2PI(angleError)));
+		xError = (getPosition_t.X*cos(Angel2PI(angleError))+getPosition_t.Y*sin(Angel2PI(angleError)))-(2400-laserGetRight);//纠正X坐标
+		USART_OUT(USART1,(u8*)"laserGet%d\r\n",(int)laserGetRight);
+		return 1;
+	}
 }
 
 //角度变换函数

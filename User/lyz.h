@@ -12,9 +12,9 @@ bool	RunRectangle(int length,int wide,float speed);										//长方形跑场
 void 	TurnAngle(float angel,int speed);																	//原地旋转指定角度
 void	CheckPosition(void);																							//坐标校正
 void	RunCamera(void);																									//利用摄像头跑场
-bool	LaserCheck(void);																									//激光矫正,矫正成功返回true,不成功返回false
+int	LaserCheck();																									      //激光矫正,矫正成功返回true,不成功返回false
 float Angel2PI(float angel);																						//将角度转换为PI
-void InputArr(char[],unsigned char[],int);								//输出两个数组
+void InputArr(char[],unsigned char[],int);								              //输出两个数组
 
 /*=====================================================宏定义区域===================================================*/
 #define STUCK_TIME		0.8						//判断卡住时长(s)
@@ -27,7 +27,8 @@ void InputArr(char[],unsigned char[],int);								//输出两个数组
 #define LEFT_LASER		15						//左侧激光信道
 #define SP2PULSE			12.207				//速度转换为脉冲值
 #define PI 						3.1415926
-
+#define LEFTSHELTER   -1            //左侧激光被挡
+#define RIGHTSHELTER  1             //右侧激光被挡
 /*=====================================================结构体定义===================================================*/
 
 //定位系统
