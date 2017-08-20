@@ -341,8 +341,8 @@ void USART3_IRQHandler(void) //更新频率200Hz
 
 
 extern uint8_t g_camera;
-extern int8_t g_cameraAng[10];
-extern uint8_t g_cameraDis[10];
+extern int8_t g_cameraAng[50];
+extern uint8_t g_cameraDis[50];
 extern int8_t g_cameraFin;
 extern int8_t g_cameraNum;
 void UART5_IRQHandler(void)

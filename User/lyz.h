@@ -1,15 +1,15 @@
 #include <stdbool.h>
 /*=====================================================函数定义===================================================*/
 
-int 	IfStart();														//通过激光判断是否开始
-float   Piont2Straight(float aimx,float aimy,float angle);				//计算点到直线距离
+int 	IfStart();														                        //通过激光判断是否开始
+float Piont2Straight(float aimx,float aimy,float angle);			  	  //计算点到直线距离
 void 	StaightCLose(float aimx,float aimy,float angle,float speed);	//点斜式直线闭环
-void 	GoGoGo();														//跑场
-int 	FirstRound(float speed);										//第一圈(放球区附近)
-bool 	IfStuck();														//是否卡住不动，是返回true，不是返回false
-bool	RunRectangle(int length,int wide,float speed);					//长方形跑场
-void	CheckPosition();												//坐标校正
-void	RunCamera();													//利用摄像头跑场
+void 	GoGoGo();														                          //跑场
+int 	FirstRound(float speed);										                  //第一圈(放球区附近)
+bool 	IfStuck();														                        //是否卡住不动，是返回true，不是返回false
+bool	RunRectangle(int length,int wide,float speed);					      //长方形跑场
+void	CheckPosition();												                      //坐标校正
+void	RunCamera();													                        //利用摄像头跑场
 /*=====================================================结构体定义===================================================*/
 
 //定位系统

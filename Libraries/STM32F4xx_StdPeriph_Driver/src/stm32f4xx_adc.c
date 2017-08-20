@@ -323,7 +323,7 @@ void ADC_StructInit(ADC_InitTypeDef* ADC_InitStruct)
   ADC_InitStruct->ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
 
   /* Initialize the ADC_ExternalTrigConv member */
- // ADC_InitStruct->ADC_ExternalTrigConv = ADC_ExternalTrigConv_T1_CC1;
+  ADC_InitStruct->ADC_ExternalTrigConv = ADC_ExternalTrigConv_T1_CC1;
 
   /* Initialize the ADC_DataAlign member */
   ADC_InitStruct->ADC_DataAlign = ADC_DataAlign_Right;

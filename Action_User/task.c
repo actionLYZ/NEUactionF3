@@ -26,8 +26,8 @@ static OS_STK WalkTaskStk[Walk_TASK_STK_SIZE];
 POSITION_T Position_t;		         //定位系统
 int g_plan = 1;						         //跑场方案（顺逆时针）
 uint8_t g_camera = 0;					     //摄像头收到的数
-int8_t g_cameraAng[10]={0};        //存储摄像头接受到的角度
-uint8_t g_cameraDis[10]={0};       //存储摄像头接受到的距离
+int8_t g_cameraAng[50]={0};        //存储摄像头接受到的角度
+uint8_t g_cameraDis[50]={0};       //存储摄像头接受到的距离
 int8_t g_cameraFin=0;              //摄像头接收到0xc9置1
 int8_t g_cameraNum=0;              //摄像头接收到的数据的个数
 void App_Task()
@@ -78,7 +78,7 @@ void ConfigTask(void)
 	Vel_cfg(CAN1, 1, 50000, 50000);
 	Vel_cfg(CAN1, 2, 50000, 50000);
 
-	delay_ms(2000);
+//	delay_ms(2000);
 
 	//等待定位系统
 		//delay_s(10);
@@ -97,9 +97,9 @@ void WalkTask(void)
 	int j=0;
 	int plan;							                  //执行方案
 	int ifEscape = 0;			                  //是否执行逃逸函数
-	//GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
+	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
 	 
-	//等待激光被触发
+	//等待激光被触发(BUG有时会进入void HardFault_Handler(void)循环中)
 	while(IfStart() == 0)	{};
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);			//关闭蜂鸣器
 	g_plan = IfStart();
@@ -108,7 +108,9 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-    SeekMaxBall();
+//		CollecMostBall();
+//    SeekMostBall();
+//		CollectMostBall();
 //		if(g_cameraFin)
 //		{
 //			for(j=0;j<g_cameraNum;j++)
@@ -123,19 +125,19 @@ void WalkTask(void)
 //			USART_OUT(USART1,(uint8_t*)"\r\n");
 //			USART_OUT(USART1,(uint8_t*)"\r\n");
 //		}
-//		USART_OUT(USART1,(uint8_t*) "%d\t%d\t\r\n",(int)g_cameraDis[0],(int)g_cameraDis[1]);
-//		if(IfStuck() == 1) ifEscape = 1;
-//		if(ifEscape)
-//		{
-//			/*
-//			if(IfEscape())  ifEscape = 0;
-//			逃逸函数结束返回1，未结束返回0
-//			*/
-//		}
-//		else
-//		{
-//			GoGoGo();
-//		}
+		USART_OUT(USART1,(uint8_t*) "%d\t%d\t\r\n",(int)g_cameraDis[0],(int)g_cameraDis[1]);
+		if(IfStuck() == 1) ifEscape = 1;
+		if(ifEscape)
+		{
+			/*
+			if(IfEscape())  ifEscape = 0;
+			逃逸函数结束返回1，未结束返回0
+			*/
+		}
+		else
+		{
+			GoGoGo();
+		}
 	}
 }
 
