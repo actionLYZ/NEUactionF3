@@ -401,8 +401,7 @@ void	RunCamera(void)
 	extern  int8_t arr1[20];
 	extern uint8_t arr2[20]; 
 	extern int go,arr_number;
-	int haveBall=0,run=0,ballAngle,trace[10][10]={0},s[10][10],stagger=0,left=1,right=1,up=1,down=1;
-	int * s0=s[0],* s1=s[1],* s2=s[2],* s3=s[3],* s4=s[4],* s5=s[5],* s6=s[6],* s7=s[7],* s8=s[8],* s9=s[9];
+	int haveBall=0,run=0,ballAngle,traceH[10][10]={0},traceS[10][10],stagger=0,left=1,right=1,up=1,down=1;
 	//中断里接收到数据结束位0xc9时 go置一 算出目标角度
 	if(go==1)
 	{
@@ -443,28 +442,18 @@ void	RunCamera(void)
 	}
 	
 	//记录走过的位置（区域）
-	trace[Zoning(Position_t.X,Position_t.Y).hor][Zoning(Position_t.X,Position_t.Y).ver]=1;
+	traceH[Zoning(Position_t.X,Position_t.Y).hor][Zoning(Position_t.X,Position_t.Y).ver]=1;
+	traceS[Zoning(Position_t.X,Position_t.Y).ver][Zoning(Position_t.X,Position_t.Y).hor]=1;
 	//计算走过的路线 寻找一条错开的路线
 	if(run>0&&((int)(run/2)+(int)(run/2))==run&&stagger==1)
 	{ 
 		stagger=0;
-    change(s0,trace,0);
-    change(s1,trace,1);
-    change(s2,trace,2);
-    change(s3,trace,3);
-    change(s4,trace,4);
-    change(s5,trace,5);
-    change(s6,trace,6);
-		change(s7,trace,7);
-    change(s8,trace,8);
-    change(s9,trace,9);
-    left=Least_S(trace[0],trace[1],trace[2],trace[3]);
-    right=Least_S(trace[6],trace[7],trace[8],trace[9]);	
-    down=Least_H(s[0],s[1],s[2]);	
-    up=Least_H(s[7],s[8],s[9]);	
+        left=Least_S(traceH[0],traceH[1],traceH[2],traceH[3]);
+        right=Least_S(traceH[6],traceH[7],traceH[8],traceH[9]);	
+        down=Least_H(traceS[0],traceS[1],traceS[2]);	
+        up=Least_H(traceS[7],traceS[8],traceS[9]);	
 	}
-
-  switch(haveBall)
+    switch(haveBall)
 	{
 		case 0:
 		{
@@ -472,16 +461,16 @@ void	RunCamera(void)
 			{
 				First_Scan();
 			}
-      else 
+            else 
 			{
 				New_Route(down,right,up,left);
 			}
-	  }break;				 
+	    }break;				 
 		case 1:
-	  {
-       ClLineAngle((Position_t.angle+ballAngle),800);
+	    {
+            ClLineAngle((Position_t.angle+ballAngle),800);
 		}break;
-	  default:
+	    default:
 		 break;
 	}	
 }

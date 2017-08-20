@@ -23,6 +23,7 @@ float AngCamera2Gyro(float distance,float angle)
 	aimAngle=asin(distance*sin(rad)/ThirdSide);
     return RADTOANG(aimAngle);
 }
+
 //为了保证能循环
 void  GoOn (void)
 {
@@ -48,6 +49,8 @@ int SlowSpeedUp2(int topspeed)
 		}		
     return SPE;		
 }
+
+//角度PID调节
 float PidAngle(float exAngle,float actAngle)
 {
 		static float error=0,error_old=0,kp,kd=0,adAngle=0;
@@ -66,7 +69,7 @@ float PidAngle(float exAngle,float actAngle)
 		error_old=error;
 	  return adAngle ;
 }
-
+//距离PID调节
 float PidCoordinate(float ex,float act)
 {
 		static float error=0,error_old=0,kp,kd=0,ad=0;
@@ -76,7 +79,12 @@ float PidCoordinate(float ex,float act)
 		error_old=error;
 	  return ad ;
 }
-
+/*======================================================================================
+函数定义	  ：		走指定角度的直线闭环
+函数参数	  ：		lineAngle     指定的角度（以车的视角为标准）
+                  speed         小车的速度
+函数返回值  ：	  无
+=======================================================================================*/
 void ClLineAngle(float lineAngle,int speed)
 {
 	 VelCrl(CAN1, 1,(speed*COUNTS_PER_ROUND )/(WHEEL_DIAMETER*PI)+PidAngle(lineAngle,Position_t.angle));
@@ -84,7 +92,14 @@ void ClLineAngle(float lineAngle,int speed)
                      //查看PID调节量
 	 pid2=PidAngle(lineAngle,Position_t.angle);
 }
-
+/*======================================================================================
+函数定义	  ：		正方向走指定的任意直线闭环
+函数参数	  ：    aimX          直线过的定点的X坐标
+                  aimY          直线过的定点的Y坐标
+                  lineAngle     指定的角度（以车的视角为标准）
+                  speed         小车的速度
+函数返回值  ：	  无
+=======================================================================================*/
 void ClLine(float aimX,float aimY,float lineAngle,int speed)
 {
 		static double distant=0,k=0,degree=0,impulse=0;
@@ -112,6 +127,14 @@ void ClLine(float aimX,float aimY,float lineAngle,int speed)
 		pid1=PidCoordinate(0,distant);                        //查看PID调节量
 		pid2=PidAngle(lineAngle,Position_t.angle);
 }
+/*======================================================================================
+函数定义	  ：		反方向走指定的任意直线闭环（倒着走）
+函数参数	  ：    aimX          直线过的定点的X坐标
+                  aimY          直线过的定点的Y坐标
+                  lineAngle     指定的角度（以车的视角为标准）（车头指向）
+                  speed         小车的速度
+函数返回值  ：	  无
+=======================================================================================*/
 void ClLine2(float aimX,float aimY,float lineAngle,int speed)
 {
 		static double distant=0,k=0,degree=0,impulse=0;
@@ -139,8 +162,14 @@ void ClLine2(float aimX,float aimY,float lineAngle,int speed)
 		pid1=PidCoordinate(0,distant);                        //查看PID调节量
 		pid2=PidAngle(lineAngle,Position_t.angle);
 }
-
-//顺时针的正方形闭环
+/*======================================================================================
+函数定义	  ：		顺时针的正方形闭环
+函数参数	  ：    speed         小车的速度
+                  lineLong      正方形的边长
+                  beginX        正方形左下角的点的X坐标
+                  beginY        正方形左下角的点的Y坐标                       
+函数返回值  ：	  无
+=======================================================================================*/
 void ShunClSquare(int speed,float lineLong,float beginX,float beginY)
 {	  
 		if(line==1)
@@ -175,8 +204,14 @@ void ShunClSquare(int speed,float lineLong,float beginX,float beginY)
 		}
 }
 
-
-//逆时针的正方形闭环
+/*======================================================================================
+函数定义	  ：		逆时针的正方形闭环
+函数参数	  ：    speed         小车的速度
+                  lineLong      正方形的边长
+                  beginX        正方形右下角的点的X坐标
+                  beginY        正方形右下角的点的Y坐标                       
+函数返回值  ：	  无
+=======================================================================================*/
 void NiClSquare(int speed,float lineLong,float beginX,float beginY)
 {	  
 		if(line==1)
@@ -210,6 +245,13 @@ void NiClSquare(int speed,float lineLong,float beginX,float beginY)
 			 ClLine(0,beginY,-90,speed);
 		}
 }
+/*======================================================================================
+函数定义	  ：    比较三个值的大小，取最大值，返回最大值是第几个数 
+函数参数	  ：    number1        第一个数
+                  number2        第二个数
+                  number3        第三个数         
+函数返回值  ：	  mas            第几个数最大
+=======================================================================================*/
 int Mas(int number1,int number2,int number3)
 {
 	int mas;
@@ -236,6 +278,14 @@ int Mas(int number1,int number2,int number3)
   }
 	return mas;	
 }
+/*======================================================================================
+函数定义	  ：    比较四个值的大小，取最大值，返回最大值是第几个数 
+函数参数	  ：    number1        第一个数
+                  number2        第二个数
+                  number3        第三个数
+                  number4        第四个数
+函数返回值  ：	  mas            第几个数最大
+=======================================================================================*/
 int Mas2(int number1,int number2,int number3,int number4)
 {
 	int mas;
@@ -267,6 +317,13 @@ int Mas2(int number1,int number2,int number3,int number4)
   }
 	return mas;	
 }
+/*======================================================================================
+函数定义	  ：    取出最近点的角度和距离
+函数参数	  ：    a[20]          一组点的角度
+                  b[20]          一组点的距离      
+                  sum            这组数据有对应的几个点
+函数返回值  ：	  极坐标结构体（有角度和距离）
+=======================================================================================*/
 PolarCoo_t Closer_Point(int8_t a[20],uint8_t b[20],int sum)
 {
 	int z,min,q;
@@ -293,6 +350,12 @@ PolarCoo_t Closer_Point(int8_t a[20],uint8_t b[20],int sum)
 	closer.dis=b[q];
 	return closer;
 }
+/*======================================================================================
+函数定义	  ：    将场地划分成10*10的100个格子
+函数参数	  ：    X            点的X坐标
+                  Y            点的Y坐标             
+函数返回值  ：	  含有对应横竖的第几个格子的结构体
+=======================================================================================*/
 Coo_t Zoning(float X,float Y)
 {
 	Coo_t wirte;
@@ -309,6 +372,12 @@ Coo_t Zoning(float X,float Y)
 	wirte.ver=o;
 	return wirte;
 }
+/*======================================================================================
+函数定义	  ：    摄像头第一圈找球，无球时车在不同区域要走的方向
+函数参数	  ：    无
+                                      
+函数返回值  ：	  无
+=======================================================================================*/
 void First_Scan(void)
 {
 	int area;
@@ -374,21 +443,33 @@ void First_Scan(void)
 		 break;
    }								
 }
+/*======================================================================================
+函数定义	  ：    将场地分成内外，用于逃逸
+函数参数	  ：    无
+
+函数返回值  ：	  0代表内圈 1代表外圈（以逆时针看，顺时针倒过来）
+=======================================================================================*/
 int In_Or_Out(void)
 {   
    //将正方形区域分成内外两部分
    if(Position_t.X>-1200&&Position_t.X<1200&&Position_t.Y>1200&&Position_t.Y<3600)
    { 
-	 if(g_plan==-1) return 1;
-	 if(g_plan==1)  return 0;			  
+	    if(g_plan==-1) return 1;
+	    if(g_plan==1)  return 0;			  
    }
    else 
    {
-	 if(g_plan==-1) return 0;
-	 if(g_plan==1)  return 1;	
-   }	
+	    if(g_plan==-1) return 0;
+	    if(g_plan==1)  return 1;	
+   } 
 }
-
+/*======================================================================================
+函数定义	  ：    比较三个数组谁含有的0多
+函数参数	  ：    a1[10]        第一个数组
+                  a2[10]        第二个数组
+                  a3[10]        第三个数组            
+函数返回值  ：	  c             含有最多0的是第几个数组
+=======================================================================================*/
 int Least_H(int a1[10],int a2[10],int a3[10])
 {
   int i,b1=0,b2=0,b3=0,c;
@@ -410,6 +491,14 @@ int Least_H(int a1[10],int a2[10],int a3[10])
 	c=Mas(b1,b2,b3);
 	return c;
 }
+/*======================================================================================
+函数定义	  ：    比较四个数组谁含有的0多
+函数参数	  ：    a1[10]        第一个数组
+                  a2[10]        第二个数组
+                  a3[10]        第三个数组  
+                  a4[10]        第四个数组
+函数返回值  ：	  c             含有最多0的是第几个数组
+=======================================================================================*/
 int Least_S(int a1[10],int a2[10],int a3[10],int a4[10])
 {
 	int i,b1=0,b2=0,b3=0,b4=0,c;
@@ -435,14 +524,14 @@ int Least_S(int a1[10],int a2[10],int a3[10],int a4[10])
 	c=Mas2(b1,b2,b3,b4);
 	return c;	
 }	
-void change(int ar[10],int arr[10][10],int e)
-{
-	int k;
-	for(k=0;k<10;k++)
-	{
-		ar[k] = arr[k][e];
-	}
-}
+/*======================================================================================
+函数定义	  ：    更新路线，走之前没怎么走过的(顺时针)
+函数参数	  ：    down          正方形下面三条线中哪条是要走的
+                  right         正方形右面四条线中哪条是要走的         
+                  up            正方形上面三条线中哪条是要走的   
+                  left          正方形左面四条线中哪条是要走的
+函数返回值  ：	  无
+=======================================================================================*/
 void New_Route(int down,int right,int up,int left)
 {
 	int side=1;
