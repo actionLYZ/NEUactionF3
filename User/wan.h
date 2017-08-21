@@ -17,4 +17,4 @@ BALLNUM_T SeekMostBall(void);                      //寻找最多小球的区域
 float DisBall2Gyro(float distance,float angle);    //将小球相对于摄像头的距离转换成相对于陀螺仪的距离
 void CollectMostBall(void);                        //在球最多的区域收集球
 void CollecMostBall(void);                         //2号方案粗略收集小球
-
+void RunWithCamera(void);                          //利用摄像头收集球最多的区域的小球

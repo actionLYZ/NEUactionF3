@@ -143,11 +143,10 @@ void GoGoGo()
 			{
 				length += SPREAD_DIS;				//逐渐增加长方形跑场参数
 				wide	 += SPREAD_DIS;
-				if(length >= 1700 - WIDTH - 100) length = 1700 - WIDTH - 100;
-				if(wide		>= 2125 - WIDTH - 100) wide		= 2125 - WIDTH - 100;
-				USART_OUT(USART1,(uint8_t*) "%d\t\r\n",(int)wide);
+				if(length >= 1700 - WIDTH/2 - 100) length = 1700 - WIDTH/2 - 100;
+				if(wide		>= 2125 - WIDTH/2 - 100) wide		= 2125 - WIDTH/2 - 100;
 			}
-			if(length >= 1700 - WIDTH - 100 && wide >= 2125 - WIDTH - 100)
+			if(length >= 1700 - WIDTH/2 - 100 && wide >= 2125 - WIDTH/2 - 100)
 				state = 3;
 		}break;
 
@@ -215,6 +214,58 @@ bool FirstRound(float speed)
 	return false;
 }
 
+
+/*======================================================================================
+函数定义		：			长方形扫场
+函数参数		：			length	:	小车中线与放球区y=y1的距离
+										wide		:	小车中线与放球区x=x1的距离
+										speed		:	速度
+函数返回值	    ：	true扫场结束,false未结束
+暂时未加入x的镜像对称
+=======================================================================================*/
+bool	RunRectangle(int length,int wide,float speed)
+{
+	static int state = 1;
+	switch(state)
+	{
+		//长方形右边，目标角度0度
+		case 1:
+		{
+			if(Position_t.Y >= 3100 + length - ADV_TUEN)
+				state = 2;
+			StaightCLose(275 + wide,0,0,speed);
+		}break;
+		
+		//长方形上边，目标角度90度
+		case 2:
+		{
+			if(Position_t.X <= -275 - wide + ADV_TUEN)
+				state = 3;
+			StaightCLose(0,3100 + length,90,speed);
+		}break;
+			
+		//长方形左边，目标角度180度
+		case 3:
+		{
+			if(Position_t.Y <= 1700 - length + ADV_TUEN)
+				state = 4;
+			StaightCLose(-275 - wide,0,180,speed);
+		}break;
+		
+		//长方形下边，目标角度-90度
+		case 4:
+		{
+			if(Position_t.X >= 275 + wide - ADV_TUEN)
+			{
+				state = 1;
+				return true;
+			}
+			StaightCLose(0,1700 - length,-90,speed);
+		}break;
+	}
+	return false;
+}
+
 /*======================================================================================
 函数定义		：			判断小车是否卡住不动，
 函数参数		：			无
@@ -265,57 +316,6 @@ bool IfStuck2()
 	//保存上一次坐标
 	lx = (int)Position_t.X;
 	ly = (int)Position_t.Y;
-	return false;
-}
-
-/*======================================================================================
-函数定义		：			长方形扫场
-函数参数		：			length	:	小车中线与放球区y=y1的距离
-										wide		:	小车中线与放球区x=x1的距离
-										speed		:	速度
-函数返回值	    ：	true扫场结束,false未结束
-暂时未加入x的镜像对称
-=======================================================================================*/
-bool	RunRectangle(int length,int wide,float speed)
-{
-	static int state = 1;
-	switch(state)
-	{
-		//长方形右边，目标角度0度
-		case 1:
-		{
-			if(Position_t.Y >= 3100 + length - ADV_TUEN)
-				state = 2;
-			StaightCLose(275 + wide,0,0,speed);
-		}break;
-		
-		//长方形上边，目标角度90度
-		case 2:
-		{
-			if(Position_t.X <= -275 - wide + ADV_TUEN)
-				state = 3;
-			StaightCLose(0,3100 + length,90,speed);
-		}break;
-			
-		//长方形左边，目标角度180度
-		case 3:
-		{
-			if(Position_t.Y <= 1700 - length + ADV_TUEN)
-				state = 4;
-			StaightCLose(-275 - wide,0,180,speed);
-		}break;
-		
-		//长方形下边，目标角度-90度
-		case 4:
-		{
-			if(Position_t.X >= 275 + wide - ADV_TUEN)
-			{
-				state = 1;
-				return true;
-			}
-			StaightCLose(0,1700 - length,-90,speed);
-		}break;
-	}
 	return false;
 }
 

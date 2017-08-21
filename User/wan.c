@@ -107,15 +107,18 @@ float DisBall2Gyro(float distance,float angle)
 =======================================================================================*/
 BALLNUM_T SeekMostBall(void)
 {
-  BALLNUM_T ballNum={0,0,0};
+  static BALLNUM_T ballNum={0,0,0};
 	int j=0;
 	float verDis=0;
 	
 	//g_cameraFin为1，说明接收数据完成，开始处理
 	if(g_cameraFin)
 	{
+	  ballNum.leftNum=0;
+		ballNum.midNum=0;
+		ballNum.rightNum=0;
+		
 		//消除(摄像头大约60ms更新一次数据，而主函数10ms一个周期，故摄像头更新数据前大约会返回5-7个ballNum的初始化值)
-		//BALLNUM_T ballNum={0,0,0};
 		for(j=0;j<g_cameraNum;j++)
 		{
 			//将距离单位cm转换成mm(g_cameraDis[j]*10)
@@ -145,7 +148,7 @@ BALLNUM_T SeekMostBall(void)
 			}
 		}
 		
-		//将摄像头发完数据的瞬间角度发送出去，用于调整接下来60ms车的角度
+		//将摄像头发完数据瞬间的角度发送出去，用于调整接下来60ms车的角度
 		SendAng(Position_t.angle);
 		
 		//清零
@@ -241,16 +244,176 @@ void CollecMostBall(void)
 	aimAngle=AvoidOverAngle(aimAngle);
 	USART_OUT(USART1,(u8*)"left%d\tmid%d\tright%d\tangleAdjust%d\tnowAngle%d\r\n",num.leftNum,num.midNum,num.rightNum,angleAdjust,nowAngle);
 	angClose(500,aimAngle,100);
-	
 }
- /*======================================================================================
-函数定义	  ：		在球最多的区域收集球(粗略调整角度方案)(未验证)
-函数参数	  ：		无
-             
-函数返回值  ：	  
+/*======================================================================================
+函数定义		：			第一圈(第二套方案)
+函数参数		：			plan:方案，speed:速度(mm)
+函数返回值	：			false未结束，true第一圈结束
+用时				：			未测算
+(WIDTH为小车宽度)
 =======================================================================================*/
-void ContinueCorrect(void)
+void RunWithCamera(void)
+{
+	int i=0;
+	switch(i)
+	{
+		//起步先转弯到-90°，然后i++;进入下一个状态
+		case 0:
+			angClose(500,-90,100);
+			if(fabs(Position_t.angle+90)<5)
+			{
+				i++;
+			}
+			break;
+			
+			//在-90°的角度上收集球，当Position_t.X>1800时，转弯，然后下一个角度收集球。以后的步骤类同
+		case 1:
+			CollecMostBall();
+			if(Position_t.X>1800)
+			{
+				angClose(500,0,100);
+				if(fabs(Position_t.angle)<5)
+				{
+					i++;
+				}
+			}
+			break;
+		case 2:
+			CollecMostBall();
+			if(Position_t.Y>3800)
+			{
+				angClose(500,90,100);
+				if(fabs(Position_t.angle-90)<5)
+				{
+					i++;
+				}
+			}
+			break;
+		case 3:
+			CollecMostBall();
+			if(Position_t.X<-1800)
+			{
+				angClose(500,180,100);
+				if(fabs(Position_t.angle-180)<5)
+				{
+					i++;
+				}
+			}
+			break;
+		case 4:
+			CollecMostBall();
+			if(Position_t.Y<800)
+			{
+				angClose(500,-90,100);
+				if(fabs(Position_t.angle-90)<5)
+				{
+					i=1;
+				}
+			}
+			break;
+	}
+}
+/*======================================================================================
+函数定义		：			第一圈(第二套方案)
+函数参数		：			plan:方案，speed:速度(mm)
+函数返回值	：			false未结束，true第一圈结束
+用时				：			未测算
+(WIDTH为小车宽度)
+=======================================================================================*/
+bool FirstRoundW(float speed)
+{
+	static int state = 1;
+		switch(state)
+		{
+			//右边，目标角度0度
+			case 1:
+			{
+				StaightCLose((275 + WIDTH/2 + 100),0,0,FIRST_SPEED);
+				if(Position_t.Y >= 3100 + WIDTH/2 - FIR_ADV)
+					state = 2;
+			}break;
+			
+			//上边，目标角度90度
+			case 2:
+			{
+				StaightCLose(0,3100 + WIDTH/2 + 100,90,RUN_SPEED);
+				if(Position_t.X <= -275 - WIDTH/2-SPREAD_DIS + ADV_TUEN)
+					state = 3;
+			}break;
+			
+			//左边，目标角度180度
+			case 3:
+			{
+				StaightCLose((-275 - WIDTH/2 - SPREAD_DIS),0,180,RUN_SPEED);
+				if(Position_t.Y <= 1700 - WIDTH/2-SPREAD_DIS + ADV_TUEN )
+					state = 4;
+			}break;
+			
+			//下边，目标角度-90度
+			case 4:
+			{
+				StaightCLose(0,1700 - WIDTH/2 -SPREAD_DIS,-90,RUN_SPEED);
+				if(Position_t.X >= 275 + WIDTH/2 +SPREAD_DIS- ADV_TUEN)
+				{
+				  return true;
+				}
+			}break;
+		}
+	
+	return false;
+}
+/*======================================================================================
+函数定义		：			长方形扫场(第二套长方形方案)
+函数参数		：			length	:	小车中线与放球区y=y1的距离
+										wide		:	小车中线与放球区x=x1的距离
+										speed		:	速度
+函数返回值	    ：	true扫场结束,false未结束
+暂时未加入x的镜像对称
+=======================================================================================*/
+bool	RunRectangleW(int length,int wide,float speed)
 {
 	
+	static int state = 1;
+	switch(state)
+	{
+		//长方形右边，目标角度0度
+		case 1:
+		{
+			StaightCLose(275 + wide,0,0,speed);
+			if(Position_t.Y >= 3100 + length - ADV_TUEN)
+				state = 2;
+		}break;
+		
+		//长方形上边，目标角度90度
+		case 2:
+		{
+			StaightCLose(0,3100 + length,90,speed);
+			if(wide	+ SPREAD_DIS	>= 2125 - WIDTH/2 - 100) 
+				wide		= 2125 - WIDTH/2 - SPREAD_DIS - 100;
+			if(Position_t.X <= -275 - wide-SPREAD_DIS + ADV_TUEN)
+				state = 3;
+		}break;
+			
+		//长方形左边，目标角度180度
+		case 3:
+		{
+			StaightCLose(-275 - wide-SPREAD_DIS,0,180,speed);
+			if(length + SPREAD_DIS >= 1700 - WIDTH/2 - 100)
+				length = 1700 - WIDTH/2 - SPREAD_DIS - 100;
+			if(Position_t.Y <= 1700 - length - SPREAD_DIS + ADV_TUEN)
+				state = 4;		
+		}break;
+		
+		//长方形下边，目标角度-90度
+		case 4:
+		{
+			StaightCLose(0,1700 - length - SPREAD_DIS,-90,speed);
+			if(Position_t.X >= 275 + wide + SPREAD_DIS - ADV_TUEN)
+			{
+				state = 1;
+				return true;
+			}
+		}break;
+	}
+	return false;
 }
-	
