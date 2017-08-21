@@ -155,7 +155,7 @@ void GoGoGo(void)
 		case 4:
 		{
 			//射球
-		}break;
+		}break; 
 		case 5:
 		{
 			RunCamera();
@@ -163,7 +163,9 @@ void GoGoGo(void)
 		case 6:
 		{
 			RunEdge();
-		}
+		}break;
+		default:
+		 break;
 	}
 }
 
@@ -182,7 +184,7 @@ bool FirstRound(float speed)
 			//右边，目标角度0度
 			case 1:
 			{
-				StaightCLose((275 + WIDTH/2 + 100),0,0,FIRST_SPEED);
+				StaightCLose((275 + WIDTH/2 + 100),0,0,speed);
 				if(Position_t.Y >= 3100 + WIDTH/2 - FIR_ADV)
 					state = 2;
 			}break;
@@ -190,7 +192,7 @@ bool FirstRound(float speed)
 			//上边，目标角度90度
 			case 2:
 			{
-				StaightCLose(0,3100 + WIDTH/2 + 100,90,FIRST_SPEED);
+				StaightCLose(0,3100 + WIDTH/2 + 100,90,speed);
 				if(Position_t.X <= -275 - WIDTH/2 + FIR_ADV)
 					state = 3;
 			}break;
@@ -464,7 +466,7 @@ void	RunCamera(void)
 					else 
 					{
 						haveBall=1;
-						ballAngle=AngCamera2Gyro(Closer_Point(arr1,arr2,arr_number).dis,Closer_Point(arr1,arr2,arr_number).ang);
+						ballAngle=AngCamera2Gyro(Closer_Point(arr1,arr2,arr_number).dis*10,Closer_Point(arr1,arr2,arr_number).ang);
 					}			
 				}
 	
@@ -509,10 +511,10 @@ void	RunCamera(void)
 					else 
 					{
 						haveBall=1;
-						turn=Mas(SeekMaxBall().leftNum,SeekMaxBall().midNum,SeekMaxBall().rightNum);
+						turn=Mas2(Apart().one,Apart().two,Apart().there,Apart().four);
 				  }
 			 }
-			 
+
 			 switch(haveBall)
 			 {
 					case 0:
@@ -532,16 +534,20 @@ void	RunCamera(void)
 							{
 								case 1:
 								{
-	                  ClLineAngle((Position_t.angle+20),800);
+	                  ClLineAngle((Position_t.angle+AngCamera2Gyro(1500,18.75)),800);
 								}break;
 								case 2:
 								{
-									  ClLineAngle((Position_t.angle),800);
+									  ClLineAngle((Position_t.angle+AngCamera2Gyro(1500,6.25)),800);
 								}break;
 								case 3:
 								{
-									  ClLineAngle((Position_t.angle-20),800);
+									  ClLineAngle((Position_t.angle-AngCamera2Gyro(1500,6.25)),800);
 								}break;
+								case 4:
+								{
+									  ClLineAngle((Position_t.angle-AngCamera2Gyro(1500,18.75)),800);
+								}
 								default:
 								 break;
 							}

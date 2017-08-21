@@ -6,11 +6,11 @@ float angleP,distantP,pid1,pid2;
 int	yiquan,line,SPE=0; 
 extern int8_t arr1[20];
 extern uint8_t arr2[20];
-extern int go,arr_number;
+extern int arr_number;
 
 /*======================================================================================
 函数定义	  ：		将小球相对于摄像头的角度转换成相对于陀螺仪的角度(万典学长的函数)
-函数参数	  ：		diatance     小球距离摄像头的距离
+函数参数	  ：		diatance     小球距离摄像头的距离(mm)
                   angle        小球相对于摄像头的角度
 函数返回值  ：	  aimAngle     小球相对于陀螺仪的角度(单位：度)
 =======================================================================================*/
@@ -694,37 +694,28 @@ void ScanTrace(int a[10][10])
 	}		
 }
 /*======================================================================================
-函数定义	  ：		计算左中右各区域小球的数量（万典学长的函数）
-函数参数	  ：		无
-                  
-函数返回值  ：	  Ballnum.leftNum   左区域的球数
-                  Ballnum.midNum    中间区域的球数
-                  Ballnum.rightNum  右区域的球数
+函数定义	  ：    将摄像头看到的区域划分成四个同角度的扇形
+函数参数	  ：    无
+                                            
+函数返回值  ：	  numbers.one            从左到右第一个扇形内球数
+                  numbers.two            从左到右第二个扇形内球数
+                  numbers.there          从左到右第三个扇形内球数
+                  numbers.four           从左到右第四个扇形内球数
 =======================================================================================*/
-BALLNUM_T SeekMaxBall(void)
+Four_t Apart(void)
 {
-  BALLNUM_T ballNum={0,0,0};
-	int j=0;
-	float verDis=0;
-
-	for(j=0;j<arr_number;j++)
+	int k;
+	Four_t numbers;
+	for(k=0;k<arr_number;k++)
 	{
-		//将距离单位cm转换成mm(g_cameraDis[j]*10)
-		//不要忘记将g_cameraAng[j]转换成弧度
-		verDis=arr2[j]*10*sin(arr1[j]*PI/180);
-	
-		//判定左边有球
-		if(verDis>WIDTH/2)
-			ballNum.leftNum++;
-			
-		//判定右边有球
-		else if(verDis<-WIDTH/2)
-			ballNum.rightNum++;
-			
-		//判定中间有球
-		else
-			ballNum.midNum++;
+		if(arr1[k]>=-25&&arr1[k]<-12.5)
+			numbers.one++;
+		if(arr1[k]>=-12.5&&arr1[k]<0)
+			numbers.two++;
+		if(arr1[k]>=0&&arr1[k]<12.5)
+			numbers.there++;
+		if(arr1[k]>=12.5&&arr1[k]<25)
+			numbers.four++;
 	}
-	//摄像头大约60ms更新一次数据，而主函数10ms一个周期，故摄像头更新数据前大约会返回5-7个ballNum的初始化值
-	return ballNum;
+	return numbers;
 }

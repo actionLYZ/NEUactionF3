@@ -31,7 +31,7 @@
 #define PF(a) ((a)*(a))
  
 //万典学长的宏定义
-#define CAMERATOGYRO     32              //摄像头距离陀螺仪的距离
+#define CAMERATOGYRO     320              //摄像头距离陀螺仪的距离
 #define ADJUSTDIS        50              //左右区域和中间区域的偏差距离调节量，根据实际情况更改(mm)
 
 /*=====================================================结构体定义===================================================*/
@@ -54,6 +54,13 @@ typedef struct
 	int ver;	
 }Coo_t;
 
+typedef struct
+{
+	int one;
+	int two;
+  int there;
+  int four;	
+}Four_t;
 /*=====================================================函数定义===================================================*/
 float PidAngle(float exAngle,float actAngle);
 float PidCoordinate(float ex,float act);
@@ -74,6 +81,8 @@ void New_Route(int down,int right,int up,int left);
 void RunEdge(void);
 int Vehicle_Width(int di,int an);
 void ScanTrace(int a[10][10]);
+Four_t Apart(void);
+
 /*=====================================================函数定义（万典学长的函数）===================================================*/
 float AngCamera2Gyro(float distance,float angle);
-BALLNUM_T SeekMaxBall(void);                                                     //寻找最多小球的区域
+                                                  
