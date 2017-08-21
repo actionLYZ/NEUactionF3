@@ -397,6 +397,10 @@ void CheckPosition(void)
 
 /*======================================================================================
 函数定义		：			利用摄像头跑场
+                    根据场上球数来走不同方案：
+                    1：（球少时）    每次的目标都是最近的球
+                    2：（球很多时）  先判断球数最多的那个方向 再转到那个角度
+                    3：（球中等时）  规划一条最优路线 尽可能吃到更多的球
 函数参数		：			无
 函数返回值	：			无
 =======================================================================================*/
@@ -470,10 +474,17 @@ void	RunCamera(void)
 			{
 				New_Route(down,right,up,left);
 			}
-	    }break;				 
+	  }break;				 
 		case 1:
-	    {
-            ClLineAngle((Position_t.angle+ballAngle),800);
+	  {
+			  if(Vehicle_Width(Closer_Point(arr1,arr2,arr_number).dis,Closer_Point(arr1,arr2,arr_number).ang))
+				{
+					ClLineAngle((Position_t.angle+ballAngle),800);
+				}					
+        else 
+				{
+					ClLineAngle(Position_t.angle,800);
+				}
 		}break;
 	    default:
 		 break;
