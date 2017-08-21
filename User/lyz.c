@@ -452,6 +452,8 @@ void	RunCamera(void)
 	//记录走过的位置（区域）
 	traceH[Zoning(Position_t.X,Position_t.Y).hor][Zoning(Position_t.X,Position_t.Y).ver]=1;
 	traceS[Zoning(Position_t.X,Position_t.Y).ver][Zoning(Position_t.X,Position_t.Y).hor]=1;
+	//扫描一下是否全已走过
+	ScanTrace(traceH);
 	//计算走过的路线 寻找一条错开的路线
 	if(run>0&&((int)(run/2)+(int)(run/2))==run&&stagger==1)
 	{ 

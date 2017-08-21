@@ -32,6 +32,7 @@
 //万典学长的宏定义
 #define CAMERATOGYRO     32              //摄像头距离陀螺仪的距离
 #define ADJUSTDIS        50              //左右区域和中间区域的偏差距离调节量，根据实际情况更改(mm)
+
 typedef struct 
 {
   int8_t ang;
@@ -63,3 +64,4 @@ int Least_S(int a1[10],int a2[10],int a3[10],int a4[10]);
 void New_Route(int down,int right,int up,int left);
 void RunEdge(void);
 int Vehicle_Width(int di,int an);
+void ScanTrace(int a[10][10]);
