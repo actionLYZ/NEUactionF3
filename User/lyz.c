@@ -371,7 +371,6 @@ void CheckPosition()
 			if(LaserCheck())	
 			{
 				state = 5;	//矫正成功，开始第二阶段跑场
-			  USART_OUT(USART1,(u8*)"x%d\t y%d\t angle%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 			}
 			else							
 				state = 6;	//矫正失败，继续矫正

@@ -51,15 +51,15 @@ extern float angleError,xError,yError;
 extern char arr1[20];
 extern unsigned char arr2[20];
 extern int arr_number;
-
 void CAN1_RX0_IRQHandler(void)
 {
+	
 	OS_CPU_SR cpu_sr;
 
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR          */
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
-
+  
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
 	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
@@ -81,12 +81,26 @@ void CAN1_RX0_IRQHandler(void)
   */
 void CAN2_RX0_IRQHandler(void)
 {
+	uint32_t StdId = 0x30;
+	uint8_t i=1;
+	uint8_t CAN2Buffer[8];
 	OS_CPU_SR cpu_sr;
 
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR          */
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
-
+  if(CAN_MessagePending(CAN2,CAN_FIFO0)!=0)
+	{
+		CAN_RxMsg(CAN2,&StdId,CAN2Buffer,&i);
+		if(CAN2Buffer[0]==100)
+		{
+			//白球，以后根据需要添加
+		}
+		if(CAN2Buffer[0]==1)
+		{
+			//黑球，以后根据需要添加
+		}
+	}
 	CAN_ClearFlag(CAN2, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN2, CAN_FLAG_EPV);
 	CAN_ClearFlag(CAN2, CAN_FLAG_BOF);
@@ -227,19 +241,6 @@ void USART1_IRQHandler(void)
 	OSIntExit();
 }
 
-void USART2_IRQHandler(void)
-{
-	OS_CPU_SR cpu_sr;
-	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
-	OSIntNesting++;
-	OS_EXIT_CRITICAL();
-
-	if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
-	{
-		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
-	}
-	OSIntExit();
-}
 
 
 
@@ -304,10 +305,10 @@ void USART3_IRQHandler(void) //更新频率200Hz
 		case 4:
 			if (ch == 0x0d)
 			{
-					//获取当前坐标
+				//获取当前坐标
 				getPosition_t.angle = posture.ActVal[0];
-				getPosition_t.X 		= posture.ActVal[3];
-				getPosition_t.Y 		= posture.ActVal[4];
+				getPosition_t.X     = posture.ActVal[3];
+				getPosition_t.Y 	= posture.ActVal[4];
 				
 				//计算角度误差
 				Position_t.angle = getPosition_t.angle - angleError;
@@ -355,13 +356,26 @@ void USART3_IRQHandler(void) //更新频率200Hz
 	OSIntExit();
 }
 
+//void USART2_IRQHandler(void)
+//{
+//	OS_CPU_SR cpu_sr;
+//	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
+//	OSIntNesting++;
+//	OS_EXIT_CRITICAL();
+
+//	if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
+//	{
+//		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
+//	}
+//	OSIntExit();
+//}
 
 extern uint8_t g_camera;
 extern int8_t g_cameraAng[50];
 extern uint8_t g_cameraDis[50];
 extern int8_t g_cameraFin;
 extern int8_t g_cameraNum;
-void UART5_IRQHandler(void)
+void USART2_IRQHandler(void)
 {
 
 	OS_CPU_SR cpu_sr;
@@ -370,9 +384,10 @@ void UART5_IRQHandler(void)
 	OS_EXIT_CRITICAL();
 
 	static bool AngOrDis=0,flag=0;
-	if (USART_GetITStatus(UART5, USART_IT_RXNE) == SET)
+	if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
 	{
-		g_camera = USART_ReceiveData(UART5);
+		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
+		g_camera = USART_ReceiveData(USART2);
 		
 		//接收到终止位，表明接收数据停止
 		if(g_camera==0xc9)
@@ -405,24 +420,21 @@ void UART5_IRQHandler(void)
 		{
 			flag=1;
 		}
-
-		USART_ClearITPendingBit(UART5, USART_IT_RXNE);
-		
 	}
 	else			//清除一些标志位
 	{
-		USART_ClearITPendingBit(UART5, USART_IT_PE);
-		USART_ClearITPendingBit(UART5, USART_IT_TXE);
-		USART_ClearITPendingBit(UART5, USART_IT_TC);
-		USART_ClearITPendingBit(UART5, USART_IT_ORE_RX);
-		USART_ClearITPendingBit(UART5, USART_IT_IDLE);
-		USART_ClearITPendingBit(UART5, USART_IT_LBD);
-		USART_ClearITPendingBit(UART5, USART_IT_CTS);
-		USART_ClearITPendingBit(UART5, USART_IT_ERR);
-		USART_ClearITPendingBit(UART5, USART_IT_ORE_ER);
-		USART_ClearITPendingBit(UART5, USART_IT_NE);
-		USART_ClearITPendingBit(UART5, USART_IT_FE);
-		USART_ReceiveData(UART5);
+		USART_ClearITPendingBit(USART2, USART_IT_PE);
+		USART_ClearITPendingBit(USART2, USART_IT_TXE);
+		USART_ClearITPendingBit(USART2, USART_IT_TC);
+		USART_ClearITPendingBit(USART2, USART_IT_ORE_RX);
+		USART_ClearITPendingBit(USART2, USART_IT_IDLE);
+		USART_ClearITPendingBit(USART2, USART_IT_LBD);
+		USART_ClearITPendingBit(USART2, USART_IT_CTS);
+		USART_ClearITPendingBit(USART2, USART_IT_ERR);
+		USART_ClearITPendingBit(USART2, USART_IT_ORE_ER);
+		USART_ClearITPendingBit(USART2, USART_IT_NE);
+		USART_ClearITPendingBit(USART2, USART_IT_FE);
+		USART_ReceiveData(USART2);
 	}
 	OSIntExit();
 }

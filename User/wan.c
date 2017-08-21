@@ -67,8 +67,8 @@ void angClose(float V,float aimAngle,float Kp)
 /*======================================================================================
 函数定义	  ：		将小球相对于摄像头的角度转换成相对于陀螺仪的角度
 函数参数	  ：		diatance     小球距离摄像头的距离(mm)
-                  angle        小球相对于摄像头的角度
-函数返回值  ：	  aimAngle     小球相对于陀螺仪的角度(单位：度)
+                        angle        小球相对于摄像头的角度
+函数返回值    ：	    aimAngle     小球相对于陀螺仪的角度(单位：度)
 =======================================================================================*/
 float AngCamera2Gyro(float distance,float angle)
 {
@@ -80,7 +80,7 @@ float AngCamera2Gyro(float distance,float angle)
 	
 	//正弦定理求目标角度(弧度)
 	aimAngle=asin(distance*sin(rad)/ThirdSide);
-  return RADTOANG(aimAngle);
+    return RADTOANG(aimAngle);
 }
 /*======================================================================================
 函数定义	  ：		将小球相对于摄像头的距离转换成相对于陀螺仪的距离
@@ -462,9 +462,9 @@ bool	RunRectangleW(int length,int wide,float speed)
 }
 /*======================================================================================
 函数定义		：			计算右车头的坐标(顺时针跑场)
-函数参数		：		  无
+函数参数		：		    无
 
-函数返回值	    ：	右车头的坐标结构体
+函数返回值	    ：	        右车头的坐标结构体
 暂时未加入x的镜像对称
 =======================================================================================*/
 HEADPOS_T RightHeadPos(void)
@@ -473,9 +473,44 @@ HEADPOS_T RightHeadPos(void)
 	HEADPOS_T  position;
 	
 	//计算右车尖与陀螺仪连线在直角坐标系中与X轴的夹角
-	angle=AvoidOverAngle(Position_t.angle-ANFRIGHTGYRO+90);
+	angle=AvoidOverAngle(Position_t.angle-ANGRIGHTGYRO+90);
 	angle=ANGTORAD(angle);
 	position.X=Position_t.X+DISRIGHTGYRO*cos(angle);
-	position.Y=Position_t.Y+DISRIGHTGYRO*sin(angle);
+	position.Y=Position_t.Y+DISRIGHTGYRO*sin(angle);  
 	return position;
+}
+/*======================================================================================
+函数定义		：			继续矫正函数
+函数参数		：		    无
+
+函数返回值	    ：	        
+=======================================================================================*/
+void ContinueCheck()
+{
+	
+}
+/*======================================================================================
+函数定义		：			给投球电机发送速度（脉冲/s）
+函数参数		：		    投球电机速度（脉冲/s）
+
+函数返回值	    ：	        无
+=======================================================================================*/
+
+void SendUint8(int32_t pulse)
+{
+	//定义联合体
+	num_t u_Num;
+    u_Num.Int32 = pulse;
+
+    //起始位
+    USART_SendData(USART1, 'A');
+	
+    //通过串口1发数
+    USART_SendData(USART1, u_Num.Uint8[0]);
+    USART_SendData(USART1, u_Num.Uint8[1]);
+    USART_SendData(USART1, u_Num.Uint8[2]);
+    USART_SendData(USART1, u_Num.Uint8[3]);
+	
+    //终止位
+    USART_SendData(USART1, 'J');
 }

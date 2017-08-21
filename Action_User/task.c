@@ -29,7 +29,6 @@ int8_t g_cameraAng[50]={0};        //存储摄像头接受到的角度
 uint8_t g_cameraDis[50]={0};       //存储摄像头接受到的距离
 int8_t g_cameraFin=0;              //摄像头接收到0xc9置1
 int8_t g_cameraNum=0;              //摄像头接收到的数据的个数
-
 POSITION_T Position_t;		         //矫正的定位
 POSITION_T getPosition_t;	         //获得的定位
 int g_plan = 1;						         //跑场方案（顺逆时针）
@@ -65,14 +64,18 @@ void ConfigTask(void)
 	
 	//1ms定时器用于控制WalkTask周期
 	TIM_Init(TIM2, 99, 839, 0, 0);
-	AdcInit();						//初始化adc端口
-	BEEP_Init();         	//初始化蜂鸣器端口
+	AdcInit();				  //初始化adc端口
+	BeepInit();               //初始化蜂鸣器端口
+//	BEEP_Init();         	
+    LimitSwitch();            //行程开关初始化
 	
 	//CAN初始化
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
-	USART3_Init(115200);
+	CAN_Config(CAN2, 500, GPIOB, GPIO_Pin_5, GPIO_Pin_6);
 	USART1_Init(115200);
-	UART5_Init(115200);
+	USART2_Init(115200);
+	USART3_Init(115200);
+//	UART5_Init(115200);
 	
 	//驱动器初始化
 	elmo_Init(CAN1);
@@ -113,7 +116,6 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-    LaserCheck();
 //		CollecMostBall();
 //    SeekMostBall();
 //		CollectMostBall();
