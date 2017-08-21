@@ -7,7 +7,7 @@ typedef struct
 	int rightNum;
 }BALLNUM_T;
 /*=====================================================宏定义区域==================================================*/
-#define CAMERATOGYRO     32              //摄像头距离陀螺仪的距离(cm)
+#define CAMERATOGYRO     320             //摄像头距离陀螺仪的距离(mm)
 #define ANGTORAD(x)      ((x)*PI/180)    //将角度转换成弧度
 #define RADTOANG(x)      ((x)*180/PI)    //将弧度转换成角度
 #define ADJUSTDIS        50              //左右区域和中间区域的偏差距离调节量，根据实际情况更改(mm)

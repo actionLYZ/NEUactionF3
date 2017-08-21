@@ -14,6 +14,9 @@ extern uint8_t g_cameraDis[50];
 static int8_t leftAng[50]={0};
 static int8_t midAng[50]={0};
 static int8_t rightAng[50]={0};
+static uint8_t leftDis[50]={0};
+static uint8_t midDis[50]={0};
+static uint8_t rightDis[50]={0};
 static float aangle=0;
 /*======================================================================================
 函数定义	  ：		Send Get函数
@@ -63,7 +66,7 @@ void angClose(float V,float aimAngle,float Kp)
 }
 /*======================================================================================
 函数定义	  ：		将小球相对于摄像头的角度转换成相对于陀螺仪的角度
-函数参数	  ：		diatance     小球距离摄像头的距离
+函数参数	  ：		diatance     小球距离摄像头的距离(mm)
                   angle        小球相对于摄像头的角度
 函数返回值  ：	  aimAngle     小球相对于陀螺仪的角度(单位：度)
 =======================================================================================*/
@@ -130,6 +133,7 @@ BALLNUM_T SeekMostBall(void)
 			if(verDis>(WIDTH/2-ADJUSTDIS))
 			{
 				leftAng[ballNum.leftNum]=g_cameraAng[j];
+				leftDis[ballNum.leftNum]=g_cameraDis[j]*10;
 				ballNum.leftNum++;
 			}
 			
@@ -137,6 +141,7 @@ BALLNUM_T SeekMostBall(void)
 			else if(verDis<(-WIDTH/2+ADJUSTDIS))
 			{
 				rightAng[ballNum.rightNum]=g_cameraAng[j];
+				rightDis[ballNum.rightNum]=g_cameraDis[j]*10;
 				ballNum.rightNum++;
 			}
 			
@@ -144,6 +149,7 @@ BALLNUM_T SeekMostBall(void)
 			else
 			{
 				midAng[ballNum.midNum]=g_cameraAng[j];
+				midDis[ballNum.midNum]=g_cameraDis[j]*10;
 				ballNum.midNum++;
 			}
 		}
@@ -160,6 +166,30 @@ BALLNUM_T SeekMostBall(void)
 	return ballNum;
 }
 /*======================================================================================
+函数定义	  ：		求得距离中的最大值
+函数参数	  ：		无
+             
+函数返回值  ：	  
+=======================================================================================*/
+float Max(uint8_t arr[50],int n)
+{
+	float maxDis=0;
+	int i=0;
+	maxDis=arr[0];
+	if(n==1)
+	{
+		return maxDis;
+	}
+	else
+	{
+		for(i=1;i<n;i++)
+		{
+			maxDis=(maxDis>=arr[i]?maxDis:arr[i]);
+		}
+		return maxDis;
+	}
+}
+/*======================================================================================
 函数定义	  ：		在球最多的区域收集球(精细化调整)(未验证)
 函数参数	  ：		无
              
@@ -167,7 +197,7 @@ BALLNUM_T SeekMostBall(void)
 =======================================================================================*/
 void CollectMostBall(void)
 {
-	float aveAngle=0,sumAngle=0,nowAngle=0,aimAngle=0;
+	float aveAngle=0,sumAngle=0,nowAngle=0,aimAngle=0,distance=0;
 	int i=0;
 	BALLNUM_T num={0,0,0};
   num=SeekMostBall();
@@ -184,10 +214,19 @@ void CollectMostBall(void)
 		if(num.midNum!=0)
 		{
 			aveAngle=sumAngle/num.midNum;
+			
+			//求出区域中小球的最长距离
+			distance=Max(midDis,num.midNum);
+			
+			//将小球相对于摄像头的距离转换成相对于陀螺仪的距离
+			aveAngle=DisBall2Gyro(distance,aveAngle);
 		}
 		if(num.midNum==0)
 		{
 			aveAngle=0;
+			
+			//随便设的
+			distance=10;
 		}
 	}
 	
@@ -199,6 +238,8 @@ void CollectMostBall(void)
 			sumAngle+=rightAng[i];
 		}
 		aveAngle=sumAngle/num.rightNum;
+		distance=Max(rightDis,num.rightNum);
+		aveAngle=DisBall2Gyro(distance,aveAngle);
 	}
 	
 	//走左边区域
@@ -209,6 +250,8 @@ void CollectMostBall(void)
 			sumAngle+=leftAng[i];
 		}
 		aveAngle=sumAngle/num.leftNum;
+		distance=Max(leftDis,num.leftNum);
+		aveAngle=DisBall2Gyro(distance,aveAngle);
 	}
 	nowAngle=GetAng();
 	aimAngle=nowAngle+aveAngle;
@@ -246,15 +289,14 @@ void CollecMostBall(void)
 	angClose(500,aimAngle,100);
 }
 /*======================================================================================
-函数定义		：			第一圈(第二套方案)
-函数参数		：			plan:方案，speed:速度(mm)
-函数返回值	：			false未结束，true第一圈结束
-用时				：			未测算
-(WIDTH为小车宽度)
+函数定义		：			利用摄像头收集球最多的区域的小球,基本走形回字形
+函数参数		：			无
+函数返回值	：			无
 =======================================================================================*/
 void RunWithCamera(void)
 {
 	int i=0;
+	static int circle=0;
 	switch(i)
 	{
 		//起步先转弯到-90°，然后i++;进入下一个状态
@@ -269,7 +311,7 @@ void RunWithCamera(void)
 			//在-90°的角度上收集球，当Position_t.X>1800时，转弯，然后下一个角度收集球。以后的步骤类同
 		case 1:
 			CollecMostBall();
-			if(Position_t.X>1800)
+			if(Position_t.X>(1800-circle*SPREAD_DIS))
 			{
 				angClose(500,0,100);
 				if(fabs(Position_t.angle)<5)
@@ -280,7 +322,7 @@ void RunWithCamera(void)
 			break;
 		case 2:
 			CollecMostBall();
-			if(Position_t.Y>3800)
+			if(Position_t.Y>(3800-circle*SPREAD_DIS))
 			{
 				angClose(500,90,100);
 				if(fabs(Position_t.angle-90)<5)
@@ -291,7 +333,7 @@ void RunWithCamera(void)
 			break;
 		case 3:
 			CollecMostBall();
-			if(Position_t.X<-1800)
+			if(Position_t.X<-(1800-circle*SPREAD_DIS))
 			{
 				angClose(500,180,100);
 				if(fabs(Position_t.angle-180)<5)
@@ -302,25 +344,26 @@ void RunWithCamera(void)
 			break;
 		case 4:
 			CollecMostBall();
-			if(Position_t.Y<800)
+			if(Position_t.Y<(600+circle*SPREAD_DIS))
 			{
 				angClose(500,-90,100);
 				if(fabs(Position_t.angle-90)<5)
 				{
 					i=1;
+					circle++;
 				}
 			}
 			break;
 	}
 }
 /*======================================================================================
-函数定义		：			第一圈(第二套方案)
+函数定义		：			第一圈(第二套方案，回字形中轴线不在X=0上)
 函数参数		：			plan:方案，speed:速度(mm)
 函数返回值	：			false未结束，true第一圈结束
 用时				：			未测算
 (WIDTH为小车宽度)
 =======================================================================================*/
-bool FirstRoundW(float speed)
+bool FirstRoundW(void)
 {
 	static int state = 1;
 		switch(state)
@@ -363,7 +406,7 @@ bool FirstRoundW(float speed)
 	return false;
 }
 /*======================================================================================
-函数定义		：			长方形扫场(第二套长方形方案)
+函数定义		：			长方形扫场(第二套长方形方案,回字形中轴线不在X=0上)
 函数参数		：			length	:	小车中线与放球区y=y1的距离
 										wide		:	小车中线与放球区x=x1的距离
 										speed		:	速度
