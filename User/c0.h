@@ -4,6 +4,7 @@
 #include "elmo.h"
 #include "stm32f4xx_it.h"
 
+/*=====================================================宏定义区域===================================================*/
 //车基本尺寸
 #define POSYSTEM_TO_GUN (97.2f)        //球出发位置到定位系统原点的距离（单位：mm）
 #define POSYSTEM_TO_BACK (64.65f)      //定位系统到车最后位置的距离
@@ -33,6 +34,14 @@
 #define CAMERATOGYRO     32              //摄像头距离陀螺仪的距离
 #define ADJUSTDIS        50              //左右区域和中间区域的偏差距离调节量，根据实际情况更改(mm)
 
+/*=====================================================结构体定义===================================================*/
+typedef struct
+{
+	int leftNum;
+	int midNum;
+	int rightNum;
+}BALLNUM_T;
+
 typedef struct 
 {
   int8_t ang;
@@ -45,6 +54,7 @@ typedef struct
 	int ver;	
 }Coo_t;
 
+/*=====================================================函数定义===================================================*/
 float PidAngle(float exAngle,float actAngle);
 float PidCoordinate(float ex,float act);
 void ShunClSquare(int speed,float lineLong,float beginX,float beginY);
@@ -57,7 +67,6 @@ int Mas(int number1,int number2,int number3);
 PolarCoo_t Closer_Point(int8_t a[20],uint8_t b[20],int sum);
 Coo_t Zoning(float X,float Y);
 void First_Scan(void);
-float AngCamera2Gyro(float distance,float angle);
 int In_Or_Out(void);
 int Least_H(int a1[10],int a2[10],int a3[10]);
 int Least_S(int a1[10],int a2[10],int a3[10],int a4[10]);
@@ -65,3 +74,6 @@ void New_Route(int down,int right,int up,int left);
 void RunEdge(void);
 int Vehicle_Width(int di,int an);
 void ScanTrace(int a[10][10]);
+/*=====================================================函数定义（万典学长的函数）===================================================*/
+float AngCamera2Gyro(float distance,float angle);
+BALLNUM_T SeekMaxBall(void);                                                     //寻找最多小球的区域
