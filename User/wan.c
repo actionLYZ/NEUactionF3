@@ -166,10 +166,10 @@ BALLNUM_T SeekMostBall(void)
 	return ballNum;
 }
 /*======================================================================================
-函数定义	  ：		求得距离中的最大值
+函数定义	  ：		求得距离数组中的最大值
 函数参数	  ：		无
              
-函数返回值  ：	  
+函数返回值  ：	  最大的距离值
 =======================================================================================*/
 float Max(uint8_t arr[50],int n)
 {
@@ -459,4 +459,23 @@ bool	RunRectangleW(int length,int wide,float speed)
 		}break;
 	}
 	return false;
+}
+/*======================================================================================
+函数定义		：			计算右车头的坐标(顺时针跑场)
+函数参数		：		  无
+
+函数返回值	    ：	右车头的坐标结构体
+暂时未加入x的镜像对称
+=======================================================================================*/
+HEADPOS_T RightHeadPos(void)
+{
+	float angle=0;
+	HEADPOS_T  position;
+	
+	//计算右车尖与陀螺仪连线在直角坐标系中与X轴的夹角
+	angle=AvoidOverAngle(Position_t.angle-ANFRIGHTGYRO+90);
+	angle=ANGTORAD(angle);
+	position.X=Position_t.X+DISRIGHTGYRO*cos(angle);
+	position.Y=Position_t.Y+DISRIGHTGYRO*sin(angle);
+	return position;
 }
