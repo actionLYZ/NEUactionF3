@@ -262,7 +262,6 @@ void USART3_IRQHandler(void) //更新频率200Hz
 
 	if (USART_GetITStatus(USART3, USART_IT_RXNE) == SET)
 	{
-		float tempx,tempy;
 		USART_ClearITPendingBit(USART3, USART_IT_RXNE);
 		ch = USART_ReceiveData(USART3);
 		switch (count)
@@ -306,7 +305,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 		case 4:
 			if (ch == 0x0d)
 			{
-					//获取当前坐标
+			    //获取当前坐标
 				getPosition_t.angle = posture.ActVal[0];
 				getPosition_t.X 		= posture.ActVal[3];
 				getPosition_t.Y 		= posture.ActVal[4];
@@ -317,8 +316,8 @@ void USART3_IRQHandler(void) //更新频率200Hz
 				if(Position_t.angle <= -180) 	Position_t.angle += 360;
 				
 				//旋转坐标系
-				Position_t.X = getPosition_t.X * cos(Angel2PI(angleError)) - getPosition_t.Y*sin(Angel2PI(angleError));
-				Position_t.Y = getPosition_t.Y * cos(Angel2PI(angleError)) + getPosition_t.X*sin(Angel2PI(angleError));
+				Position_t.X = getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y*sin(Angel2PI(angleError));
+				Position_t.Y = getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X*sin(Angel2PI(angleError));
 				
 				//平移坐标系
 				Position_t.X -= xError;
@@ -357,9 +356,9 @@ void USART3_IRQHandler(void) //更新频率200Hz
 }
 
 
- int8_t arr1[20];
- uint8_t arr2[20];
- int go,arr_number;
+int8_t arr1[20];
+uint8_t arr2[20];
+int go,arr_number;
 void UART5_IRQHandler(void)
 {
 	uint8_t camera;
@@ -368,7 +367,6 @@ void UART5_IRQHandler(void)
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
-	static bool c2u = 0;
 	if (USART_GetITStatus(UART5, USART_IT_RXNE) == SET)
 	{
 		USART_ClearITPendingBit(UART5, USART_IT_RXNE);

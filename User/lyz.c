@@ -117,7 +117,7 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 =======================================================================================*/
 void GoGoGo(void)
 {
-	static int state = 1;													//应该执行的状态
+	static int state = 1;							//应该执行的状态
 	static int length = WIDTH/2,wide = WIDTH/2;		//长方形跑场参数
 	switch(state)
 	{
@@ -160,6 +160,10 @@ void GoGoGo(void)
 		{
 			RunCamera();
 		}break;
+		case 6:
+		{
+			RunEdge();
+		}
 	}
 }
 
@@ -448,12 +452,13 @@ void	RunCamera(void)
 	if(run>0&&((int)(run/2)+(int)(run/2))==run&&stagger==1)
 	{ 
 		stagger=0;
-        left=Least_S(traceH[0],traceH[1],traceH[2],traceH[3]);
-        right=Least_S(traceH[6],traceH[7],traceH[8],traceH[9]);	
-        down=Least_H(traceS[0],traceS[1],traceS[2]);	
-        up=Least_H(traceS[7],traceS[8],traceS[9]);	
+    left=Least_S(traceH[0],traceH[1],traceH[2],traceH[3]);
+    right=Least_S(traceH[6],traceH[7],traceH[8],traceH[9]);	
+    down=Least_H(traceS[0],traceS[1],traceS[2]);	
+    up=Least_H(traceS[7],traceS[8],traceS[9]);	
 	}
-    switch(haveBall)
+	
+  switch(haveBall)
 	{
 		case 0:
 		{
@@ -461,7 +466,7 @@ void	RunCamera(void)
 			{
 				First_Scan();
 			}
-            else 
+      else 
 			{
 				New_Route(down,right,up,left);
 			}

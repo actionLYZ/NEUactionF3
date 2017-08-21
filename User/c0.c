@@ -380,7 +380,7 @@ Coo_t Zoning(float X,float Y)
 =======================================================================================*/
 void First_Scan(void)
 {
-	int area;
+	static int area;
 		//划分区域
 	if(g_plan==-1)
 	{
@@ -534,7 +534,7 @@ int Least_S(int a1[10],int a2[10],int a3[10],int a4[10])
 =======================================================================================*/
 void New_Route(int down,int right,int up,int left)
 {
-	int side=1;
+	static int side=1;
 	if(side==1&&Position_t.X>(240+right*480-AD_MID_SP))
 	{
 		side=2;
@@ -572,4 +572,72 @@ void New_Route(int down,int right,int up,int left)
 		default:
 		 break;
 	}
+}
+/*======================================================================================
+函数定义	  ：    扫四条边缘(一圈)
+函数参数	  ：    无
+                                            
+函数返回值  ：	  无
+=======================================================================================*/
+void RunEdge(void)
+{
+	static int side=1,num=0;
+	if(side==1&&num==0&&Position_t.X>1800)
+	{
+		num=1;
+	}
+	if(side==1&&num==1&&Position_t.X>1800)
+	{
+		side=2;
+	}
+	
+	if(side==2&&num==1&&Position_t.Y>4200)
+	{
+		num=2;
+	}
+	if(side==2&&num==2&&Position_t.Y>4200)
+	{
+		side=3;
+	}	
+	
+	if(side==3&&num==2&&Position_t.X<-1800)
+	{
+		num=3;
+	}
+	if(side==3&&num==3&&Position_t.X<-1800)
+	{
+		side=4;
+	}	
+	
+	if(side==4&&num==3&&Position_t.Y<600)
+	{
+		num=4;
+	}
+	if(side==4&&num==4&&Position_t.Y<600)
+	{
+		side=1;
+	}		
+	
+	switch(side)
+	{
+		case 1:
+		{
+			ClLine(0,0,-90,1000);
+		}break;
+		case 2:
+		{
+			ClLine(2400,0,0,1000);
+		}break;
+		case 3:
+		{
+			ClLine(0,4800,90,1000);
+		}break;
+		case 4:
+		{
+			ClLine(-2400,0,180,1000);
+		}break;
+		default:
+		 break;
+	}
+	
 }

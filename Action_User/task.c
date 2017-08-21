@@ -131,16 +131,20 @@ void WalkTask(void)
 					VelCrl(CAN1, 1, 4000);
 					VelCrl(CAN1, 2, -10000);
 			    }
- 		        else
+ 		      else
 			    {
 					VelCrl(CAN1, 1, 10000);
 					VelCrl(CAN1, 2, -4000);      
 			    }	
 			}
+			if(time>200)
+			{
+				ifEscape=0;
+				time=0;
+			}
 		}
 		else
 		{
-			time=0;
 			GoGoGo();
 		}
 	}
