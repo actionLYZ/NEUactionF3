@@ -532,15 +532,15 @@ void	RunCamera(void)
 							{
 								case 1:
 								{
-									
+	                  ClLineAngle((Position_t.angle+20),800);
 								}break;
 								case 2:
 								{
-									
+									  ClLineAngle((Position_t.angle),800);
 								}break;
 								case 3:
 								{
-									
+									  ClLineAngle((Position_t.angle-20),800);
 								}break;
 								default:
 								 break;
