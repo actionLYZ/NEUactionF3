@@ -13,8 +13,8 @@ bool 	IfStuck(void);																										//是否卡住不动，是返回tr
 bool 	IfStuck2(void);																										//是否靠住墙不动，当行程开关加入后删除此函数
 bool	RunRectangle(int length,int wide,float speed);										//长方形跑场
 void 	TurnAngle(float angel,int speed);																	//原地旋转指定角度
-void	CheckPosition(void);																							//坐标校正
-void	RunCamera(void);																									//利用摄像头跑场
+int	CheckPosition(void);																							//坐标校正
+int	RunCamera(void);																									//利用摄像头跑场
 bool	LaserCheck(void);																									//激光矫正,矫正成功返回true,不成功返回false
 float Angel2PI(float angel);																						//将角度转换为PI
 void InputArr(char[],unsigned char[],int);								//输出两个数组
@@ -28,7 +28,7 @@ void InputArr(char[],unsigned char[],int);								//输出两个数组
 #define SPREAD_DIS		400						//扩散距离（每圈边长增大距离）
 #define RIGHT_LASER		14						//右侧激光信道
 #define LEFT_LASER		15						//左侧激光信道
-#define SP2PULSE			12.207				//速度转换为脉冲值
+#define SP2PULSE			10.87 				//速度转换为脉冲值
 
 
 

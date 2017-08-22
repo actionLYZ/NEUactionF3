@@ -229,19 +229,7 @@ void USART1_IRQHandler(void)
 	OSIntExit();
 }
 
-void USART2_IRQHandler(void)
-{
-	OS_CPU_SR cpu_sr;
-	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
-	OSIntNesting++;
-	OS_EXIT_CRITICAL();
 
-	if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
-	{
-		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
-	}
-	OSIntExit();
-}
 
 
 
@@ -305,7 +293,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 		case 4:
 			if (ch == 0x0d)
 			{
-			    //获取当前坐标
+			  //获取当前坐标
 				getPosition_t.angle = posture.ActVal[0];
 				getPosition_t.X 		= posture.ActVal[3];
 				getPosition_t.Y 		= posture.ActVal[4];
@@ -354,12 +342,24 @@ void USART3_IRQHandler(void) //更新频率200Hz
 	}
 	OSIntExit();
 }
+//void USART2_IRQHandler(void)
+//{
+//	OS_CPU_SR cpu_sr;
+//	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
+//	OSIntNesting++;
+//	OS_EXIT_CRITICAL();
 
+//	if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
+//	{
+//		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
+//	}
+//	OSIntExit();
+//}
 
 int8_t arr1[20];
 uint8_t arr2[20];
 int go,arr_number;
-void UART5_IRQHandler(void)
+void USART2_IRQHandler(void)
 {
 	uint8_t camera;
 	static uint8_t i=0,data=1;
@@ -367,10 +367,10 @@ void UART5_IRQHandler(void)
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
-	if (USART_GetITStatus(UART5, USART_IT_RXNE) == SET)
+	if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
 	{
-		USART_ClearITPendingBit(UART5, USART_IT_RXNE);
-		camera = USART_ReceiveData(UART5);
+		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
+		camera = USART_ReceiveData(USART2);
 		if(camera==0xc9)
 		{
 			go=1;i=0;
@@ -411,7 +411,7 @@ void UART5_IRQHandler(void)
 		USART_ClearITPendingBit(UART5, USART_IT_ORE_ER);
 		USART_ClearITPendingBit(UART5, USART_IT_NE);
 		USART_ClearITPendingBit(UART5, USART_IT_FE);
-		USART_ReceiveData(UART5);
+		USART_ReceiveData(USART2);
 	}
 	OSIntExit();
 }

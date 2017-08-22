@@ -11,6 +11,7 @@
 #include "moveBase.h"
 #include "stm32f4xx_it.h"
 #include "c0.h"
+#include "stm32f4xx_gpio.h"
 
 /*==============================================全局变量声明区============================================*/
 extern POSITION_T Position_t;			//校正后定位
@@ -18,6 +19,7 @@ extern POSITION_T getPosition_t;	//获得的定位
 extern int g_plan;
 extern int g_camera;
 float angleError = 0,xError = 0,yError = 0;
+
 
 
 /*================================================函数定义区==============================================*/
@@ -109,7 +111,7 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 		}
 		
 }
-
+extern int carRun;
 /*======================================================================================
 函数定义	：		开始跑场
 函数参数	：		方案：暂定1为逆时针(右侧激光触发)，-1为顺时针(左侧激光触发)
@@ -117,13 +119,14 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 =======================================================================================*/
 void GoGoGo(void)
 {
-	static int state = 1;							//应该执行的状态
+	static int state = 1,shootTime=0;							//应该执行的状态
 	static int length = WIDTH/2,wide = WIDTH/2;		//长方形跑场参数
 	switch(state)
 	{
 		//第一圈放球区附近跑场
 		case 1:
 		{
+			carRun=1;
 			if(FirstRound(FIRST_SPEED) == 1)
 			{
 				length += SPREAD_DIS;				//初始化长方形跑场参数
@@ -141,7 +144,6 @@ void GoGoGo(void)
 				wide	 += SPREAD_DIS;
 				if(length >= 1700 - WIDTH - 100) length = 1700 - WIDTH - 100;
 				if(wide		>= 2125 - WIDTH - 100) wide		= 2125 - WIDTH - 100;
-				USART_OUT(USART1,(uint8_t*) "%d\t\r\n",(int)wide);
 			}
 			if(length >= 1700 - WIDTH - 100 && wide >= 2125 - WIDTH - 100)
 				state = 3;
@@ -150,19 +152,48 @@ void GoGoGo(void)
 		//进行坐标校正
 		case 3:
 		{
-			CheckPosition();
+			carRun=0;
+			if(CheckPosition())
+			{
+				state=4;
+			}
 		}break;
 		case 4:
 		{
-			//射球
+			carRun=0;
+			if(ShootBall())
+			{
+				shootTime++;
+				switch(shootTime)
+				{
+					case 1:state=5;break;
+					case 2:state=6;break;
+					default:break;	
+				}
+				
+			}
+			else
+			{
+				
+			}
 		}break; 
 		case 5:
 		{
-			RunCamera();
+			carRun=1;
+			if(RunCamera())
+			{
+				state=3;
+			}			
 		}break;
 		case 6:
-		{
-			RunEdge();
+		{ 
+			carRun=1;
+			if(RunEdge())
+			{
+				state=3;
+				shootTime=0;
+			}
+			
 		}break;
 		default:
 		 break;
@@ -257,7 +288,6 @@ bool IfStuck2()
 	static int lx = 0,ly = 0;	//记录上一次的坐标
 	if((int)Position_t.X == lx && (int)Position_t.Y == ly)
 	{
-		USART_OUT(USART1,(uint8_t*) "count:%d\t",count);
 		count++;
 		if(count >= 100 * (STUCK_TIME - 0.3))	//卡住了  这里-0.3是防止程序进入逃逸模式
 		{
@@ -323,27 +353,26 @@ bool	RunRectangle(int length,int wide,float speed)
 	}
 	return false;
 }
-
+int x1,x2,y1,y2;
 /*======================================================================================
 函数定义		：			坐标校正
 函数参数		：			无
-函数返回值	：			无
+函数返回值	：			1:           已完成矫正
+                    0:           未完成矫正
 =======================================================================================*/
-void CheckPosition(void)
+int CheckPosition(void)
 {
 	static int state = 1;
-	static int count = 0;
 	static int tempx = 0,tempy = 0;
-	count++;
+	int keepgo=0;
 	switch(state)
 	{
 		//后退到 y = 0
 		case 1:
 		{
 			StaightCLose(0,500,-90,-500);
-			if(Position_t.X <= 0)				//在y = 0处两个激光不容易射到球或射出去
+			if(Position_t.X <= 1000)				//在y = 0处两个激光不容易射到球或射出去
 			{
-				count = 0;
 				state = 2;
 			}
 		}break;
@@ -351,10 +380,9 @@ void CheckPosition(void)
 		//原地旋转至0度
 		case 2:
 		{
-			TurnAngle(0,3000);
-			if(count >= 120)
+			ClLineAngle(0,0);
+			if(fabs(Position_t.angle)<=5)
 			{
-				USART_OUT(USART1,(uint8_t*) "case = 3\r\n");
 				tempx = Position_t.X;			//记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
 				tempy = Position_t.Y;
 				state = 3;
@@ -365,9 +393,13 @@ void CheckPosition(void)
 		case 3:
 		{
 			StaightCLose(tempx,tempy,0,-800);
-			if(IfStuck2())								//到时候改成两个行程开关被触发
+//			if(IfStuck2())								//到时候改成两个行程开关被触发
+//			{
+//		//		USART_OUT(USART1,(uint8_t*) "case = 4\r\n");
+//				state = 4;
+//			}
+			if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_0)==0&&GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0)==0)
 			{
-				USART_OUT(USART1,(uint8_t*) "case = 4\r\n");
 				state = 4;
 			}
 		}break;
@@ -375,26 +407,64 @@ void CheckPosition(void)
 		//激光校正
 		case 4:
 		{
-			USART_OUT(USART1,(uint8_t*) "start check\r\n");
-			if(LaserCheck())	
-				state = 5;	//矫正成功，开始第二阶段跑场
+			if(LaserCheck())
+			{
+				keepgo=1;
+				state = 1;
+	      tempx = 0,tempy = 0;
+			}								
+		//		state = 5;	//矫正成功，开始第二阶段跑场
 			else							
 				state = 6;	//矫正失败，继续矫正
 		}break;
 		
-		//第二阶段跑场
-		case 5:
-		{
-			if(RunRectangle(1000,800,1500) == 1)
-				state = 1;
-		}break;
-		
+//		//第二阶段跑场
+//		case 5:
+//		{
+//			
+//			if(RunRectangle(1000,800,1500) == 1)
+//				state = 1;
+//		}break;
+//		
 		//继续矫正
+		//前进
 		case 6:
 		{
-			
+			 	VelCrl(CAN1, 1, 8000);
+	      VelCrl(CAN1, 2, -8000);
+			  if(Position_t.Y>=1000)
+					state=7;
 		}break;
+		//转向90度
+		case 7:
+		{
+			ClLineAngle(90,0);	
+			if(Position_t.angle>=85&&Position_t.angle<=95)
+			{
+				tempx = Position_t.X;			//记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
+				tempy = Position_t.Y;
+				state = 8;
+			}
+		}break;
+		//后退
+		case 8:
+		{
+			StaightCLose(tempx,tempy,90,-800);
+			if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_0)==0&&GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0)==0)
+			{
+				 x2=getPosition_t.X;
+		     y2=getPosition_t.Y;
+				 xError=2400-POSYSTEM_TO_BACK-x2*cos(ANGTORAD(angleError))-y2*sin(ANGTORAD(angleError));
+				 yError=-y1*cos(ANGTORAD(angleError))+x1*sin(ANGTORAD(angleError));	
+         keepgo=1;	
+				 state = 1;
+	       tempx = 0,tempy = 0;				
+			}
+		}break;
+		
+		
 	}
+	return keepgo;
 }
 
 /*======================================================================================
@@ -404,15 +474,16 @@ void CheckPosition(void)
                     2：（球很多时）  先判断球数最多的那个方向 再转到那个角度
                     3：（球中等时）  规划一条最优路线 尽可能吃到更多的球
 函数参数		：			无
-函数返回值	：			无
+函数返回值	：			1:               已完成一次摄像头扫场
+                    0:               还未完成
 =======================================================================================*/
-void	RunCamera(void)
+int	RunCamera(void)
 {
 	extern  int8_t arr1[20];
 	extern uint8_t arr2[20]; 
 	extern int go,arr_number;
 	static int scheme=1,haveBall=0,run=0,ballAngle,traceH[10][10]={0},traceS[10][10]={0},stagger=0,left=1,right=1,up=1,down=1,turn=0;
-	
+	int finish=0;
 	//到边界要拐弯了
 	if(fabs(Position_t.X)>2000||Position_t.Y<400||Position_t.Y>4400)
 	{
@@ -440,7 +511,10 @@ void	RunCamera(void)
 	traceH[Zoning(Position_t.X,Position_t.Y).hor][Zoning(Position_t.X,Position_t.Y).ver]=1;
 	traceS[Zoning(Position_t.X,Position_t.Y).ver][Zoning(Position_t.X,Position_t.Y).hor]=1;
 	//扫描一下是否全已走过
-	ScanTrace(traceH);
+	if(ScanTrace(traceH))
+	{
+		finish=1;
+	}		
 	//计算走过的路线 寻找一条错开的路线
 	if(run>0&&((int)(run/2)+(int)(run/2))==run&&stagger==1)
 	{ 
@@ -534,7 +608,7 @@ void	RunCamera(void)
 							{
 								case 1:
 								{
-	                  ClLineAngle((Position_t.angle+AngCamera2Gyro(1500,18.75)),800);
+	                  ClLineAngle((Position_t.angle+AngCamera2Gyro(1500,16.25)),800);
 								}break;
 								case 2:
 								{
@@ -546,7 +620,7 @@ void	RunCamera(void)
 								}break;
 								case 4:
 								{
-									  ClLineAngle((Position_t.angle-AngCamera2Gyro(1500,18.75)),800);
+									  ClLineAngle((Position_t.angle-AngCamera2Gyro(1500,16.25)),800);
 								}
 								default:
 								 break;
@@ -563,6 +637,7 @@ void	RunCamera(void)
 		default:
 		 break;
 	}
+	return finish;
 }
 
 /*======================================================================================
@@ -606,17 +681,26 @@ void TurnAngle(float angel,int speed)
 =======================================================================================*/
 bool	LaserCheck()
 {
-	int laserGet;
-	USART_OUT(USART1,(uint8_t*) "change:\t\r\n");
-	angleError = angleError + Position_t.angle;		//纠正角度坐标
-	yError = (getPosition_t.Y*cos(Angel2PI(angleError))+getPosition_t.X*sin(Angel2PI(angleError)));
-	laserGet = Get_Adc_Average(RIGHT_LASER,20);
-	xError = (getPosition_t.X*cos(Angel2PI(angleError))-getPosition_t.Y*sin(Angel2PI(angleError)))-(2400-laserGet);//纠正X坐标
-	USART_OUT(USART1,(uint8_t*) "laserGet:%d\t\r\n",(int)laserGet);
+	int laserGet,laserLong;
+	laserLong=Get_Adc_Average(RIGHT_LASER,20)+Get_Adc_Average(LEFT_LASER,20);
+	if(laserLong>4780&&laserLong<4820)
+	{
+		angleError = angleError + Position_t.angle;		//纠正角度坐标
+	  yError = (getPosition_t.Y*cos(Angel2PI(angleError))+getPosition_t.X*sin(Angel2PI(angleError)));
+	  laserGet = (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
+	  xError = (getPosition_t.X*cos(Angel2PI(angleError))-getPosition_t.Y*sin(Angel2PI(angleError)))-laserGet;//纠正X坐标
+		return true;
+	}
+  else 
+	{
+		x1=getPosition_t.X;
+		y1=getPosition_t.Y;
+		return false;
+	}
+		
 
-	return true;
 }
-
+ 
 //角度变换函数
 float Angel2PI(float angel)
 {

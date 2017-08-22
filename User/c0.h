@@ -78,10 +78,11 @@ int In_Or_Out(void);
 int Least_H(int a1[10],int a2[10],int a3[10]);
 int Least_S(int a1[10],int a2[10],int a3[10],int a4[10]);
 void New_Route(int down,int right,int up,int left);
-void RunEdge(void);
+int RunEdge(void);
 int Vehicle_Width(int di,int an);
-void ScanTrace(int a[10][10]);
+int ScanTrace(int a[10][10]);
 Four_t Apart(void);
+int ShootBall(void);
 
 /*=====================================================函数定义（万典学长的函数）===================================================*/
 float AngCamera2Gyro(float distance,float angle);

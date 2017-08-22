@@ -579,10 +579,12 @@ void New_Route(int down,int right,int up,int left)
 函数定义	  ：    扫四条边缘(一圈)
 函数参数	  ：    无
                                             
-函数返回值  ：	  无
+函数返回值  ：	  1:              已完成
+                  0:              未完成
 =======================================================================================*/
-void RunEdge(void)
+int RunEdge(void)
 {
+	int finish=0;
 	static int side=1,num=0;
 	if(side==1&&num==0&&Position_t.X>1800)
 	{
@@ -617,7 +619,7 @@ void RunEdge(void)
 	}
 	if(side==4&&num==4&&Position_t.Y<600)
 	{
-		side=1;
+		side=1;num=0;finish=1;
 	}		
 	
 	switch(side)
@@ -641,6 +643,7 @@ void RunEdge(void)
 		default:
 		 break;
 	}	
+	return finish;
 }
 /*======================================================================================
 函数定义	  ：    计算判断球是否在车身范围内，就可以直接直走
@@ -663,9 +666,10 @@ int Vehicle_Width(int di,int an)
 函数定义	  ：    扫描轨迹是否全已走完，走完全部清零
 函数参数	  ：    a[10][10]     轨迹二维数组
                                              
-函数返回值  ：	  无
+函数返回值  ：	  1:            已经都走过了
+                  0:            还没走完
 =======================================================================================*/
-void ScanTrace(int a[10][10])
+int ScanTrace(int a[10][10])
 {
 	int m,n,yes=0;
 	for(m=0;m<10;m++)
@@ -687,10 +691,11 @@ void ScanTrace(int a[10][10])
 	       a[m][n]=0;
 		  }
 	  }
+		return 1;
 	}
 	else 
 	{
-		
+		return 0;
 	}		
 }
 /*======================================================================================
@@ -708,14 +713,25 @@ Four_t Apart(void)
 	Four_t numbers;
 	for(k=0;k<arr_number;k++)
 	{
-		if(arr1[k]>=-25&&arr1[k]<-12.5)
+		if(arr1[k]>=-25&&arr1[k]<-7.5)
 			numbers.one++;
-		if(arr1[k]>=-12.5&&arr1[k]<0)
+		if(arr1[k]>=-15&&arr1[k]<2.5)
 			numbers.two++;
-		if(arr1[k]>=0&&arr1[k]<12.5)
+		if(arr1[k]>=-2.5&&arr1[k]<15)
 			numbers.there++;
-		if(arr1[k]>=12.5&&arr1[k]<25)
+		if(arr1[k]>=7.5&&arr1[k]<25)
 			numbers.four++;
 	}
 	return numbers;
+}
+/*======================================================================================
+函数定义	  ：    射球函数
+函数参数	  ：    
+                  
+                           
+函数返回值  ：	  无
+=======================================================================================*/
+int ShootBall(void)
+{
+	return 1;
 }

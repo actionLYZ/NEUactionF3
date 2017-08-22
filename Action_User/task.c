@@ -63,12 +63,13 @@ void ConfigTask(void)
 	TIM_Init(TIM2, 99, 839, 0, 0);
 	AdcInit();						//初始化adc端口
 	BEEP_Init();         	//初始化蜂鸣器端口
+	KeyInit();
 	
 	//CAN初始化
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
 	USART3_Init(115200);
 	USART1_Init(115200);
-	UART5_Init(115200);
+	USART2_Init(115200);
 	
 	//驱动器初始化
 	elmo_Init(CAN1);
@@ -91,7 +92,8 @@ void ConfigTask(void)
 }
 //增加函数声明
 int In_Or_Out(void);
-
+//看车是在跑，还是在矫正、射球
+int carRun=1;
 /*=====================================================执行函数===================================================*/
 void WalkTask(void)
 {
@@ -110,14 +112,21 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		USART_OUT(USART1,(uint8_t*) "%d\t%d\t%d\t\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
-		if(IfStuck() == 1) ifEscape = 1;
+		if(IfStuck() == 1)
+		{
+			if(carRun)
+				ifEscape = 1;
+			else
+				ifEscape = 0;
+		}			
+			
 		if(ifEscape)
 		{
 			/*
 			if(IfEscape())  ifEscape = 0;
 			逃逸函数结束返回true，未结束返回false
 			*/
+			//前一秒后退，后一秒拐弯，根据顺逆时针在内外位置来左/右拐
 			time++;
 			if(time<100)
 			{
