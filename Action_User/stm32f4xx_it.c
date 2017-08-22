@@ -39,7 +39,7 @@
 #include "gpio.h"
 #include "elmo.h"
 #include "lyz.h"
-
+#include "wan.h"
 /******************************************************************************/
 /*            Cortex-M4 Processor Exceptions Handlers                         */
 /******************************************************************************/
@@ -48,9 +48,6 @@ extern POSITION_T Position_t;			//校正后定位
 extern POSITION_T getPosition_t;	//获得的定位
 extern int g_plan;								//跑场方案（顺逆时针）
 extern float angleError,xError,yError;
-extern char arr1[20];
-extern unsigned char arr2[20];
-extern int arr_number;
 void CAN1_RX0_IRQHandler(void)
 {
 	
@@ -389,37 +386,94 @@ void USART2_IRQHandler(void)
 		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
 		g_camera = USART_ReceiveData(USART2);
 		
-		//接收到终止位，表明接收数据停止
-		if(g_camera==0xc9)
+		//E4,E6全为高电平，发送的是所有球的极坐标
+		if(READPE4==1&&READPE6==1)
 		{
+			//接收到终止位，表明接收数据停止
+			if(g_camera==0xD5)
+			{
+				//g_cameraFin置1表明接收完成，再传参到主函数中
+				g_cameraFin=1;
+				flag=0;
+			}
+			if(flag)
+			{
+				//接受角度数据
+				if(AngOrDis==0)
+				{
+					g_cameraAng[g_cameraNum]=g_camera;
+					AngOrDis=1;
+				}
+				
+				//接受距离数据
+				else
+				{
+					g_cameraDis[g_cameraNum]=g_camera;
+					AngOrDis=0;
+					g_cameraNum++;
+				}
+			}
 			
-			//g_cameraFin置1表明接收完成，再传参到主函数中
-			g_cameraFin=1;
-			flag=0;
+			//接受到起始位，表明下一次数据为可以接收的数据
+			if(g_camera==0xD6)
+			{
+				flag=1;
+				g_cameraNum=0;
+			}
 		}
-		if(flag)
-		{
-			//接受角度数据
-			if(AngOrDis==0)
-			{
-				g_cameraAng[g_cameraNum]=g_camera;
-				AngOrDis=1;
-			}
-			
-			//接受距离数据
-			else
-			{
-				g_cameraDis[g_cameraNum]=g_camera;
-				AngOrDis=0;
-				g_cameraNum++;
-			}
-	  }
 		
-		//接受到起始位，表明下一次数据为可以接收的数据
-		if(g_camera==0xc8)
-		{
-			flag=1;
-		}
+	 //最近球的极坐标
+	 else if(READPE4==1&&READPE6==0)
+	 {
+		 if(flag)
+		 {
+			 if(AngOrDis==0)
+			 {
+				g_cameraAng[0]=g_camera;
+				AngOrDis=1;
+			 }
+			 else
+			 {
+				 g_cameraDis[0]=g_camera;
+				 AngOrDis=0;
+				 flag=0;
+			 }
+		 }
+		 if(g_camera==0xD8)
+		 {
+			 flag=1;
+		 }
+	 }
+	 
+	 //球最多的角度
+	 else if(READPE4==0&&READPE6==1)
+	 {
+		 if(flag)
+		 {
+			 g_cameraAng[0]=g_camera;
+			 flag=0;
+		 }
+		 if(g_camera==0xDA)
+		 {
+			 flag=1;
+		 }
+	 }
+	 
+	 //三个区域球的数量 三个数
+	 else
+	 {
+		 if(flag)
+		 {
+			 //用距离数组存储个数
+			 g_cameraDis[g_cameraNum]=g_camera;
+			 g_cameraNum++;
+		 }
+		 if(g_camera==0xDC)
+		 {
+			 flag=1;
+			 g_cameraNum=0;
+		 }
+	 }
 	}
 	else			//清除一些标志位
 	{

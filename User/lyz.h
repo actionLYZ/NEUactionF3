@@ -25,10 +25,12 @@ void InputArr(char[],unsigned char[],int);								              //输出两个�
 #define SPREAD_DIS		400						//扩散距离（每圈边长增大距离）
 #define RIGHT_LASER		14						//右侧激光信道
 #define LEFT_LASER		15						//左侧激光信道
-#define SP2PULSE			12.207				//速度转换为脉冲值
+#define SP2PULSE			10.865				//速度转换为脉冲值
 #define PI 						3.1415926
 #define LEFTSHELTER   -1            //左侧激光被挡
 #define RIGHTSHELTER  1             //右侧激光被挡
+#define SWITCHA0 		(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0)) //PA0 行程开关
+#define SWITCHC0 		(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_0)) //PC0 行程开关
 /*=====================================================结构体定义===================================================*/
 
 //定位系统

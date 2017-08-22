@@ -9,7 +9,7 @@
 #include "stm32f4xx_adc.h"
 #include "timer.h"
 #include "moveBase.h"
-
+#include "gpio.h"
 /*==============================================全局变量声明区============================================*/
 extern POSITION_T Position_t;			//校正后定位
 extern POSITION_T getPosition_t;	//获得的定位
@@ -358,8 +358,8 @@ void CheckPosition()
 		//后退靠墙
 		case 3:
 		{
-			StaightCLose(tempx,tempy,0,-800);
-			if(IfStuck2())								//到时候改成两个行程开关被触发
+			//两个行程开关触发,则进入下一次状态进行激光矫正 
+			if(SWITCHA0==1&&SWITCHC0==1)								
 			{
 				state = 4;
 			}
@@ -479,4 +479,3 @@ float Angel2PI(float angel)
 	res = PI*(angel) / 180;
 	return res;
 }
-

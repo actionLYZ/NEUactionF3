@@ -67,7 +67,8 @@ void ConfigTask(void)
 	AdcInit();				  //初始化adc端口
 	BeepInit();               //初始化蜂鸣器端口
 //	BEEP_Init();         	
-    LimitSwitch();            //行程开关初始化
+  LimitSwitch();            //行程开关初始化
+	NumTypeInit();            //摄像头高低电平拉数据PE4 PE6初始化
 	
 	//CAN初始化
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
@@ -112,10 +113,13 @@ void WalkTask(void)
 	while(IfStart() == 0)	{};
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);			//关闭蜂鸣器
 	g_plan = IfStart();
-		
+	float	laserGetRight=0,laserGetLeft=0;
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
+		
+	  laserGetRight = Get_Adc(RIGHT_LASER);
+	  laserGetLeft  = Get_Adc(LEFT_LASER);
 //		CollecMostBall();
 //    SeekMostBall();
 //		CollectMostBall();

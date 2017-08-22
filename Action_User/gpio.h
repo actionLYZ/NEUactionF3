@@ -16,8 +16,7 @@
 #define RED_LED_ON				GPIO_ResetBits(GPIOC, GPIO_Pin_0)
 #define BLUE_LED_OFF			GPIO_SetBits(GPIOE, GPIO_Pin_6)
 #define RED_LED_OFF				GPIO_SetBits(GPIOC, GPIO_Pin_0)
-#define SWITCHA0 		(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0)) //PA0
-#define SWITCHC0 		(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_0)) //PC0
+
 void GPIO_Init_Pins(GPIO_TypeDef * GPIOx,
 					uint16_t GPIO_Pin,
 					GPIOMode_TypeDef GPIO_Mode);
@@ -27,6 +26,7 @@ void LEDInit(void);
 void BeepInit(void);
 void PhotoelectricityInit(void);
 void LimitSwitch(void);           //行程开关初始化
+void NumTypeInit(void);           //摄像头高低电平拉数据PE4 PE6初始化
 
 
 #endif

@@ -158,7 +158,6 @@ BALLNUM_T SeekMostBall(void)
 		SendAng(Position_t.angle);
 		
 		//清零
-		g_cameraNum=0;
 		g_cameraFin=0;
 	}
 	
@@ -467,10 +466,10 @@ bool	RunRectangleW(int length,int wide,float speed)
 函数返回值	    ：	        右车头的坐标结构体
 暂时未加入x的镜像对称
 =======================================================================================*/
-HEADPOS_T RightHeadPos(void)
+POSXY_T RightHeadPos(void)
 {
 	float angle=0;
-	HEADPOS_T  position;
+	POSXY_T  position;
 	
 	//计算右车尖与陀螺仪连线在直角坐标系中与X轴的夹角
 	angle=AvoidOverAngle(Position_t.angle-ANGRIGHTGYRO+90);
@@ -480,37 +479,42 @@ HEADPOS_T RightHeadPos(void)
 	return position;
 }
 /*======================================================================================
-函数定义		：			继续矫正函数
-函数参数		：		    无
+函数定义		：			计算投球点的坐标
+函数参数		：		  无
 
-函数返回值	    ：	        
+函数返回值	：	    投球点的坐标    
 =======================================================================================*/
-void ContinueCheck()
+POSXY_T ShootPointPos()
 {
-	
+	float angle=0;
+	POSXY_T position;
+	angle=AvoidOverAngle(Position_t.angle+90);
+	angle=ANGTORAD(angle);
+	position.X=Position_t.X+DISSHOOTTOGYRO*cos(angle);
+	position.Y=Position_t.Y+DISSHOOTTOGYRO*sin(angle);  
+	return position;
 }
 /*======================================================================================
 函数定义		：			给投球电机发送速度（脉冲/s）
-函数参数		：		    投球电机速度（脉冲/s）
+函数参数		：		  投球电机速度（脉冲/s）
 
-函数返回值	    ：	        无
+函数返回值	：	    无
 =======================================================================================*/
-
 void SendUint8(int32_t pulse)
 {
 	//定义联合体
 	num_t u_Num;
-    u_Num.Int32 = pulse;
+	u_Num.Int32 = pulse;
 
-    //起始位
-    USART_SendData(USART1, 'A');
-	
-    //通过串口1发数
-    USART_SendData(USART1, u_Num.Uint8[0]);
-    USART_SendData(USART1, u_Num.Uint8[1]);
-    USART_SendData(USART1, u_Num.Uint8[2]);
-    USART_SendData(USART1, u_Num.Uint8[3]);
-	
-    //终止位
-    USART_SendData(USART1, 'J');
+	//起始位
+	USART_SendData(USART1, 'A');
+
+	//通过串口1发数
+	USART_SendData(USART1, u_Num.Uint8[0]);
+	USART_SendData(USART1, u_Num.Uint8[1]);
+	USART_SendData(USART1, u_Num.Uint8[2]);
+	USART_SendData(USART1, u_Num.Uint8[3]);
+
+	//终止位
+	USART_SendData(USART1, 'J');
 }
