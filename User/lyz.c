@@ -19,6 +19,7 @@ extern POSITION_T getPosition_t;	//获得的定位
 extern int g_plan;
 extern int g_camera;
 float angleError = 0,xError = 0,yError = 0;
+int cameraScheme=0;
 
 
 
@@ -166,11 +167,33 @@ void GoGoGo(void)
 				shootTime++;
 				switch(shootTime)
 				{
-					case 1:state=5;break;
+					case 1:
+					{   
+						state=5;
+						if(cameraScheme==0)
+						{
+							cameraScheme=1;
+							GPIO_ResetBits(GPIOE,GPIO_Pin_4);
+							GPIO_SetBits(GPIOE,GPIO_Pin_6);							
+						}
+						else if(cameraScheme==1)
+						{
+							cameraScheme=2;
+							GPIO_SetBits(GPIOE,GPIO_Pin_4);
+							GPIO_SetBits(GPIOE,GPIO_Pin_6);
+						}
+						else if(cameraScheme==2)
+						{
+							cameraScheme=3;
+							GPIO_SetBits(GPIOE,GPIO_Pin_4);
+							GPIO_ResetBits(GPIOE,GPIO_Pin_6);
+						}
+						else{}
+						
+					}break;
 					case 2:state=6;break;
 					default:break;	
-				}
-				
+      			}				
 			}
 			else
 			{
@@ -260,7 +283,6 @@ bool IfStuck(void)
 	static int lx = 0,ly = 0;	//记录上一次的坐标
 	if((int)Position_t.X == lx && (int)Position_t.Y == ly)
 	{
-		USART_OUT(USART1,(uint8_t*) "count:%d\t",count);
 		count++;
 		if(count >= 100 * STUCK_TIME)	//卡住了
 		{
@@ -467,22 +489,30 @@ int CheckPosition(void)
 	return keepgo;
 }
 
+//方案1 发三个区域的球数
+extern int ballN_L,ballN_M,ballN_R;
+//方案2 发球数最多的那个角度
+extern float bestAngle;
+//方案3 最近球的极坐标
+extern float nearestAngle,nearestDis;
+//方案4 所有球的角度和距离
+extern int8_t arr1[20];
+extern uint8_t arr2[20];
+extern int go,arr_number;
 /*======================================================================================
 函数定义		：			利用摄像头跑场
-                    根据场上球数来走不同方案：
-                    1：（球少时）    每次的目标都是最近的球
-                    2：（球很多时）  先判断球数最多的那个方向 再转到那个角度
-                    3：（球中等时）  规划一条最优路线 尽可能吃到更多的球
+                    根据场上球数来走不同方案：                    
+                    1：（球很多时）  先判断球数最多的那个方向 再转到那个角度
+                    2：（球中等时）  规划一条最优路线 尽可能吃到更多的球
+                    3：（球少时）    每次的目标都是最近的球
 函数参数		：			无
 函数返回值	：			1:               已完成一次摄像头扫场
                     0:               还未完成
 =======================================================================================*/
 int	RunCamera(void)
 {
-	extern  int8_t arr1[20];
-	extern uint8_t arr2[20]; 
-	extern int go,arr_number;
-	static int scheme=1,haveBall=0,run=0,ballAngle,traceH[10][10]={0},traceS[10][10]={0},stagger=0,left=1,right=1,up=1,down=1,turn=0;
+	static int haveBall=0,run=0,ballAngle,traceH[10][10]={0},traceS[10][10]={0},stagger=0,left=1,right=1,up=1,down=1,turn=0;
+    static int cameraX,cameraY;
 	int finish=0;
 	//到边界要拐弯了
 	if(fabs(Position_t.X)>2000||Position_t.Y<400||Position_t.Y>4400)
@@ -495,15 +525,15 @@ int	RunCamera(void)
 	{
 		if(((int)(run/2)+(int)(run/2))!=run)
 		{
-				run++;
-				stagger=1;
+			run++;
+			stagger=1;
 		}	
 	}
 	if(Position_t.X>-115&&Position_t.X<-85&&Position_t.Y>3100)
 	{
 		if(((int)(run/2)+(int)(run/2))==run)
 		{
-				run++;
+			run++;
 		}
 	}
 	
@@ -518,122 +548,120 @@ int	RunCamera(void)
 	//计算走过的路线 寻找一条错开的路线
 	if(run>0&&((int)(run/2)+(int)(run/2))==run&&stagger==1)
 	{ 
-			stagger=0;
-			left=Least_S(traceH[0],traceH[1],traceH[2],traceH[3]);
-			right=Least_S(traceH[6],traceH[7],traceH[8],traceH[9]);	
-			down=Least_H(traceS[0],traceS[1],traceS[2]);	
-			up=Least_H(traceS[7],traceS[8],traceS[9]);	
+		stagger=0;
+		left=Least_S(traceH[0],traceH[1],traceH[2],traceH[3]);
+		right=Least_S(traceH[6],traceH[7],traceH[8],traceH[9]);	
+		down=Least_H(traceS[0],traceS[1],traceS[2]);	
+		up=Least_H(traceS[7],traceS[8],traceS[9]);	
 	}
 	
-	switch(scheme)
+	switch(cameraScheme)
 	{
 		case 1:
 		{
-				//中断里接收到数据结束位0xc9时 go置一 算出目标角度
-				if(go==1)
+			if(go)
+			{
+				go=0;
+				if(arr_number==0)		
 				{
-					go=0;
-					if(arr_number==0)		
+					haveBall=0;
+				}
+				else  
+				{
+					haveBall=1;
+					cameraX=Position_t.X-CAMERATOGYRO*sin(Position_t.angle);
+					cameraY=Position_t.Y+CAMERATOGYRO*cos(Position_t.angle);
+			  
+				}				
+			}
+			switch(haveBall)
+			{
+				case 0:
+				{
+					if(run<2)
 					{
-						haveBall=0;
+						First_Scan();
 					}
 					else 
 					{
-						haveBall=1;
-						ballAngle=AngCamera2Gyro(Closer_Point(arr1,arr2,arr_number).dis*10,Closer_Point(arr1,arr2,arr_number).ang);
-					}			
-				}
-	
-				switch(haveBall)
+						New_Route(down,right,up,left);
+					}
+				}break;				 
+				case 1:
 				{
-						case 0:
-						{
-							if(run<2)
-							{
-									First_Scan();
-							}
-							else 
-							{
-									New_Route(down,right,up,left);
-							}
-					  }break;				 
-						case 1:
-						{
-							if(Vehicle_Width(Closer_Point(arr1,arr2,arr_number).dis,Closer_Point(arr1,arr2,arr_number).ang))
-							{
-									ClLineAngle((Position_t.angle+ballAngle),800);
-							}					
-							else 
-							{
-									ClLineAngle(Position_t.angle,800);
-							}
-						}break;
-						default:
-						 break;
-				}	
+					if(Vehicle_Width(nearestDis,nearestAngle))
+					{
+						ClLine(cameraX, cameraY,Position_t.angle,800);
+					}					
+					else 
+					{
+						ClLine(cameraX, cameraY,(Position_t.angle+bestAngle),800);
+					}
+				}break;
+				default:
+				 break;
+			}	
 		}break;
 		case 2:
 		{
-			 //中断里接收到数据结束位0xc9时 go置一 算出目标角度
-			 if(go)
-			 {
-				  go=0;
-				 	if(arr_number==0)		
-					{
-						haveBall=0;
-					}
-					else 
-					{
-						haveBall=1;
-						turn=Mas2(Apart().one,Apart().two,Apart().there,Apart().four);
-				  }
-			 }
-
-			 switch(haveBall)
-			 {
-					case 0:
-					{
-							if(run<2)
-							{
-									First_Scan();
-							}
-							else 
-							{
-									New_Route(down,right,up,left);
-							}
-					}break;				 
-					case 1:
-					{
-	            switch(turn)
-							{
-								case 1:
-								{
-	                  ClLineAngle((Position_t.angle+AngCamera2Gyro(1500,16.25)),800);
-								}break;
-								case 2:
-								{
-									  ClLineAngle((Position_t.angle+AngCamera2Gyro(1500,6.25)),800);
-								}break;
-								case 3:
-								{
-									  ClLineAngle((Position_t.angle-AngCamera2Gyro(1500,6.25)),800);
-								}break;
-								case 4:
-								{
-									  ClLineAngle((Position_t.angle-AngCamera2Gyro(1500,16.25)),800);
-								}
-								default:
-								 break;
-							}
-					}break;
-					default:
-					 break;
-				}	
+			if(go==1)
+			{
+				go=0;
+			    if(arr_number==0)		
+				{
+					haveBall=0;
+				}
+				else  
+				{
+					haveBall=1; 
+				}			
+			}
 		}break;
 		case 3:
 		{
-			
-		}break;
+			if(go)
+			{
+				go=0;
+				if(arr_number==0)		
+				{
+					haveBall=0;
+				}
+				else  
+				{
+					haveBall=1;
+					cameraX=Position_t.X-CAMERATOGYRO*sin(Position_t.angle);
+					cameraY=Position_t.Y+CAMERATOGYRO*cos(Position_t.angle);
+			  
+				}				
+			}
+			switch(haveBall)
+			{
+				case 0:
+				{
+					if(run<2)
+					{
+						First_Scan();
+					}
+					else 
+					{
+						New_Route(down,right,up,left);
+					}
+				}break;				 
+				case 1:
+				{
+					if(Vehicle_Width(nearestDis,nearestAngle))
+					{
+						ClLine(cameraX, cameraY,Position_t.angle,800);
+					}					
+					else 
+					{
+						ClLine(cameraX, cameraY,(Position_t.angle+nearestAngle),800);
+					}
+				}break;
+				default:
+				 break;
+			}	
+		}break;		
 		default:
 		 break;
 	}
@@ -707,4 +735,60 @@ float Angel2PI(float angel)
 	float res;
 	res = PI*(angel) / 180;
 	return res;
+}
+/*======================================================================================
+函数定义	  ：    射球函数
+函数参数	  ：    
+                  
+                           
+函数返回值  ：	  无
+=======================================================================================*/
+int ShootBall(void)
+{
+	  float horizonDis_W,horizonDis_B,shoot_PX,shoot_PY,tendAngle_W,tendAngle_B;
+	  if(fabs(Position_t.angle)<1)
+	  {
+		  shoot_PX =(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
+		  shoot_PY = POSYSTEM_TO_GUN;
+		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
+			tendAngle_W = atan2((BASKE_LOCATION_WY-shoot_PY),(BASKE_LOCATION_WX-shoot_PX));
+			tendAngle_W = RADTOANG(tendAngle_W);
+			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
+			tendAngle_B = atan2((BASKE_LOCATION_BY-shoot_PY),(BASKE_LOCATION_BX-shoot_PX));
+			tendAngle_B = RADTOANG(tendAngle_B);
+	  }
+		if(Position_t.angle>89&&Position_t.angle<91)
+		{
+			shoot_PX = 2400 - GUN_TO_BACK;
+			shoot_PY = (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2+2400;
+		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
+			tendAngle_W = atan2((shoot_PX-BASKE_LOCATION_WX),(BASKE_LOCATION_WY-shoot_PY));
+			tendAngle_W = RADTOANG(tendAngle_W);
+			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
+			tendAngle_B = atan2((shoot_PX-BASKE_LOCATION_BX),(BASKE_LOCATION_BY-shoot_PY));
+			tendAngle_B = RADTOANG(tendAngle_B);			
+		}
+	  if(fabs(Position_t.angle)>179)
+		{
+			shoot_PX = -(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
+		  shoot_PY = 4800 - POSYSTEM_TO_BACK - GUN_TO_BACK;	
+		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
+			tendAngle_W = atan2((shoot_PY-BASKE_LOCATION_WY),(shoot_PX-BASKE_LOCATION_WX));
+			tendAngle_W = RADTOANG(tendAngle_W);
+			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
+			tendAngle_B = atan2((shoot_PY-BASKE_LOCATION_BY),(shoot_PX-BASKE_LOCATION_BX));
+			tendAngle_B = RADTOANG(tendAngle_B);      			
+		}
+	  if(Position_t.angle>-91&&Position_t.angle<-89)
+		{
+			shoot_PX = - 2400 + GUN_TO_BACK;
+			shoot_PY = 2400 - (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
+		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
+			tendAngle_W = atan2((BASKE_LOCATION_WX-shoot_PX),(shoot_PY-BASKE_LOCATION_WY));
+			tendAngle_W = RADTOANG(tendAngle_W);
+			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
+			tendAngle_B = atan2((BASKE_LOCATION_BX-shoot_PX),(shoot_PY-BASKE_LOCATION_BY));
+			tendAngle_B = RADTOANG(tendAngle_B);
+		}	
+	return 1;
 }

@@ -13,11 +13,14 @@ bool 	IfStuck(void);																										//是否卡住不动，是返回tr
 bool 	IfStuck2(void);																										//是否靠住墙不动，当行程开关加入后删除此函数
 bool	RunRectangle(int length,int wide,float speed);										//长方形跑场
 void 	TurnAngle(float angel,int speed);																	//原地旋转指定角度
-int	CheckPosition(void);																							//坐标校正
-int	RunCamera(void);																									//利用摄像头跑场
+int	CheckPosition(void);																							  //坐标校正
+int	RunCamera(void);																									  //利用摄像头跑场
 bool	LaserCheck(void);																									//激光矫正,矫正成功返回true,不成功返回false
 float Angel2PI(float angel);																						//将角度转换为PI
-void InputArr(char[],unsigned char[],int);								//输出两个数组
+void InputArr(char[],unsigned char[],int);								              //输出两个数组
+
+//诗玲加的
+int ShootBall(void);
 
 /*=====================================================宏定义区域===================================================*/
 #define STUCK_TIME		0.8						//判断卡住时长(s)

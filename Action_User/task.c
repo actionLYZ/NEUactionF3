@@ -64,6 +64,7 @@ void ConfigTask(void)
 	AdcInit();						//初始化adc端口
 	BEEP_Init();         	//初始化蜂鸣器端口
 	KeyInit();
+	CameraInit();
 	
 	//CAN初始化
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
@@ -159,5 +160,4 @@ void WalkTask(void)
 	}
 }
 
-		 
 		

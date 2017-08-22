@@ -31,7 +31,7 @@
 #define PF(a) ((a)*(a))
  
 //万典学长的宏定义
-#define CAMERATOGYRO     320              //摄像头距离陀螺仪的距离
+#define CAMERATOGYRO     221.32          //摄像头距离陀螺仪的距离
 #define ADJUSTDIS        50              //左右区域和中间区域的偏差距离调节量，根据实际情况更改(mm)
 
 /*=====================================================结构体定义===================================================*/
@@ -82,7 +82,10 @@ int RunEdge(void);
 int Vehicle_Width(int di,int an);
 int ScanTrace(int a[10][10]);
 Four_t Apart(void);
-int ShootBall(void);
+void ChangeOrder1(int8_t a,int8_t b);
+void ChangeOrder2(uint8_t a,uint8_t b);
+void Left2Right(void);
+float MostSector(void);
 
 /*=====================================================函数定义（万典学长的函数）===================================================*/
 float AngCamera2Gyro(float distance,float angle);

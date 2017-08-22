@@ -24,6 +24,7 @@ void KeyInit(void);
 void LEDInit(void);
 void BeepInit(void);
 void PhotoelectricityInit(void);
+void CameraInit(void);
 
 
 #endif

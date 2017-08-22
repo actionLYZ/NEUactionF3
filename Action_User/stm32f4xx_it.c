@@ -356,13 +356,21 @@ void USART3_IRQHandler(void) //更新频率200Hz
 //	OSIntExit();
 //}
 
+//方案1 发三个区域的球数
+int ballN_L,ballN_M,ballN_R;
+//方案2 发球数最多的那个角度
+float bestAngle;
+//方案3 最近球的极坐标
+float nearestAngle,nearestDis;
+//方案4 所有球的角度和距离
 int8_t arr1[20];
 uint8_t arr2[20];
 int go,arr_number;
+
 void USART2_IRQHandler(void)
 {
 	uint8_t camera;
-	static uint8_t i=0,data=1;
+	static uint8_t i=0,data=1,num=0,best=0,nearest=0;
 	OS_CPU_SR cpu_sr;
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
 	OSIntNesting++;
@@ -371,7 +379,88 @@ void USART2_IRQHandler(void)
 	{
 		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
 		camera = USART_ReceiveData(USART2);
-		if(camera==0xc9)
+		//GPIO4=LOW,GPIO6=LOW 分三个区域 发三个方位的球数
+		if(camera==0xDC)
+		{
+			num=1;
+		}
+		switch(num)
+		{
+			case 1:
+			{
+				ballN_L=camera;
+				num=2;				
+			}break;
+			case 2:
+			{
+				ballN_M=camera;
+				num=3;
+			}break;
+			case 3:
+			{
+				ballN_R=camera;
+				num=0;
+				go=1;
+				if(ballN_L==0&&ballN_M==0&&ballN_R==0)
+				{
+					arr_number=0;
+				}
+				else 
+				{
+					arr_number=ballN_L+ballN_M+ballN_R;
+				}
+			}break;
+			default:
+			 break;
+		}
+		//GPIO4=LOW,GPIO6=HIGH 球最多的角度 发一个角度
+		if(camera==0xDA)
+		{
+			best=1;
+		}
+		if(best)
+		{
+			bestAngle=camera;
+			if(bestAngle==0)
+			{
+				arr_number=0;
+			}
+			else 
+			{
+				arr_number=1;
+			}
+			best=0;
+			go=1;
+		}
+		//GPIO4=HIGH,GPIO6=LOW 最近球的坐标 发一个角度 一个距离
+		if(camera==0xD8)
+		{
+			nearest=1;
+		}
+        switch(nearest)
+		{
+			case 1:
+			{
+				nearestAngle=camera;
+				if(nearestAngle==0xD8)
+				{
+					arr_number=0;
+					nearest=0;
+				}
+				else 
+				nearest=2;
+			}break;
+			case 2:
+			{
+				nearestDis=camera;
+				nearest=0;
+				go=1;
+			}break;
+			default:
+			 break;
+		}
+		//GPIO4=HIGH,GPIO6=HIGH 所有极坐标 发每个球的角度和坐标
+		if(camera==0xD5)
 		{
 			go=1;i=0;
 		}
@@ -394,10 +483,11 @@ void USART2_IRQHandler(void)
 					break;
 			}
 		}
-		if(camera==0xc8)
+		if(camera==0xD6)
 		{
 			i=1;arr_number=0;
 		}
+	}
 	else			//清除一些标志位
 	{
 		USART_ClearITPendingBit(UART5, USART_IT_PE);
@@ -414,7 +504,6 @@ void USART2_IRQHandler(void)
 		USART_ReceiveData(USART2);
 	}
 	OSIntExit();
-}
 }
 /**
   * @brief   This function handles NMI exception.
