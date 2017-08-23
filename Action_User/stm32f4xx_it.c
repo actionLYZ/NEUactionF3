@@ -451,6 +451,9 @@ void USART2_IRQHandler(void)
 		 if(flag)
 		 {
 			 g_cameraAng[0]=g_camera;
+			 
+			 //将此时的陀螺仪的角度发送出去
+			 SendAng(Position_t.angle);
 			 flag=0;
 		 }
 		 if(g_camera==0xDA)
@@ -460,11 +463,11 @@ void USART2_IRQHandler(void)
 	 }
 	 
 	 //三个区域球的数量 三个数
-	 else
+	 else if(READPE4==0&&READPE6==0)
 	 {
 		 if(flag)
 		 {
-			 //用距离数组存储个数
+			 //暂时用距离数组存储个数
 			 g_cameraDis[g_cameraNum]=g_camera;
 			 g_cameraNum++;
 		 }
@@ -473,6 +476,9 @@ void USART2_IRQHandler(void)
 			 flag=1;
 			 g_cameraNum=0;
 		 }
+	 }
+	 else
+	 {
 	 }
 	}
 	else			//清除一些标志位
@@ -551,7 +557,8 @@ void BusFault_Handler(void)
   * @param  None
   * @retval None
   */
-void UsageFault_Handler(void)
+void UsageFault_Handler
+	(void)
 {
 
 	/* Go to infinite loop when Usage Fault exception occurs */

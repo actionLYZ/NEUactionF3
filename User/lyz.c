@@ -10,6 +10,7 @@
 #include "timer.h"
 #include "moveBase.h"
 #include "gpio.h"
+#include "wan.h"
 /*==============================================全局变量声明区============================================*/
 extern POSITION_T Position_t;			//校正后定位
 extern POSITION_T getPosition_t;	//获得的定位

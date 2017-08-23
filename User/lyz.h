@@ -33,10 +33,4 @@ void InputArr(char[],unsigned char[],int);								              //输出两个�
 #define SWITCHC0 		(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_0)) //PC0 行程开关
 /*=====================================================结构体定义===================================================*/
 
-//定位系统
-typedef struct position_t 
-{
-	float angle;
-	float X;
-	float Y;
-}POSITION_T;
+
