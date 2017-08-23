@@ -2,7 +2,7 @@
 
 extern POSITION_T Position_t;
 extern int g_plan;
-float angleP,distantP,pid1,pid2;
+float angleP,angleD,distantP,pid1,pid2;
 int	yiquan,line,SPE=0; 
 extern int8_t arr1[20];
 extern uint8_t arr2[20];
@@ -26,7 +26,23 @@ float AngCamera2Gyro(float distance,float angle)
 	aimAngle=asin(distance*sin(rad)/ThirdSide);
     return RADTOANG(aimAngle);
 }
-
+/*======================================================================================
+函数定义	  ：		避免角度溢出(万典学长的函数)
+函数参数	  ：		当前角度
+函数返回值    ：		修正后的角度
+=======================================================================================*/
+float AvoidOverAngle(float angle)
+{
+	if(angle<=-180)
+	{
+		angle+=360;
+	}
+	if(angle>180)
+	{
+		angle-=360;
+	}
+	return angle;
+}
 //为了保证能循环
 void  GoOn (void)
 {
@@ -58,6 +74,7 @@ float PidAngle(float exAngle,float actAngle)
 {
 		static float error=0,error_old=0,kp,kd=0,adAngle=0;
 	  kp=angleP;
+	  kd=angleD;
 	  error =exAngle -actAngle ;
 
 		if(error>180)
@@ -90,8 +107,44 @@ float PidCoordinate(float ex,float act)
 =======================================================================================*/
 void ClLineAngle(float lineAngle,int speed)
 {
-	 VelCrl(CAN1, 1,(speed*COUNTS_PER_ROUND )/(WHEEL_DIAMETER*PI)+PidAngle(lineAngle,Position_t.angle));
-	 VelCrl(CAN1, 2, -(speed*COUNTS_PER_ROUND )/(WHEEL_DIAMETER*PI)+PidAngle(lineAngle,Position_t.angle));
+	 if(speed<=500)
+	 {
+		 angleP=80;
+		 angleD=0;
+		 distantP=5;
+	 }
+	 else if(speed>500&&speed<1000)
+	 {
+		 angleP=100;
+		 angleD=20;
+		 distantP=7;
+	 }
+	 else if(speed>=1000&&speed<=1200)
+	 {
+		 angleP=150;
+		 angleD=30;
+		 distantP=12;
+	 }
+	 else if(speed>1200&&speed<=1400)
+	 {
+		 angleP=200;
+		 angleD=30;
+		 distantP=14;
+	 }
+	 else if(speed>1400&&speed<2000)
+	 {
+		 angleP=250;
+		 angleD=30;
+		 distantP=15;
+	 }
+	 else 
+	 {
+		 angleP=280;
+		 angleD=50;
+		 distantP=20;
+	 }
+	 VelCrl(CAN1, 1,(speed*COUNTS_PER_ROUND)/(WHEEL_DIAMETER*PI)+PidAngle(lineAngle,Position_t.angle));
+	 VelCrl(CAN1, 2, -(speed*COUNTS_PER_ROUND)/(WHEEL_DIAMETER*PI)+PidAngle(lineAngle,Position_t.angle));
                      //查看PID调节量
 	 pid2=PidAngle(lineAngle,Position_t.angle);
 }
@@ -106,6 +159,42 @@ void ClLineAngle(float lineAngle,int speed)
 void ClLine(float aimX,float aimY,float lineAngle,int speed)
 {
 		static double distant=0,k=0,degree=0,impulse=0;
+		 if(speed<=500)
+	 {
+		 angleP=80;
+		 angleD=0;
+		 distantP=5;
+	 }
+	 else if(speed>500&&speed<1000)
+	 {
+		 angleP=100;
+		 angleD=20;
+		 distantP=7;
+	 }
+	 else if(speed>=1000&&speed<=1200)
+	 {
+		 angleP=150;
+		 angleD=30;
+		 distantP=12;
+	 }
+	 else if(speed>1200&&speed<=1400)
+	 {
+		 angleP=200;
+		 angleD=30;
+		 distantP=14;
+	 }
+	 else if(speed>1400&&speed<2000)
+	 {
+		 angleP=250;
+		 angleD=30;
+		 distantP=15;
+	 }
+	 else 
+	 {
+		 angleP=280;
+		 angleD=50;
+		 distantP=20;
+	 }
 	  if(fabs(lineAngle)<=0.0001)
 		{
 			  distant =aimX -Position_t.X ;
@@ -141,6 +230,42 @@ void ClLine(float aimX,float aimY,float lineAngle,int speed)
 void ClLine2(float aimX,float aimY,float lineAngle,int speed)
 {
 		static double distant=0,k=0,degree=0,impulse=0;
+		 if(speed<=500)
+	 {
+		 angleP=80;
+		 angleD=0;
+		 distantP=5;
+	 }
+	 else if(speed>500&&speed<1000)
+	 {
+		 angleP=100;
+		 angleD=20;
+		 distantP=7;
+	 }
+	 else if(speed>=1000&&speed<=1200)
+	 {
+		 angleP=150;
+		 angleD=30;
+		 distantP=12;
+	 }
+	 else if(speed>1200&&speed<=1400)
+	 {
+		 angleP=200;
+		 angleD=30;
+		 distantP=14;
+	 }
+	 else if(speed>1400&&speed<2000)
+	 {
+		 angleP=250;
+		 angleD=30;
+		 distantP=15;
+	 }
+	 else 
+	 {
+		 angleP=280;
+		 angleD=50;
+		 distantP=20;
+	 }
 	  if(fabs(lineAngle)<=0.0001)
 		{
 			  distant =aimX -Position_t.X ;
@@ -435,7 +560,7 @@ void First_Scan(void)
 		}break;
 		case 3:
 		{
-		    ClLineAngle(180,800);
+		  ClLineAngle(180,800);
 		}break;
 		case 4:
 		{
@@ -658,7 +783,7 @@ int Vehicle_Width(int di,int an)
 	float gap;
 	gap=di*sin(ANGTORAD(an));
 	gap=fabs(gap);
-	if(gap<20)
+	if(gap<200)
 		return 1;
 	else 
 		return 0;
@@ -761,7 +886,7 @@ void Left2Right(void)
 	{
 		for(c2=0;c2<(arr_number-1);c2++)
 		{
-			if(arr1[c2]>arr1[(c2+1)])
+			if(arr1[c2]<arr1[(c2+1)])
 			{
 				ChangeOrder1(arr1[c2],arr1[(c2+1)]);
 				ChangeOrder2(arr2[c2],arr2[(c2+1)]);
@@ -770,7 +895,29 @@ void Left2Right(void)
 	}
 }
 /*======================================================================================
-函数定义	  ：    扇形一点一点移动
+函数定义	  ：    将球的坐标按照从下到上排序
+函数参数	  ：    
+                  
+                           
+函数返回值  ：	  无
+=======================================================================================*/
+void Down2Up(void)
+{
+	int c1,c2;
+	for(c1=0;c1<(arr_number-3);c1++)
+	{
+		for(c2=1;c2<(arr_number-2);c2++)
+		{
+			if(arr2[c2]>arr2[(c2+1)])
+			{
+				ChangeOrder1(arr1[c2],arr1[(c2+1)]);
+				ChangeOrder2(arr2[c2],arr2[(c2+1)]);
+			}
+		}
+	}
+}
+/*======================================================================================
+函数定义	  ：    取较前方的平均角度
 函数参数	  ：    
                   
                            
@@ -778,11 +925,40 @@ void Left2Right(void)
 =======================================================================================*/
 float MostSector(void)
 {
-	float best;
+	float best,nu=0,total=0;
 	int k;
 	for(k=0;k<arr_number;k++)
 	{
-
+    if(arr2[k]>70)
+		{
+			nu++;
+			total=total+arr1[k];			
+		}			
 	}	
-	return 0;
+	if(total==0)
+	{
+		for(k=0;k<arr_number;k++)
+		{
+			total=total+arr1[k];	
+		}
+		best=total/arr_number;
+	}
+	else 
+	{
+		best=total/nu;
+	}
+	return best;
+}
+/*======================================================================================
+函数定义	  ：    两点的距离
+函数参数	  ：    
+                  
+                           
+函数返回值  ：	  两点的距离
+=======================================================================================*/
+float P2P(float a1,float a2,float b1,float b2)
+{
+	float dist;
+	dist=sqrt(PF(a1-b1)+PF(a2-b2));
+	return dist;
 }

@@ -100,7 +100,7 @@ void WalkTask(void)
 {
 	CPU_INT08U os_err;
 	os_err = os_err;
-	int ifEscape = 0,time=0;			//是否执行逃逸函数
+	int ifEscape = 0,time=0;			        //是否执行逃逸函数
 
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
 	

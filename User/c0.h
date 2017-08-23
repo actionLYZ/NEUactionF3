@@ -85,8 +85,11 @@ Four_t Apart(void);
 void ChangeOrder1(int8_t a,int8_t b);
 void ChangeOrder2(uint8_t a,uint8_t b);
 void Left2Right(void);
+void Down2Up(void);
 float MostSector(void);
+float P2P(float a1,float a2,float b1,float b2);
 
 /*=====================================================函数定义（万典学长的函数）===================================================*/
 float AngCamera2Gyro(float distance,float angle);
+float AvoidOverAngle(float angle);
                                                   

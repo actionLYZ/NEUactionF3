@@ -402,7 +402,7 @@ int CheckPosition(void)
 		//原地旋转至0度
 		case 2:
 		{
-			ClLineAngle(0,0);
+			TurnAngle(0,5000);
 			if(fabs(Position_t.angle)<=5)
 			{
 				tempx = Position_t.X;			//记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
@@ -460,7 +460,7 @@ int CheckPosition(void)
 		//转向90度
 		case 7:
 		{
-			ClLineAngle(90,0);	
+			TurnAngle(90,5000);	
 			if(Position_t.angle>=85&&Position_t.angle<=95)
 			{
 				tempx = Position_t.X;			//记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
@@ -505,14 +505,14 @@ extern int go,arr_number;
                     1：（球很多时）  先判断球数最多的那个方向 再转到那个角度
                     2：（球中等时）  规划一条最优路线 尽可能吃到更多的球
                     3：（球少时）    每次的目标都是最近的球
-函数参数		：			无
+函数参数		：			
 函数返回值	：			1:               已完成一次摄像头扫场
                     0:               还未完成
 =======================================================================================*/
 int	RunCamera(void)
 {
-	static int haveBall=0,run=0,ballAngle,traceH[10][10]={0},traceS[10][10]={0},stagger=0,left=1,right=1,up=1,down=1,turn=0;
-    static int cameraX,cameraY;
+	static int i,d1=0,d2=0,haveBall=0,run=0,ballAngle,traceH[10][10]={0},traceS[10][10]={0},stagger=0,left=1,right=1,up=1,down=1;
+  static float cameraX,cameraY,TraceX[20],TraceY[20],bestTraceX[20],bestTraceY[20],bestTraceAngle[20],bestSum;
 	int finish=0;
 	//到边界要拐弯了
 	if(fabs(Position_t.X)>2000||Position_t.Y<400||Position_t.Y>4400)
@@ -543,7 +543,7 @@ int	RunCamera(void)
 	//扫描一下是否全已走过
 	if(ScanTrace(traceH))
 	{
-		finish=1;
+		finish=1;run=0;stagger=0;
 	}		
 	//计算走过的路线 寻找一条错开的路线
 	if(run>0&&((int)(run/2)+(int)(run/2))==run&&stagger==1)
@@ -557,8 +557,8 @@ int	RunCamera(void)
 	
 	switch(cameraScheme)
 	{
-		case 1:
-		{
+		case 1: 
+ 		{
 			if(go)
 			{
 				go=0;
@@ -570,8 +570,8 @@ int	RunCamera(void)
 				{
 					haveBall=1;
 					cameraX=Position_t.X-CAMERATOGYRO*sin(Position_t.angle);
-					cameraY=Position_t.Y+CAMERATOGYRO*cos(Position_t.angle);
-			  
+					cameraY=Position_t.Y+CAMERATOGYRO*cos(Position_t.angle);	
+					ballAngle=AvoidOverAngle(Position_t.angle+bestAngle);			  
 				}				
 			}
 			switch(haveBall)
@@ -589,33 +589,455 @@ int	RunCamera(void)
 				}break;				 
 				case 1:
 				{
-					if(Vehicle_Width(nearestDis,nearestAngle))
-					{
-						ClLine(cameraX, cameraY,Position_t.angle,800);
-					}					
-					else 
-					{
-						ClLine(cameraX, cameraY,(Position_t.angle+bestAngle),800);
-					}
+						StaightCLose(cameraX, cameraY,ballAngle,800);
 				}break;
 				default:
 				 break;
 			}	
 		}break;
 		case 2:
-		{
+		{		
 			if(go==1)
 			{
 				go=0;
-			    if(arr_number==0)		
+			  if(arr_number==0)		
 				{
 					haveBall=0;
 				}
-				else  
+				else
 				{
-					haveBall=1; 
-				}			
+					haveBall=1;
+					cameraX=Position_t.X-CAMERATOGYRO*sin(Position_t.angle);
+					cameraY=Position_t.Y+CAMERATOGYRO*cos(Position_t.angle);						
+					bestAngle=MostSector();
+					Left2Right();
+					arr1[0] -= asin(200/arr2[0]);
+          TraceX[0]=cameraX-arr2[0]*sin(Position_t.angle+arr1[0]);
+					TraceY[0]=cameraY+arr2[0]*sin(Position_t.angle+arr1[0]);					
+					arr1[(arr_number-1)] += asin(200/arr2[(arr_number-1)]);
+          TraceX[1]=cameraX-arr2[(arr_number-1)]*sin(Position_t.angle+arr1[(arr_number-1)]);
+					TraceY[1]=cameraY+arr2[(arr_number-1)]*sin(Position_t.angle+arr1[(arr_number-1)]);							
+					Down2Up();
+					for(i=2;i<arr_number;i++)
+					{
+						TraceX[i]=cameraX-arr2[i-1]*sin(Position_t.angle+arr1[i-1]);
+						TraceY[i]=cameraY+arr2[i-1]*sin(Position_t.angle+arr1[i-1]);										
+					}
+					for(i=1;i<(arr_number-1);i++)
+					{
+						if(arr2[i]<=arr2[0])
+						{
+							d1++;
+						}
+						if(arr2[i]<=arr2[(arr_number-1)])
+						{
+							d2++;
+						}
+					}
+					if(d1>d2)
+					{
+						if(d2==1)
+						{
+							bestTraceX[0]=TraceX[2];bestTraceY[0]=TraceY[2];
+              bestTraceX[1]=TraceX[1];bestTraceY[1]=TraceY[1];
+              if(d1==2)
+							{
+								bestTraceX[2]=TraceX[3];bestTraceY[2]=TraceY[3];
+								bestTraceX[3]=TraceX[0];bestTraceY[3]=TraceY[0];
+								
+							  for(i=4;i<(arr_number-1);i++)
+							  {
+								  if(P2P(TraceX[i],TraceY[i],TraceX[i+1],TraceY[i+1])<450)
+								  {
+									   bestTraceX[i]=(TraceX[i]+TraceX[i+1])/2;
+								     bestTraceY[i]=(TraceY[i]+TraceY[i+1])/2;
+							  	}
+                  else 
+								  {
+								  	if(fabs(arr1[i-1]-arr1[i-2])<fabs(arr1[i]-arr1[i-2]))
+								  	{
+									  	bestTraceX[i]=TraceX[i];
+									  	bestTraceY[i]=TraceY[i];
+									  }
+									  else
+									  {
+									  	bestTraceX[i]=TraceX[i+1];
+								  		bestTraceY[i]=TraceY[i+1];										
+								  	}
+							  	}
+							  }              							
+						  }									
+              else 
+							{
+								for(i=2;i<d1;i++)
+								{
+									if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
+									{
+										bestTraceX[i]=(TraceX[i+1]+TraceX[i+2])/2;
+										bestTraceY[i]=(TraceY[i+1]+TraceY[i+2])/2;
+									}
+									else 
+									{
+										if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
+										{
+											bestTraceX[i]=TraceX[i+1];
+											bestTraceY[i]=TraceY[i+1];
+										}
+										else 
+										{
+											bestTraceX[i]=TraceX[i+2];
+											bestTraceY[i]=TraceY[i+2];										
+										}
+									}
+							  }
+								bestTraceX[d1]=TraceX[0];
+							  bestTraceY[d1]=TraceY[0];											
+							  for(i=(d1+1);i<(arr_number-2);i++)
+							  {
+								  if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
+								  {
+								  	 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
+								     bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
+								  }
+                  else 
+								  {
+									  if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+									  {
+										  bestTraceX[i]=TraceX[i+2];
+										  bestTraceY[i]=TraceY[i+2];
+									  }
+									  else
+									  {
+										  bestTraceX[i]=TraceX[i+3];
+										  bestTraceY[i]=TraceY[i+3];										
+									  }
+								  }
+							 }              							
+						}
+            else if(d2==0)
+						{
+							bestTraceX[0]=TraceX[1];bestTraceY[0]=TraceY[1];
+							
+						}
+						else 
+						{
+							for(i=0;i<(d2-1);i++)
+							{
+								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
+								{
+									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
+								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
+								}
+                else 
+								{
+									if(fabs(arr1[i+1]-arr1[i+3])<fabs(arr1[i+2]-arr1[i+3]))
+									{
+										bestTraceX[i]=TraceX[i+2];
+										bestTraceY[i]=TraceY[i+2];
+									}
+									else 
+									{
+										bestTraceX[i]=TraceX[i+3];
+										bestTraceY[i]=TraceY[i+3];										
+									}
+								}
+							}
+							bestTraceX[d2-1]=TraceX[1];
+							bestTraceY[d2-1]=TraceY[1];
+							for(i=d2;i<(d1-1);i++)
+							{
+								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
+								{
+									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
+								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
+								}
+                else 
+								{
+									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+									{
+										bestTraceX[i]=TraceX[i+2];
+										bestTraceY[i]=TraceY[i+2];
+									}
+									else 
+									{
+										bestTraceX[i]=TraceX[i+3];
+										bestTraceY[i]=TraceY[i+3];										
+									}
+								}
+							}
+							bestTraceX[d1-1]=TraceX[0];
+							bestTraceY[d1-1]=TraceY[0];
+							for(i=d1;i<(arr_number-3);i++)
+							{
+								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
+								{
+									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
+								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
+								}
+                else 
+								{
+									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+									{
+										bestTraceX[i]=TraceX[i+2];
+										bestTraceY[i]=TraceY[i+2];
+									}
+									else
+									{
+										bestTraceX[i]=TraceX[i+3];
+										bestTraceY[i]=TraceY[i+3];										
+									}
+								}
+							}
+						}
+					}
+					else if(d1==d2)
+					{
+						if(d1==0)
+						{
+							if(bestAngle>0)
+							{
+								  bestTraceX[0]=TraceX[0];
+									bestTraceY[0]=TraceY[0];
+							}
+							else 
+							{
+									bestTraceX[0]=TraceX[1];
+									bestTraceY[0]=TraceY[1];									
+							}						
+							for(i=1;i<(arr_number-4);i++)
+							{
+								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
+								{
+									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
+								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
+								}
+                else 
+								{
+									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+									{
+										bestTraceX[i]=TraceX[i+2];
+										bestTraceY[i]=TraceY[i+2];
+									}
+									else
+									{
+										bestTraceX[i]=TraceX[i+3];
+										bestTraceY[i]=TraceY[i+3];										
+									}
+								}
+							}
+						}
+            else
+						{
+							for(i=0;i<(d2-1);i++)
+							{
+								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
+								{
+									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
+								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
+								}
+                else 
+								{
+									if(fabs(arr1[i+1]-arr1[i+3])<fabs(arr1[i+2]-arr1[i+3]))
+									{
+										bestTraceX[i]=TraceX[i+2];
+										bestTraceY[i]=TraceY[i+2];
+									}
+									else 
+									{
+										bestTraceX[i]=TraceX[i+3];
+										bestTraceY[i]=TraceY[i+3];										
+									}
+								}
+							}
+							if(P2P(TraceX[0],TraceY[0],TraceX[1],TraceY[1])<450)
+							{
+								bestTraceX[d2-1]=(TraceX[0]+TraceX[1])/2;
+								bestTraceY[d2-1]=(TraceY[0]+TraceY[1])/2;
+							}
+							else 
+							{
+								if(bestAngle>0)
+								{
+									bestTraceX[d2-1]=TraceX[0];
+									bestTraceY[d2-1]=TraceY[0];
+								}
+								else 
+								{
+									bestTraceX[d2-1]=TraceX[1];
+									bestTraceY[d2-1]=TraceY[1];									
+								}
+							}
+							for(i=d1;i<(arr_number-4);i++)
+							{
+								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
+								{
+									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
+								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
+								}
+                else 
+								{
+									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+									{
+										bestTraceX[i]=TraceX[i+2];
+										bestTraceY[i]=TraceY[i+2];
+									}
+									else
+									{
+										bestTraceX[i]=TraceX[i+3];
+										bestTraceY[i]=TraceY[i+3];										
+									}
+								}
+							}							
+						}
+					}
+					
+					
+					
+					
+          else 
+					{
+						if(d1==0)
+						{
+							bestTraceX[0]=TraceX[2];bestTraceY[0]=TraceY[2];bestTraceAngle[0]=arr1[1];		
+							for(i=d2;i<(d1-1);i++)
+							{
+								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
+								{
+									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
+								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
+								}
+                else 
+								{
+									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+									{
+										bestTraceX[i]=TraceX[i+2];
+										bestTraceY[i]=TraceY[i+2];
+									}
+									else 
+									{
+										bestTraceX[i]=TraceX[i+3];
+										bestTraceY[i]=TraceY[i+3];										
+									}
+								}
+							}
+							bestTraceX[d1-1]=TraceX[0];
+							bestTraceY[d1-1]=TraceY[0];
+							for(i=d1;i<(arr_number-3);i++)
+							{
+								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
+								{
+									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
+								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
+								}
+                else 
+								{
+									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+									{
+										bestTraceX[i]=TraceX[i+2];
+										bestTraceY[i]=TraceY[i+2];
+									}
+									else
+									{
+										bestTraceX[i]=TraceX[i+3];
+										bestTraceY[i]=TraceY[i+3];										
+									}
+								}
+							}              							
+						}
+						else 
+						{
+							for(i=0;i<(d2-1);i++)
+							{
+								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
+								{
+									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
+								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
+								}
+                else 
+								{
+									if(fabs(arr1[i+1]-arr1[i+3])<fabs(arr1[i+2]-arr1[i+3]))
+									{
+										bestTraceX[i]=TraceX[i+2];
+										bestTraceY[i]=TraceY[i+2];
+									}
+									else 
+									{
+										bestTraceX[i]=TraceX[i+3];
+										bestTraceY[i]=TraceY[i+3];										
+									}
+								}
+							}
+							bestTraceX[d2-1]=TraceX[1];
+							bestTraceY[d2-1]=TraceY[1];
+							for(i=d2;i<(d1-1);i++)
+							{
+								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
+								{
+									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
+								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
+								}
+                else 
+								{
+									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+									{
+										bestTraceX[i]=TraceX[i+2];
+										bestTraceY[i]=TraceY[i+2];
+									}
+									else 
+									{
+										bestTraceX[i]=TraceX[i+3];
+										bestTraceY[i]=TraceY[i+3];										
+									}
+								}
+							}
+							bestTraceX[d1-1]=TraceX[0];
+							bestTraceY[d1-1]=TraceY[0];
+							for(i=d1;i<(arr_number-3);i++)
+							{
+								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
+								{
+									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
+								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
+								}
+                else 
+								{
+									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+									{
+										bestTraceX[i]=TraceX[i+2];
+										bestTraceY[i]=TraceY[i+2];
+									}
+									else
+									{
+										bestTraceX[i]=TraceX[i+3];
+										bestTraceY[i]=TraceY[i+3];										
+									}
+								}
+							}
+						}
+					}						
+					}
+				}
 			}
+			switch(haveBall)
+			{
+				case 0:
+				{
+					if(run<2)
+					{
+						First_Scan();
+					}
+					else 
+					{
+						New_Route(down,right,up,left);
+					}
+				}break;				 
+				case 1:
+				{
+						StaightCLose(cameraX, cameraY,ballAngle,800);
+				}break;
+				default:
+				 break;
+			}	
 		}break;
 		case 3:
 		{
@@ -631,8 +1053,15 @@ int	RunCamera(void)
 					haveBall=1;
 					cameraX=Position_t.X-CAMERATOGYRO*sin(Position_t.angle);
 					cameraY=Position_t.Y+CAMERATOGYRO*cos(Position_t.angle);
-			  
-				}				
+			    if(Vehicle_Width(nearestDis,nearestAngle))
+					{
+						ballAngle=AvoidOverAngle(Position_t.angle);
+					}
+					else 
+					{
+						ballAngle=AvoidOverAngle(Position_t.angle+nearestAngle);
+				  }				
+			  }
 			}
 			switch(haveBall)
 			{
@@ -649,14 +1078,7 @@ int	RunCamera(void)
 				}break;				 
 				case 1:
 				{
-					if(Vehicle_Width(nearestDis,nearestAngle))
-					{
-						ClLine(cameraX, cameraY,Position_t.angle,800);
-					}					
-					else 
-					{
-						ClLine(cameraX, cameraY,(Position_t.angle+nearestAngle),800);
-					}
+						StaightCLose(cameraX, cameraY,ballAngle,800);
 				}break;
 				default:
 				 break;
@@ -664,7 +1086,7 @@ int	RunCamera(void)
 		}break;		
 		default:
 		 break;
-	}
+	} 
 	return finish;
 }
 
@@ -702,6 +1124,7 @@ void TurnAngle(float angel,int speed)
 		VelCrl(CAN1,1, g_plan * Input);
 	}
 }
+
 /*======================================================================================
 函数定义		：			利用激光矫正坐标
 函数参数		：			无
@@ -724,9 +1147,7 @@ bool	LaserCheck()
 		x1=getPosition_t.X;
 		y1=getPosition_t.Y;
 		return false;
-	}
-		
-
+	}		
 }
  
 //角度变换函数
@@ -737,7 +1158,7 @@ float Angel2PI(float angel)
 	return res;
 }
 /*======================================================================================
-函数定义	  ：    射球函数
+函数定义	  ：    射球函数(shiling加的)
 函数参数	  ：    
                   
                            

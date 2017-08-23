@@ -452,7 +452,7 @@ void USART2_IRQHandler(void)
 			}break;
 			case 2:
 			{
-				nearestDis=camera;
+				nearestDis=camera*10;
 				nearest=0;
 				go=1;
 			}break;
@@ -475,7 +475,7 @@ void USART2_IRQHandler(void)
 				}break;
 				case 2:
 				{
-					arr2[arr_number] = camera;
+					arr2[arr_number] = camera*10;
 					data=1;
 					arr_number++;
 				}break;
