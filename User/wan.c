@@ -5,6 +5,7 @@
 #include "moveBase.h"
 #include "usart.h"
 #include "stm32f4xx_gpio.h"
+
 /*==============================================全局变量声明区============================================*/
 
 extern POSITION_T Position_t;
@@ -22,6 +23,8 @@ static uint8_t leftFlag=0;
 static uint8_t rightFlag=0;
 static uint8_t midFlag=0;
 float aangle=0;
+extern int8_t whiteBall;          //白球信号
+extern int8_t blackBall;          //黑球信号
 /*======================================================================================
 函数定义	  ：		Send Get函数
 函数参数	  ：		
@@ -82,8 +85,8 @@ void angClose(float V,float aimAngle,float Kp)
 /*======================================================================================
 函数定义	  ：		将小球相对于摄像头的角度转换成相对于陀螺仪的角度
 函数参数	  ：		diatance     小球距离摄像头的距离(mm)
-                        angle        小球相对于摄像头的角度
-函数返回值    ：	    aimAngle     小球相对于陀螺仪的角度(单位：度)
+                  angle        小球相对于摄像头的角度
+函数返回值  ：	  aimAngle     小球相对于陀螺仪的角度(单位：度)
 =======================================================================================*/
 float AngCamera2Gyro(float distance,float angle)
 {
@@ -691,28 +694,9 @@ int RunWithCamera2(void)
 			//小车行驶的距离超过左边球的最大距离，step++,进入下一个状态
 			if(distance>rightDisMax)
 			{
-				step++;
-				posFlag=1;
-			}
-			break;
-		case 7:
-			if(posFlag)
-			{
-				startPoint.X=Position_t.X;
-				startPoint.Y=Position_t.Y;
-				posFlag=0;
-			}
-			distance=GetDistance(startPoint);
-			angClose(-500,aimAngle,100);
-			
-			//后退,后退的距离为上次前进的距离
-			if(distance>rightDisMax)
-			{
+				rightFlag=0;
 				step=0;
 				posFlag=1;
-				
-				//摄像头再一次打开
-				flag=1;
 			}
 			break;
 	}
@@ -846,7 +830,7 @@ POSXY_T RightHeadPos(void)
 
 函数返回值	：	    投球点的坐标    
 =======================================================================================*/
-POSXY_T ShootPointPos()
+POSXY_T ShootPointPos(void)
 {
 	float angle=0;
 	POSXY_T position;
@@ -856,30 +840,7 @@ POSXY_T ShootPointPos()
 	position.Y=Position_t.Y+DISSHOOTTOGYRO*sin(angle);  
 	return position;
 }
-/*======================================================================================
-函数定义		：			给投球电机发送速度（脉冲/s）
-函数参数		：		  投球电机速度（脉冲/s）
 
-函数返回值	：	    无
-=======================================================================================*/
-void SendUint8(int32_t pulse)
-{
-	//定义联合体
-	num_t u_Num;
-	u_Num.Int32 = pulse;
-
-	//起始位
-	USART_SendData(USART1, 'A');
-
-	//通过串口1发数
-	USART_SendData(USART1, u_Num.Uint8[0]);
-	USART_SendData(USART1, u_Num.Uint8[1]);
-	USART_SendData(USART1, u_Num.Uint8[2]);
-	USART_SendData(USART1, u_Num.Uint8[3]);
-
-	//终止位
-	USART_SendData(USART1, 'J');
-}
 /*======================================================================================
 函数定义		：			逃逸函数
 函数参数		：		  无
@@ -931,4 +892,72 @@ int IfEscape(void)
 			break;
 		}
 	return success;
+}
+/*======================================================================================
+函数定义		：			给投球电机发送速度（脉冲/s）
+函数参数		：		  投球电机速度（脉冲/s）
+
+函数返回值	：	    无
+=======================================================================================*/
+void SendUint8(int32_t pulse)
+{
+	//定义联合体
+	num_t u_Num;
+	u_Num.Int32 = pulse;
+
+	//起始位
+	USART_SendData(USART1, 'A');
+
+	//通过串口1发数
+	USART_SendData(USART1, u_Num.Uint8[0]);
+	USART_SendData(USART1, u_Num.Uint8[1]);
+	USART_SendData(USART1, u_Num.Uint8[2]);
+	USART_SendData(USART1, u_Num.Uint8[3]);
+
+	//终止位
+	USART_SendData(USART1, 'J');
+}
+/*======================================================================================
+函数定义		：			定点投球方案
+函数参数		：		  无
+
+函数返回值	：	    无
+=======================================================================================*/
+void ShootBall(void)
+{
+	//球出射速度，mm/s
+	float V=0;
+	float distance=0,aimAngle=0;
+	int32_t pulse=0;
+	POSXY_T posShoot={0,0};
+	
+	//计算投球点的坐标
+	posShoot.X=ShootPointPos().X;
+	posShoot.Y=ShootPointPos().Y;
+	
+	//球是白球
+	if(whiteBall)
+	{
+		whiteBall=0;
+		distance=sqrt((posShoot.X-WHITEX)*(posShoot.X-WHITEX)+(posShoot.Y-BALLY)*(posShoot.Y-BALLY));
+		
+		//将角度装换成陀螺仪角度坐标系里的角度值
+		aimAngle=atan2(BALLY-posShoot.Y,WHITEX-posShoot.X)+90;
+		aimAngle=AvoidOverAngle(aimAngle);
+	}
+	
+	//球是黑球
+	if(blackBall)
+	{
+		blackBall=0;
+		distance=sqrt((posShoot.X-BLACKX)*(posShoot.X-BLACKX)+(posShoot.Y-BALLY)*(posShoot.Y-BALLY));
+		
+		//将角度装换成陀螺仪角度坐标系里的角度值
+		aimAngle=atan2(BALLY-posShoot.Y,BLACKX-posShoot.X)+90;
+		aimAngle=AvoidOverAngle(aimAngle);
+	}
+	
+	//球出射速度(mm/s)与投球点距离篮筐的距离的关系
+	V=sqrt(1000*G*distance*distance/(cos(ANGTORAD(51)*cos(ANGTORAD(51))*(tan(ANGTORAD(51))*distance-424.6))));
+	pulse=V*VTOPULSE; 
 }

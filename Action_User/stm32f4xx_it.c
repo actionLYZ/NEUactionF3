@@ -47,6 +47,8 @@
 extern POSITION_T Position_t;			//校正后定位
 extern POSITION_T getPosition_t;	//获得的定位
 extern int g_plan;								//跑场方案（顺逆时针）
+extern int8_t whiteBall;          //白球信号
+extern int8_t blackBall;          //黑球信号
 extern float angleError,xError,yError;
 void CAN1_RX0_IRQHandler(void)
 {
@@ -80,7 +82,7 @@ void CAN2_RX0_IRQHandler(void)
 {
 	uint32_t StdId = 0x30;
 	uint8_t i=1;
-	uint8_t CAN2Buffer[8];
+	uint8_t CAN2Buffer[8]={0};
 	OS_CPU_SR cpu_sr;
 
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR          */
@@ -91,11 +93,13 @@ void CAN2_RX0_IRQHandler(void)
 		CAN_RxMsg(CAN2,&StdId,CAN2Buffer,&i);
 		if(CAN2Buffer[0]==100)
 		{
-			//白球，以后根据需要添加
+			//白球信号来临
+			whiteBall=1;
 		}
 		if(CAN2Buffer[0]==1)
 		{
-			//黑球，以后根据需要添加
+			//黑球信号来临
+			blackBall=1;
 		}
 	}
 	CAN_ClearFlag(CAN2, CAN_FLAG_EWG);

@@ -32,6 +32,8 @@ int8_t g_cameraNum=0;              //摄像头接收到的数据的个数
 POSITION_T Position_t;		         //矫正的定位
 POSITION_T getPosition_t;	         //获得的定位
 int g_plan = 1;						         //跑场方案（顺逆时针）
+int8_t whiteBall=0;                //白球信号
+int8_t blackBall=0;                //黑球信号
 
 
 void App_Task()
