@@ -1777,9 +1777,9 @@ u16 Get_Adc(u8 ch)
 	 
 	while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC ));//等待转换结束
 	if(ch == 14)//右侧激光
-		dis = ADC_GetConversionValue(ADC1) * 0.9451 + 409.08;
+		dis = ADC_GetConversionValue(ADC1) * 0.9356 + 434.7;
 	else if(ch == 15)
-		dis = ADC_GetConversionValue(ADC1) * 0.9445 + 405.6;
+		dis = ADC_GetConversionValue(ADC1) * 0.9361 + 427.8;
 	return dis;	//返回最近一次ADC1规则组的转换结果
 }
 

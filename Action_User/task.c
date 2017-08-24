@@ -14,6 +14,7 @@
 #include "stm32f4xx_usart.h"
 #include "lyz.h"
 #include "stm32f4xx_adc.h"
+#include "c0.h"
 
 /*=====================================================信号量定义===================================================*/
 
@@ -82,6 +83,7 @@ void ConfigTask(void)
 	Vel_cfg(CAN1, 2, 50000, 50000);
 
 	delay_ms(2000);
+	CollectBallVelCtr(30);
 
 	//等待定位系统
 	delay_s(12);
@@ -159,5 +161,3 @@ void WalkTask(void)
 		}
 	}
 }
-
-		

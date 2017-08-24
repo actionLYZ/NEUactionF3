@@ -20,6 +20,7 @@ extern int g_plan;
 extern int g_camera;
 float angleError = 0,xError = 0,yError = 0;
 int cameraScheme=0;
+int shootStart,ballColor;
 
 
 
@@ -67,6 +68,7 @@ float Piont2Straight(float aimx,float aimy,float angle)
 	
 	return dis;
 }
+
 
 /*======================================================================================
 函数定义	：		直线闭环
@@ -127,6 +129,7 @@ void GoGoGo(void)
 		//第一圈放球区附近跑场
 		case 1:
 		{
+			shootStart=0;
 			carRun=1;
 			if(FirstRound(FIRST_SPEED) == 1)
 			{
@@ -162,8 +165,10 @@ void GoGoGo(void)
 		case 4:
 		{
 			carRun=0;
+			shootStart=1;
 			if(ShootBall())
 			{
+		    shootStart=0;
 				shootTime++;
 				switch(shootTime)
 				{
@@ -176,13 +181,13 @@ void GoGoGo(void)
 							GPIO_ResetBits(GPIOE,GPIO_Pin_4);
 							GPIO_SetBits(GPIOE,GPIO_Pin_6);							
 						}
+//						else if(cameraScheme==1)
+//						{
+//							cameraScheme=2;
+//							GPIO_SetBits(GPIOE,GPIO_Pin_4);
+//							GPIO_SetBits(GPIOE,GPIO_Pin_6);
+//						}
 						else if(cameraScheme==1)
-						{
-							cameraScheme=2;
-							GPIO_SetBits(GPIOE,GPIO_Pin_4);
-							GPIO_SetBits(GPIOE,GPIO_Pin_6);
-						}
-						else if(cameraScheme==2)
 						{
 							cameraScheme=3;
 							GPIO_SetBits(GPIOE,GPIO_Pin_4);
@@ -713,7 +718,8 @@ int	RunCamera(void)
 									  }
 								  }
 							 }              							
-						}
+						 }
+			    }
             else if(d2==0)
 						{
 							bestTraceX[0]=TraceX[1];bestTraceY[0]=TraceY[1];
@@ -789,6 +795,7 @@ int	RunCamera(void)
 								}
 							}
 						}
+				
 					}
 					else if(d1==d2)
 					{
@@ -890,10 +897,7 @@ int	RunCamera(void)
 							}							
 						}
 					}
-					
-					
-					
-					
+										
           else 
 					{
 						if(d1==0)
@@ -1014,9 +1018,10 @@ int	RunCamera(void)
 								}
 							}
 						}
-					}						
-					}
-				}
+							
+				
+				  }
+			  }
 			}
 			switch(haveBall)
 			{
@@ -1157,6 +1162,8 @@ float Angel2PI(float angel)
 	res = PI*(angel) / 180;
 	return res;
 }
+
+
 /*======================================================================================
 函数定义	  ：    射球函数(shiling加的)
 函数参数	  ：    
@@ -1167,6 +1174,15 @@ float Angel2PI(float angel)
 int ShootBall(void)
 {
 	  float horizonDis_W,horizonDis_B,shoot_PX,shoot_PY,tendAngle_W,tendAngle_B;
+	  static int tim=0,noball=0,rev;
+    int finish=0;
+	  tim++;
+	  PushBallReset();
+	  if(tim>=100)
+		{
+			PushBall();
+			tim=0;
+		}
 	  if(fabs(Position_t.angle)<1)
 	  {
 		  shoot_PX =(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
@@ -1211,5 +1227,33 @@ int ShootBall(void)
 			tendAngle_B = atan2((BASKE_LOCATION_BX-shoot_PX),(shoot_PY-BASKE_LOCATION_BY));
 			tendAngle_B = RADTOANG(tendAngle_B);
 		}	
-	return 1;
+		
+		if(ballColor==0)
+		{
+			noball++;
+		}
+		else if(ballColor==1)
+		{
+			rev=60*sqrt(((horizonDis_W-1500)/2+900)/900);
+			YawAngleCtr(90-tendAngle_W);
+			ShootCtr(rev);
+		}
+		else if(ballColor==2)
+		{
+			rev=60*sqrt(((horizonDis_B-1500)/2+900)/900);
+			YawAngleCtr(90-tendAngle_B);
+			ShootCtr(rev);			
+		}
+		else 
+		{
+			
+		}
+			
+		if(noball>=500)
+		{
+			noball=0;
+			finish=1;
+		}
+		
+	  return finish;
 }

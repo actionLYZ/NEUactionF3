@@ -3,6 +3,8 @@
 #include "math.h"
 #include "elmo.h"
 #include "stm32f4xx_it.h"
+#include "can.h"
+#include "stm32f4xx_usart.h"
 
 /*=====================================================宏定义区域===================================================*/
 //车基本尺寸
@@ -29,6 +31,42 @@
 #define ANGTORAD(x) ((x) / 180.0f * PI)//角度值转为弧度制
 #define RADTOANG(x) ((x) / PI * 180.0f)//弧度制转为角度值
 #define PF(a) ((a)*(a))
+
+//宏定义电机转一圈的脉冲数
+#define COUNT_PER_ROUND (4096.0f)
+
+//宏定义每度对应脉冲数
+#define COUNT_PER_DEGREE  (COUNT_PER_ROUND/360.0f)
+
+//宏定义航向角减速比
+#define YAW_REDUCTION_RATIO (4.0f)
+
+//宏定义发射机构航向电机ID
+#define GUN_YAW_ID (7)
+
+//宏定义送弹电机ID
+#define PUSH_BALL_ID (6)
+
+//宏定义送弹机构送弹时电机位置
+#define PUSH_POSITION (4000)
+
+//宏定义送弹机构收回时电机位置
+#define PUSH_RESET_POSITION (5)
+
+//宏定义收球电机ID
+#define COLLECT_BALL_ID (8)
+
+//宏定义左轮电机ID
+#define LEFT_MOTOR_WHEEL_ID (2)
+
+//宏定义右轮电机ID
+#define RIGHT_MOTOR_WHEEL_ID (1)
+
+//串口发送电机命令联合体定义
+
+
+
+
  
 //万典学长的宏定义
 #define CAMERATOGYRO     221.32          //摄像头距离陀螺仪的距离
@@ -61,6 +99,16 @@ typedef struct
   int there;
   int four;	
 }Four_t;
+
+typedef union
+{
+    //这个32位整型数是给电机发送的速度（脉冲/s）
+    int32_t velInt32;
+    //通过串口发送数据每次只能发8位
+    uint8_t velUint8[4];
+
+}shootPara_t;
+
 /*=====================================================函数定义===================================================*/
 float PidAngle(float exAngle,float actAngle);
 float PidCoordinate(float ex,float act);
@@ -88,6 +136,16 @@ void Left2Right(void);
 void Down2Up(void);
 float MostSector(void);
 float P2P(float a1,float a2,float b1,float b2);
+void SendUint8(void);
+
+float YawTransform(float yawAngle);
+void YawAngleCtr(float yawAngle);
+void PushBall(void);
+void PushBallReset(void);
+float CollectBallVelTrans(float round);
+void CollectBallVelCtr(float round);
+int32_t shootVelTrans(float roundPerS);
+void ShootCtr(float rps);
 
 /*=====================================================函数定义（万典学长的函数）===================================================*/
 float AngCamera2Gyro(float distance,float angle);
