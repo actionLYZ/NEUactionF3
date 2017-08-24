@@ -83,7 +83,7 @@ void ConfigTask(void)
 	Vel_cfg(CAN1, 2, 50000, 50000);
 
 	delay_ms(2000);
-	CollectBallVelCtr(30);
+	CollectBallVelCtr(100);
 
 	//等待定位系统
 	delay_s(12);
@@ -115,49 +115,51 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		if(IfStuck() == 1)
+//		if(IfStuck() == 1)
+//		{
+//			if(carRun)
+//				ifEscape = 1;
+//			else
+//				ifEscape = 0;
+//		}			
+//			
+//		if(ifEscape)
+//		{
+//			/*
+//			if(IfEscape())  ifEscape = 0;
+//			逃逸函数结束返回true，未结束返回false
+//			*/
+//			//前一秒后退，后一秒拐弯，根据顺逆时针在内外位置来左/右拐
+//			time++;
+//			if(time<100)
+//			{
+//				VelCrl(CAN1, 1, -8000);
+//				VelCrl(CAN1, 2, 8000);	
+//			}
+//			else 
+//			{
+//          if(!In_Or_Out())
+//				  {
+//					VelCrl(CAN1, 1, 4000);
+//					VelCrl(CAN1, 2, -10000);
+//			    }
+// 		      else
+//			    {
+//					VelCrl(CAN1, 1, 10000);
+//					VelCrl(CAN1, 2, -4000);      
+//			    }	
+//			}
+//			if(time>200)
+//			{
+//				ifEscape=0;
+//				time=0;
+//			}
+//		}
+//		else    
+//			
 		{
-			if(carRun)
-				ifEscape = 1;
-			else
-				ifEscape = 0;
-		}			
-			
-		if(ifEscape)
-		{
-			/*
-			if(IfEscape())  ifEscape = 0;
-			逃逸函数结束返回true，未结束返回false
-			*/
-			//前一秒后退，后一秒拐弯，根据顺逆时针在内外位置来左/右拐
-			time++;
-			if(time<100)
-			{
-				VelCrl(CAN1, 1, -8000);
-				VelCrl(CAN1, 2, 8000);	
-			}
-			else 
-			{
-          if(!In_Or_Out())
-				  {
-					VelCrl(CAN1, 1, 4000);
-					VelCrl(CAN1, 2, -10000);
-			    }
- 		      else
-			    {
-					VelCrl(CAN1, 1, 10000);
-					VelCrl(CAN1, 2, -4000);      
-			    }	
-			}
-			if(time>200)
-			{
-				ifEscape=0;
-				time=0;
-			}
-		}
-		else
-		{
-			GoGoGo();
+			//GoGoGo();
+			ShootBall();
 		}
 	}
 }

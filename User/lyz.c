@@ -1173,7 +1173,7 @@ float Angel2PI(float angel)
 =======================================================================================*/
 int ShootBall(void)
 {
-	  float horizonDis_W,horizonDis_B,shoot_PX,shoot_PY,tendAngle_W,tendAngle_B;
+	  float horizonDis_W=2400,horizonDis_B=2400,shoot_PX,shoot_PY,tendAngle_W=90,tendAngle_B=90;
 	  static int tim=0,noball=0,rev;
     int finish=0;
 	  tim++;	  
@@ -1189,50 +1189,50 @@ int ShootBall(void)
 		{
 			tim=0;			
 		}
-	  if(fabs(Position_t.angle)<1)
-	  {
-		  shoot_PX =(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
-		  shoot_PY = POSYSTEM_TO_GUN;
-		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
-			tendAngle_W = atan2((BASKE_LOCATION_WY-shoot_PY),(BASKE_LOCATION_WX-shoot_PX));
-			tendAngle_W = RADTOANG(tendAngle_W);
-			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
-			tendAngle_B = atan2((BASKE_LOCATION_BY-shoot_PY),(BASKE_LOCATION_BX-shoot_PX));
-			tendAngle_B = RADTOANG(tendAngle_B);
-	  }
-		if(Position_t.angle>89&&Position_t.angle<91)
-		{
-			shoot_PX = 2400 - GUN_TO_BACK;
-			shoot_PY = (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2+2400;
-		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
-			tendAngle_W = atan2((shoot_PX-BASKE_LOCATION_WX),(BASKE_LOCATION_WY-shoot_PY));
-			tendAngle_W = RADTOANG(tendAngle_W);
-			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
-			tendAngle_B = atan2((shoot_PX-BASKE_LOCATION_BX),(BASKE_LOCATION_BY-shoot_PY));
-			tendAngle_B = RADTOANG(tendAngle_B);			
-		}
-	  if(fabs(Position_t.angle)>179)
-		{
-			shoot_PX = -(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
-		  shoot_PY = 4800 - POSYSTEM_TO_BACK - GUN_TO_BACK;	
-		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
-			tendAngle_W = atan2((shoot_PY-BASKE_LOCATION_WY),(shoot_PX-BASKE_LOCATION_WX));
-			tendAngle_W = RADTOANG(tendAngle_W);
-			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
-			tendAngle_B = atan2((shoot_PY-BASKE_LOCATION_BY),(shoot_PX-BASKE_LOCATION_BX));
-			tendAngle_B = RADTOANG(tendAngle_B);      			
-		}
-	  if(Position_t.angle>-91&&Position_t.angle<-89)
-		{
-			shoot_PX = - 2400 + GUN_TO_BACK;
-			shoot_PY = 2400 - (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
-		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
-			tendAngle_W = atan2((BASKE_LOCATION_WX-shoot_PX),(shoot_PY-BASKE_LOCATION_WY));
-			tendAngle_W = RADTOANG(tendAngle_W);
-			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
-			tendAngle_B = atan2((BASKE_LOCATION_BX-shoot_PX),(shoot_PY-BASKE_LOCATION_BY));
-			tendAngle_B = RADTOANG(tendAngle_B);
-		}	
+//	  if(fabs(Position_t.angle)<1)
+//	  {
+//		  shoot_PX =(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
+//		  shoot_PY = POSYSTEM_TO_GUN;
+//		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
+//			tendAngle_W = atan2((BASKE_LOCATION_WY-shoot_PY),(BASKE_LOCATION_WX-shoot_PX));
+//			tendAngle_W = RADTOANG(tendAngle_W);
+//			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
+//			tendAngle_B = atan2((BASKE_LOCATION_BY-shoot_PY),(BASKE_LOCATION_BX-shoot_PX));
+//			tendAngle_B = RADTOANG(tendAngle_B);
+//	  }
+//		if(Position_t.angle>89&&Position_t.angle<91)
+//		{
+//			shoot_PX = 2400 - GUN_TO_BACK;
+//			shoot_PY = (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2+2400;
+//		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
+//			tendAngle_W = atan2((shoot_PX-BASKE_LOCATION_WX),(BASKE_LOCATION_WY-shoot_PY));
+//			tendAngle_W = RADTOANG(tendAngle_W);
+//			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
+//			tendAngle_B = atan2((shoot_PX-BASKE_LOCATION_BX),(BASKE_LOCATION_BY-shoot_PY));
+//			tendAngle_B = RADTOANG(tendAngle_B);			
+//		}
+//	  if(fabs(Position_t.angle)>179)
+//		{
+//			shoot_PX = -(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
+//		  shoot_PY = 4800 - POSYSTEM_TO_BACK - GUN_TO_BACK;	
+//		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
+//			tendAngle_W = atan2((shoot_PY-BASKE_LOCATION_WY),(shoot_PX-BASKE_LOCATION_WX));
+//			tendAngle_W = RADTOANG(tendAngle_W);
+//			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
+//			tendAngle_B = atan2((shoot_PY-BASKE_LOCATION_BY),(shoot_PX-BASKE_LOCATION_BX));
+//			tendAngle_B = RADTOANG(tendAngle_B);      			
+//		}
+//	  if(Position_t.angle>-91&&Position_t.angle<-89)
+//		{
+//			shoot_PX = - 2400 + GUN_TO_BACK;
+//			shoot_PY = 2400 - (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
+//		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
+//			tendAngle_W = atan2((BASKE_LOCATION_WX-shoot_PX),(shoot_PY-BASKE_LOCATION_WY));
+//			tendAngle_W = RADTOANG(tendAngle_W);
+//			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
+//			tendAngle_B = atan2((BASKE_LOCATION_BX-shoot_PX),(shoot_PY-BASKE_LOCATION_BY));
+//			tendAngle_B = RADTOANG(tendAngle_B);
+//		}	
 		
 		if(ballColor==0)
 		{
@@ -1242,13 +1242,13 @@ int ShootBall(void)
 		{
 			rev=60*sqrt(((horizonDis_W-1500)/2+900)/900);
 			YawAngleCtr(90-tendAngle_W);
-			ShootCtr(rev);
+			ShootCtr(80);
 		}
 		else if(ballColor==2)
 		{
 			rev=60*sqrt(((horizonDis_B-1500)/2+900)/900);
 			YawAngleCtr(90-tendAngle_B);
-			ShootCtr(rev);			
+			ShootCtr(80);			
 		}
 		else 
 		{
