@@ -1176,12 +1176,18 @@ int ShootBall(void)
 	  float horizonDis_W,horizonDis_B,shoot_PX,shoot_PY,tendAngle_W,tendAngle_B;
 	  static int tim=0,noball=0,rev;
     int finish=0;
-	  tim++;
-	  PushBallReset();
-	  if(tim>=100)
+	  tim++;	  
+	  if(tim<=100)
+		{
+			PushBallReset();			
+		}
+		if(tim<200&&tim>100)
 		{
 			PushBall();
-			tim=0;
+		}
+		if(tim>=200)
+		{
+			tim=0;			
 		}
 	  if(fabs(Position_t.angle)<1)
 	  {
