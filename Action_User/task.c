@@ -69,8 +69,9 @@ void ConfigTask(void)
 	
 	//CAN初始化
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
+	CAN_Config(CAN2, 500, GPIOB, GPIO_Pin_5, GPIO_Pin_6);
 	USART3_Init(115200);
-	USART1_Init(115200);
+	USART1_Init(9600);
 	USART2_Init(115200);
 	
 	//驱动器初始化
@@ -79,18 +80,19 @@ void ConfigTask(void)
 	elmo_Enable(CAN1,2);
 	
 	//配置速度环
-	Vel_cfg(CAN1, 1, 50000, 50000);
-	Vel_cfg(CAN1, 2, 50000, 50000);
+	Vel_cfg(CAN2, 1, 50000, 50000);
+	Vel_cfg(CAN2, 2, 50000, 50000);
 
 	delay_ms(2000);
-	CollectBallVelCtr(100);
+	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000,50000);
+	CollectBallVelCtr(50);
 
 	//等待定位系统
 	delay_s(12);
 	
 	//配置电基速度
-	//VelCrl(CAN1, 1, 5552);
-	//VelCrl(CAN1, 2, -4096);
+	//VelCrl(CAN2, 1, 5552);
+	//VelCrl(CAN2, 2, -4096);
 
 }
 //增加函数声明
@@ -115,51 +117,52 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-//		if(IfStuck() == 1)
-//		{
-//			if(carRun)
-//				ifEscape = 1;
-//			else
-//				ifEscape = 0;
-//		}			
-//			
-//		if(ifEscape)
-//		{
-//			/*
-//			if(IfEscape())  ifEscape = 0;
-//			逃逸函数结束返回true，未结束返回false
-//			*/
-//			//前一秒后退，后一秒拐弯，根据顺逆时针在内外位置来左/右拐
-//			time++;
-//			if(time<100)
-//			{
-//				VelCrl(CAN1, 1, -8000);
-//				VelCrl(CAN1, 2, 8000);	
-//			}
-//			else 
-//			{
-//          if(!In_Or_Out())
-//				  {
-//					VelCrl(CAN1, 1, 4000);
-//					VelCrl(CAN1, 2, -10000);
-//			    }
-// 		      else
-//			    {
-//					VelCrl(CAN1, 1, 10000);
-//					VelCrl(CAN1, 2, -4000);      
-//			    }	
-//			}
-//			if(time>200)
-//			{
-//				ifEscape=0;
-//				time=0;
-//			}
-//		}
-//		else    
-//			
+
+			
+		if(ifEscape)
 		{
-			//GoGoGo();
-			ShootBall();
+			/*
+			if(IfEscape())  ifEscape = 0;
+			逃逸函数结束返回true，未结束返回false
+			*/
+			//前一秒后退，后一秒拐弯，根据顺逆时针在内外位置来左/右拐
+			time++;
+			if(time<100)
+			{
+				VelCrl(CAN2, 1, -8000);
+				VelCrl(CAN2, 2, 8000);	
+			}
+			else 
+			{
+          if(!In_Or_Out())
+				  {
+					VelCrl(CAN2, 1, 4000);
+					VelCrl(CAN2, 2, -10000);
+			    }
+ 		      else
+			    {
+					VelCrl(CAN2, 1, 10000);
+					VelCrl(CAN2, 2, -4000);      
+			    }	
+			}
+			if(time>200)
+			{
+				ifEscape=0;
+				time=0;
+			}
 		}
+		else    
+			
+		{
+			GoGoGo();
+
+		}
+		if(IfStuck() == 1)
+		{
+			if(carRun)
+				ifEscape = 1;
+			else
+				ifEscape = 0;
+		}			
 	}
 }
