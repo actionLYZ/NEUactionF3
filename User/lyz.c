@@ -104,13 +104,13 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 		//计算脉冲
 		if(speed >= 0)
 		{
-			VelCrl(CAN1,1,  (int)(speed * SP2PULSE) + g_plan * (Ainput + Dinput));
-			VelCrl(CAN1,2, -(int)(speed * SP2PULSE) + g_plan * (Ainput + Dinput));
+			VelCrl(CAN2,1,  (int)(speed * SP2PULSE) + g_plan * (Ainput + Dinput));
+			VelCrl(CAN2,2, -(int)(speed * SP2PULSE) + g_plan * (Ainput + Dinput));
 		}
 		else
 		{
-			VelCrl(CAN1,1,  (int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
-			VelCrl(CAN1,2, -(int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
+			VelCrl(CAN2,1,  (int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
+			VelCrl(CAN2,2, -(int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
 		}
 		
 }
@@ -457,8 +457,8 @@ int CheckPosition(void)
 		//前进
 		case 6:
 		{
-			 	VelCrl(CAN1, 1, 8000);
-	      VelCrl(CAN1, 2, -8000);
+			 	VelCrl(CAN2, 1, 8000);
+	      VelCrl(CAN2, 2, -8000);
 			  if(Position_t.Y>=1000)
 					state=7;
 		}break;
@@ -1118,15 +1118,15 @@ void TurnAngle(float angel,int speed)
 	//角度大于10，speed转
 	if(Dangel > 15 || Dangel < -15)
 	{
-		VelCrl(CAN1,2, g_plan * speed);
-		VelCrl(CAN1,1, g_plan * speed);
+		VelCrl(CAN2,2, g_plan * speed);
+		VelCrl(CAN2,1, g_plan * speed);
 	}
 	
 	//角度小于10，pid控制输出
 	else
 	{
-		VelCrl(CAN1,2, g_plan * Input);
-		VelCrl(CAN1,1, g_plan * Input);
+		VelCrl(CAN2,2, g_plan * Input);
+		VelCrl(CAN2,1, g_plan * Input);
 	}
 }
 

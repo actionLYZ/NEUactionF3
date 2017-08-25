@@ -143,8 +143,8 @@ void ClLineAngle(float lineAngle,int speed)
 		 angleD=50;
 		 distantP=20;
 	 }
-	 VelCrl(CAN1, 1,(speed*COUNTS_PER_ROUND)/(WHEEL_DIAMETER*PI)+PidAngle(lineAngle,Position_t.angle));
-	 VelCrl(CAN1, 2, -(speed*COUNTS_PER_ROUND)/(WHEEL_DIAMETER*PI)+PidAngle(lineAngle,Position_t.angle));
+	 VelCrl(CAN2, 1,(speed*COUNTS_PER_ROUND)/(WHEEL_DIAMETER*PI)+PidAngle(lineAngle,Position_t.angle));
+	 VelCrl(CAN2, 2, -(speed*COUNTS_PER_ROUND)/(WHEEL_DIAMETER*PI)+PidAngle(lineAngle,Position_t.angle));
                      //查看PID调节量
 	 pid2=PidAngle(lineAngle,Position_t.angle);
 }
@@ -214,8 +214,8 @@ void ClLine(float aimX,float aimY,float lineAngle,int speed)
 				}
 		}
     impulse = (speed*COUNTS_PER_ROUND)/(WHEEL_DIAMETER*PI);
-   	VelCrl(CAN1, 1,impulse+PidCoordinate(0,distant)+PidAngle(lineAngle,Position_t.angle));
-		VelCrl(CAN1, 2,-impulse+PidCoordinate(0,distant)+PidAngle(lineAngle,Position_t.angle));
+   	VelCrl(CAN2, 1,impulse+PidCoordinate(0,distant)+PidAngle(lineAngle,Position_t.angle));
+		VelCrl(CAN2, 2,-impulse+PidCoordinate(0,distant)+PidAngle(lineAngle,Position_t.angle));
 		pid1=PidCoordinate(0,distant);                        //查看PID调节量
 		pid2=PidAngle(lineAngle,Position_t.angle);
 }
@@ -285,8 +285,8 @@ void ClLine2(float aimX,float aimY,float lineAngle,int speed)
 				}
 		}
     impulse = (speed*COUNTS_PER_ROUND)/(WHEEL_DIAMETER*PI);
-   	VelCrl(CAN1, 1,impulse-PidCoordinate(0,distant)+PidAngle(lineAngle,Position_t.angle));
-		VelCrl(CAN1, 2,-impulse-PidCoordinate(0,distant)+PidAngle(lineAngle,Position_t.angle));
+   	VelCrl(CAN2, 1,impulse-PidCoordinate(0,distant)+PidAngle(lineAngle,Position_t.angle));
+		VelCrl(CAN2, 2,-impulse-PidCoordinate(0,distant)+PidAngle(lineAngle,Position_t.angle));
 		pid1=PidCoordinate(0,distant);                        //查看PID调节量
 		pid2=PidAngle(lineAngle,Position_t.angle);
 }
