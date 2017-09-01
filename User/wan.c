@@ -1,9 +1,9 @@
 #include "wan.h"
-#include "elmo.h"
 #include "lyz.h"
 #include "math.h"
-#include "moveBase.h"
+#include "elmo.h"
 #include "usart.h"
+#include "moveBase.h"
 #include "stm32f4xx_gpio.h"
 
 /*==============================================全局变量声明区============================================*/
@@ -25,6 +25,8 @@ static uint8_t midFlag=0;
 float aangle=0;
 extern int8_t whiteBall;          //白球信号
 extern int8_t blackBall;          //黑球信号
+extern uint8_t g_cameraPlan;      //摄像头接球方案
+extern uint8_t g_ballSignal;
 /*======================================================================================
 函数定义	  ：		Send Get函数
 函数参数	  ：		
@@ -60,7 +62,7 @@ float AvoidOverAngle(float angle)
 	{
 		angle+=360;
 	}
-	if(angle>180)
+		if(angle>180)
 	{
 		angle-=360;
 	}
@@ -79,14 +81,120 @@ void angClose(float V,float aimAngle,float Kp)
 	angError=aimAngle-Position_t.angle;
 	angError=AvoidOverAngle(angError);
 	angOutput=angError*Kp;
-	VelCrl(CAN1, 1, V*SP2PULSE+angOutput);
-	VelCrl(CAN1, 2, -V*SP2PULSE+angOutput);
+	VelCrl(CAN2, 1, V*SP2PULSE+angOutput);
+	VelCrl(CAN2, 2, -V*SP2PULSE+angOutput);
+}
+/*======================================================================================
+函数定义	  ：		矫正函数
+函数参数	  ：		无
+函数返回值    ：	    成功返回1，失败返回0
+=======================================================================================*/
+void CheckError()
+{
+	static int8_t signal=0;
+	static int8_t step=2,count=0,angle=0;
+	switch(step)
+	{
+		case 0:
+
+		  //为了保护电机
+		  signal++;
+		  VelCrl(CAN2, 1,0);
+		  VelCrl(CAN2, 1,0);
+		  if (signal>15)
+		  {
+		  	signal=0;
+		  	step=1;
+		  }
+		break;
+		case 1:
+		  angle = AvoidOverAngle((count - 1) * 90 - 70);
+		  angClose(1500,angle,150);
+
+		  //靠不同的墙，step=2的条件也不一样
+		  if(count == 1)
+		  {
+			if (Position_t.X > 1400)
+	     	{
+			  step=2;
+			}
+		  }
+		  else if (count == 2)
+		  {
+		  	if (Position_t.Y > 3800)
+		  	{
+		  		step = 2;
+		  	}
+		  }
+		  else if(count == 3)
+		  {
+		  	if (Position_t.X < -1400)
+		    {
+		  		step = 2;
+		    }
+		  }
+		  else if (count == 4)
+		  {
+		  	if (Position_t.Y < 1000)
+		  	{
+		  		step = 2;
+		  	}
+		  }
+		  else
+		  {
+		  }
+		break;
+		case 2:
+
+		   //为了保护电机
+		   signal++;
+		   VelCrl(CAN2, 1,0);
+		   VelCrl(CAN2, 1,0);
+		   if (signal>15)
+		   {
+		  	 signal=0;
+		  	 step=3;
+		   }
+		break;
+		case 3:
+		   angle = AvoidOverAngle(count * 90);
+		   angClose(-1000,angle,100);
+
+		   //行程开关触发
+		   if (SWITCHA0 == 1 && SWITCHC0 == 1)
+		   {
+				step=4;
+		   }
+		break;
+		case 4:
+
+		   //如果矫正成功
+		   if (LaserCheck())
+		   {
+			  step=5;
+		   }
+		   else
+		   {
+			  step=0;
+			  count++;
+			  if (count == 5)
+			  {
+				count = 1;
+			  }
+		   }
+		break;
+		case 5:
+
+			// 投球
+			ShootBall();
+		break;
+	}
 }
 /*======================================================================================
 函数定义	  ：		将小球相对于摄像头的角度转换成相对于陀螺仪的角度
 函数参数	  ：		diatance     小球距离摄像头的距离(mm)
-                  angle        小球相对于摄像头的角度
-函数返回值  ：	  aimAngle     小球相对于陀螺仪的角度(单位：度)
+                        angle        小球相对于摄像头的角度（°）
+函数返回值    ：	    aimAngle     小球相对于陀螺仪的角度(单位：度)
 =======================================================================================*/
 float AngCamera2Gyro(float distance,float angle)
 {
@@ -102,8 +210,8 @@ float AngCamera2Gyro(float distance,float angle)
 }
 /*======================================================================================
 函数定义	  ：		将小球相对于摄像头的距离转换成相对于陀螺仪的距离
-函数参数	  ：		diatance     小球相对于摄像头的距离
-                  angle        小球相对于摄像头的角度
+函数参数	  ：		diatance     小球相对于摄像头的距离（mm）
+                  angle        小球相对于摄像头的角度（°）
 函数返回值  ：	  ThirdSide    小球相对于陀螺仪的距离(mm)
 =======================================================================================*/
 float DisBall2Gyro(float distance,float angle)
@@ -111,11 +219,10 @@ float DisBall2Gyro(float distance,float angle)
 	float ThirdSide=0,rad=0;
 	rad=ANGTORAD(180-angle);
 	
-	//余弦定理求第三边
-  ThirdSide=sqrt(CAMERATOGYRO*CAMERATOGYRO+distance*distance-2*distance*CAMERATOGYRO*cos(rad));
+	//余弦定理求第三边 
+    ThirdSide=sqrt(CAMERATOGYRO*CAMERATOGYRO+distance*distance-2*distance*CAMERATOGYRO*cos(rad));
 	
-	//单位换算，cm->mm
-	ThirdSide=10*ThirdSide;
+
 	return ThirdSide;
 }
 /*======================================================================================
@@ -128,7 +235,7 @@ float DisBall2Gyro(float distance,float angle)
 =======================================================================================*/
 BALLNUM_T SeekMostBall(void)
 {
-  static BALLNUM_T ballNum={0,0,0};
+    static BALLNUM_T ballNum={0,0,0};
 	int j=0;
 	float verDis=0;
 	
@@ -187,10 +294,26 @@ BALLNUM_T SeekMostBall(void)
 	return ballNum;
 }
 /*======================================================================================
+函数定义		：			将摄像机中球的极坐标转换成XY坐标
+函数参数		：		  小球相对于摄像头的角度（°），距离（mm）
+
+函数返回值	：	    小球在坐标系中的坐标值
+=======================================================================================*/
+POSXY_T BallPosXY(uint8_t distance,int8_t angle)
+{
+	  static float dis=0,ang=0;
+    static POSXY_T position={0,0};
+    dis=DisBall2Gyro(distance,angle);
+    ang=ANGTORAD(AngCamera2Gyro(distance,angle)+Position_t.angle+90);
+    position.X=Position_t.X+dis*cos(ang);
+    position.Y=Position_t.Y+dis*cos(ang);
+    return position;
+}
+/*======================================================================================
 函数定义	  ：		求得距离数组中的最大值
 函数参数	  ：		无
              
-函数返回值  ：	  最大的距离值
+函数返回值    ：	    最大的距离值
 =======================================================================================*/
 float Max(uint8_t arr[50],int n)
 {
@@ -341,19 +464,20 @@ void CollecMostBall(void)
 =======================================================================================*/
 void CollecMostBall1(void)
 {
-	float aimAngle=0,nowAngle=0;
-	//拉低PE4，PE6的电平，接收球最多区域的角度
-	GPIO_SetBits(GPIOE,GPIO_Pin_4);
+	float aimAngle = 0, nowAngle = 0;
+	//拉低PE4，拉高PE6的电平，接收球最多区域的角度
+	GPIO_ResetBits(GPIOE,GPIO_Pin_4);
 	GPIO_SetBits(GPIOE,GPIO_Pin_6);
-	nowAngle=GetAng();
-	aimAngle=nowAngle+g_cameraAng[0];
-	aimAngle=AvoidOverAngle(aimAngle);
+	g_cameraPlan = 1;
+	nowAngle = GetAng();
+	aimAngle = nowAngle + g_cameraAng[0];
+	aimAngle = AvoidOverAngle(aimAngle);
 	angClose(500,aimAngle,100);
 }
 /*======================================================================================
 函数定义		：			利用摄像头收集球最多的区域的小球,基本走形回字形
 函数参数		：			无
-函数返回值	：			无
+函数返回值	    ：			无
 =======================================================================================*/
 void RunWithCamera1(void)
 {
@@ -363,12 +487,13 @@ void RunWithCamera1(void)
 	//拉高PE4，PE6的电平，接收所有球的极坐标
 	GPIO_SetBits(GPIOE,GPIO_Pin_4);
 	GPIO_SetBits(GPIOE,GPIO_Pin_6);
+	g_cameraPlan = 3;
 	switch(i)
 	{
 		//起步先转弯到-90°，然后i++;进入下一个状态
 		case 0:
 			angClose(500,-90,100);
-			if(fabs(Position_t.angle+90)<5)
+			if(fabs(Position_t.angle + 90) < 5)
 			{
 				i++;
 			}
@@ -377,10 +502,10 @@ void RunWithCamera1(void)
 			//在-90°的角度上收集球，当Position_t.X>1800时，转弯，然后下一个角度收集球。以后的步骤类同
 		case 1:
 			CollecMostBall();
-			if(Position_t.X>(1800-circle*SPREAD_DIS))
+			if(Position_t.X > (1800 - circle*SPREAD_DIS))
 			{
 				angClose(500,0,100);
-				if(fabs(Position_t.angle)<5)
+				if(fabs(Position_t.angle) < 5)
 				{
 					i++;
 				}
@@ -388,10 +513,10 @@ void RunWithCamera1(void)
 			break;
 		case 2:
 			CollecMostBall();
-			if(Position_t.Y>(3800-circle*SPREAD_DIS))
+			if(Position_t.Y > (3800 - circle * SPREAD_DIS))
 			{
 				angClose(500,90,100);
-				if(fabs(Position_t.angle-90)<5)
+				if(fabs(Position_t.angle - 90) < 5)
 				{
 					i++;
 				}
@@ -399,10 +524,10 @@ void RunWithCamera1(void)
 			break;
 		case 3:
 			CollecMostBall();
-			if(Position_t.X<-(1800-circle*SPREAD_DIS))
+			if(Position_t.X < -(1800 - circle * SPREAD_DIS))
 			{
 				angClose(500,180,100);
-				if(fabs(Position_t.angle-180)<5)
+				if(fabs(Position_t.angle - 180) < 5)
 				{
 					i++;
 				}
@@ -410,12 +535,12 @@ void RunWithCamera1(void)
 			break;
 		case 4:
 			CollecMostBall();
-			if(Position_t.Y<(600+circle*SPREAD_DIS))
+			if(Position_t.Y < (600 + circle * SPREAD_DIS))
 			{
 				angClose(500,-90,100);
-				if(fabs(Position_t.angle-90)<5)
+				if(fabs(Position_t.angle - 90) < 5)
 				{
-					i=1;
+					i = 1;
 					circle++;
 				}
 			}
@@ -430,60 +555,61 @@ void RunWithCamera1(void)
 =======================================================================================*/
 int RunWithCamera2(void)
 {
-	static BALLNUM_T num={0,0,0};
-	static POSITION_T startPoint={0,0};
-	static float angleAdjust=0,aimAngle=0,distance=0;
-	static uint8_t flag=1,step=0,posFlag=1;
-	static float leftDisMax=0,leftDisMin=0,midDisMax=0,midDisMin=0,rightDisMax=0,rightDisMin=0,disMax=0,disMin=0;
+	static BALLNUM_T num = {0,0,0};
+	static POSITION_T startPoint = {0,0};
+	static float angleAdjust = 0,aimAngle = 0,distance = 0;
+	static uint8_t flag = 1,step = 0,posFlag = 1;
+	static float leftDisMax = 0, leftDisMin = 0, midDisMax = 0, midDisMin = 0, rightDisMax = 0, rightDisMin = 0, disMax = 0, disMin = 0;
 	
 	//拉高PE4，PE6的电平，接收所有球的极坐标
 	GPIO_SetBits(GPIOE,GPIO_Pin_4);
 	GPIO_SetBits(GPIOE,GPIO_Pin_6);
+	g_cameraPlan = 3;
 	if(flag)
 	{
-		num=SeekMostBall();
+		num = SeekMostBall();
 		
 		//如果中间区域球最多,记录球的最大距离，最小距离(同时转化为球相对于陀螺仪的距离(角度值统一用12.5°粗略估计))以及小车的目标角度。下同
-		if(num.midNum>=num.leftNum&&num.midNum>=num.rightNum)
+		if(num.midNum >= num.leftNum && num.midNum >= num.rightNum)
 		{
 			//num.midNum=0，表明视野中没球，返回0
-			if(num.midNum==0)
+			if(num.midNum == 0)
 			{
 				return 0;
 			}
 			else
 			{
-				disMax=DisBall2Gyro(Max(midDis,num.midNum),12.5);
-				disMin=DisBall2Gyro(Min(midDis,num.midNum),12.5);
+				disMax = DisBall2Gyro(Max(midDis,num.midNum), 12.5);
+				disMin = DisBall2Gyro(Min(midDis,num.midNum), 12.5);
 				
 				//中间球最多，角度调整为0
-				angleAdjust=0;
+				angleAdjust = 0;
 				
 				//GetAng()的返回值是摄像头闭眼前一瞬间小车的角度
-				aimAngle=AvoidOverAngle(GetAng()+angleAdjust);
+				aimAngle = AvoidOverAngle(GetAng() + angleAdjust);
 			}
 		}
-		else if(num.rightNum>num.midNum&&num.rightNum>=num.leftNum)
+		else if(num.rightNum > num.midNum && num.rightNum >= num.leftNum)
 		{
-			disMax=DisBall2Gyro(Max(rightDis,num.rightNum),12.5);
-		  disMin=DisBall2Gyro(Min(rightDis,num.rightNum),12.5);
+			disMax = DisBall2Gyro(Max(rightDis, num.rightNum), 12.5);
+		    disMin = DisBall2Gyro(Min(rightDis, num.rightNum), 12.5);
 			
 			//右边球最多，角度调整为-10
-			angleAdjust=-10;
-			aimAngle=AvoidOverAngle(GetAng()+angleAdjust);
+			angleAdjust = -10;
+			aimAngle = AvoidOverAngle(GetAng() + angleAdjust);
 		}
 		else
 		{
-			disMax=DisBall2Gyro(Max(leftDis,num.leftNum),12.5);
-		  disMin=DisBall2Gyro(Min(leftDis,num.leftNum),12.5);
+			disMax = DisBall2Gyro(Max(leftDis, num.leftNum), 12.5); 
+		    disMin = DisBall2Gyro(Min(leftDis, num.leftNum), 12.5);
 			
 			//左边球最多，角度调整为10
-			angleAdjust=10;
-			aimAngle=AvoidOverAngle(GetAng()+angleAdjust);
+			angleAdjust = 10;
+			aimAngle = AvoidOverAngle(GetAng() + angleAdjust);
 		}
 		
 		//清零，保证在一次视野中摄像头只睁眼一次
-		flag=0;
+		flag = 0;
 	}
 	
 	switch(step)
@@ -492,64 +618,64 @@ int RunWithCamera2(void)
 		case 0:
 			
 			//判断走的是左中右的那个区域
-		  if(angleAdjust>5)
+		  if(angleAdjust > 5)
 			{                                                                     
 				//表明是左边的区域。将leftFlag清0，表明走过了。下同
-				leftFlag=0;
+				leftFlag = 0;
 			}
-			else if(angleAdjust<-5)
+			else if(angleAdjust < -5)
 			{
-				rightFlag=0;
+				rightFlag = 0;
 			}
 			else
 			{
-				midFlag=0;
-		  }
+				midFlag = 0;
+		   }
 			
 			//记录开始找球时陀螺仪的坐标
 			if(posFlag)
 			{
-				startPoint.X=Position_t.X;
-				startPoint.Y=Position_t.Y;
-				posFlag=0;
+				startPoint.X = Position_t.X;
+				startPoint.Y = Position_t.Y;
+				posFlag = 0;
 			}
-			distance=GetDistance(startPoint);
-			angClose(500,aimAngle,100);
+			distance = GetDistance(startPoint);
+			angClose(500, aimAngle, 100);
 			
 			//小车行驶的距离超过小球的最大距离
-			if(distance>disMax)
+			if(distance > disMax)
 			{
 				//如果左中右任一区域有球，则进入下一状态,后退
-				if(leftFlag==1||rightFlag==1||midFlag==1)
+				if(leftFlag == 1 || rightFlag == 1 || midFlag == 1)
 				{
 					step++;
-					posFlag=1;
+					posFlag = 1;
 				}
 				
 				//否则flag=1，摄像头打开。
 				else
 				{
-					step=0;
-					posFlag=1;
-					flag=1;
+					step = 0;
+					posFlag = 1;
+					flag = 1;
 				}
 			}
 			break;
 		case 1:
 			if(posFlag)
 			{
-				startPoint.X=Position_t.X;
-				startPoint.Y=Position_t.Y;
-				posFlag=0;
+				startPoint.X = Position_t.X;
+				startPoint.Y = Position_t.Y;
+				posFlag = 0;
 			}
-			distance=GetDistance(startPoint);
-			angClose(-500,aimAngle,100);
+			distance = GetDistance(startPoint);
+			angClose(-500, aimAngle, 100);
 			
 			//后退,后退的距离为上次前进的距离
-			if(distance>disMax)
+			if(distance > disMax)
 			{
 				step++;
-				posFlag=1;
+				posFlag = 1;
 			}
 			break;
 		case 2:
@@ -557,58 +683,58 @@ int RunWithCamera2(void)
 		  //如果左边还有球,计算球距离小车的最大距离以及小车的目标角度
 			if(leftFlag)
 			{
-				leftDisMax=DisBall2Gyro(Max(leftDis,num.leftNum),12.5);
-				aimAngle=AvoidOverAngle(GetAng()+10);
-				angClose(500,aimAngle,100);
+				leftDisMax = DisBall2Gyro(Max(leftDis, num.leftNum), 12.5);
+				aimAngle = AvoidOverAngle(GetAng() + 10);
+				angClose(500, aimAngle, 100);
 			}
 			
 			//如果左边没有球，则直接进入step4，判断中间有没有球
 			else
 			{
-				step=4;
+				step = 4;
 			}
 			
 			if(posFlag)
 			{
-				startPoint.X=Position_t.X;
-				startPoint.Y=Position_t.Y;
-				posFlag=0;
+				startPoint.X = Position_t.X;
+				startPoint.Y = Position_t.Y;
+				posFlag = 0;
 			}
-			distance=GetDistance(startPoint);
+			distance = GetDistance(startPoint);
 			
 			//小车行驶的距离超过左边球的最大距离，step++,进入下一个状态
-			if(distance>leftDisMax)
+			if(distance > leftDisMax)
 			{
 				//如果右边中间还有球，step++，进入下一状态
-				if(rightFlag==1||midFlag==1)
+				if(rightFlag == 1 || midFlag == 1)
 				{
-					leftFlag=0;
+					leftFlag = 0;
 					step++;
-					posFlag=1;
+					posFlag = 1;
 				}
 				else
 				{
-					step=0;
-					posFlag=1;
-					flag=1;
+					step = 0;
+					posFlag = 1;
+					flag = 1;
 				}
 			}
 			break;
 		case 3:
 			if(posFlag)
 			{
-				startPoint.X=Position_t.X;
-				startPoint.Y=Position_t.Y;
-				posFlag=0;
+				startPoint.X = Position_t.X;
+				startPoint.Y = Position_t.Y;
+				posFlag = 0;
 			}
-			distance=GetDistance(startPoint);
-			angClose(-500,aimAngle,100);
+			distance = GetDistance(startPoint);
+			angClose(-500, aimAngle, 100);
 			
 			//后退,后退的距离为上次前进的距离
-			if(distance>leftDisMax)
+			if(distance > leftDisMax)
 			{
 				step++;
-				posFlag=1;
+				posFlag = 1;
 			}
 			break;
 		case 4:
@@ -616,57 +742,57 @@ int RunWithCamera2(void)
 		  //如果中间还有球,计算球距离小车的最大距离以及小车的目标角度
 			if(midFlag)
 			{
-				midDisMax=DisBall2Gyro(Max(midDis,num.midNum),12.5);
-				aimAngle=AvoidOverAngle(GetAng()+10);
+				midDisMax = DisBall2Gyro(Max(midDis,num.midNum), 12.5);
+				aimAngle = AvoidOverAngle(GetAng() + 10);
 			}
 			
 			//没球，step=6
 			else
 			{
-				step=6;
+				step = 6;
 			}
-			angClose(500,aimAngle,100);
+			angClose(500, aimAngle, 100);
 			if(posFlag)
 			{
-				startPoint.X=Position_t.X;
-				startPoint.Y=Position_t.Y;
-				posFlag=0;
+				startPoint.X = Position_t.X;
+				startPoint.Y = Position_t.Y;
+				posFlag = 0;
 			}
-			distance=GetDistance(startPoint);
+			distance = GetDistance(startPoint);
 			
 			//小车行驶的距离超过左边球的最大距离，step++,进入下一个状态
-			if(distance>midDisMax)
+			if(distance > midDisMax)
 			{
 				//如果右边还有球
-				if(rightFlag==1)
+				if(rightFlag == 1)
 				{
-					midFlag=0;
+					midFlag = 0;
 					step++;
-					posFlag=1;
+					posFlag = 1;
 				}
 				else
 				{
-					step=0;
-					posFlag=1;
-					flag=1;
+					step = 0;
+					posFlag = 1;
+					flag = 1;
 				}
 			}
 			break;
 		case 5:
 			if(posFlag)
 			{
-				startPoint.X=Position_t.X;
-				startPoint.Y=Position_t.Y;
-				posFlag=0;
+				startPoint.X = Position_t.X;
+				startPoint.Y = Position_t.Y;
+				posFlag = 0;
 			}
-			distance=GetDistance(startPoint);
-			angClose(-500,aimAngle,100);
+			distance = GetDistance(startPoint);
+			angClose(-500, aimAngle, 100);
 			
 			//后退,后退的距离为上次前进的距离
-			if(distance>leftDisMax)
+			if(distance > leftDisMax)
 			{
 				step++;
-				posFlag=1;
+				posFlag = 1;
 			}
 			break;
 		case 6:
@@ -674,29 +800,29 @@ int RunWithCamera2(void)
 		  //如果右边还有球,计算球距离小车的最大距离以及小车的目标角度
 			if(rightFlag)
 			{
-				rightDisMax=DisBall2Gyro(Max(rightDis,num.rightNum),12.5);
-				aimAngle=AvoidOverAngle(GetAng()+10);
+				rightDisMax = DisBall2Gyro(Max(rightDis, num.rightNum), 12.5);
+				aimAngle = AvoidOverAngle(GetAng() + 10);
 			}
 			else
 			{
-				step=0;
-				flag=1;
+				step = 0;
+				flag = 1;
 			}
-			angClose(500,aimAngle,100);
+			angClose(500, aimAngle, 100);
 			if(posFlag)
 			{
-				startPoint.X=Position_t.X;
-				startPoint.Y=Position_t.Y;
-				posFlag=0;
+				startPoint.X = Position_t.X;
+				startPoint.Y = Position_t.Y;
+				posFlag = 0;
 			}
-			distance=GetDistance(startPoint);
+			distance = GetDistance(startPoint);
 			
 			//小车行驶的距离超过左边球的最大距离，step++,进入下一个状态
-			if(distance>rightDisMax)
+			if(distance > rightDisMax)
 			{
-				rightFlag=0;
-				step=0;
-				posFlag=1;
+				rightFlag = 0;
+				step = 0;
+				posFlag = 1;
 			}
 			break;
 	}
@@ -718,24 +844,33 @@ bool FirstRoundW(void)
 			{
 				StaightCLose((275 + WIDTH/2 + 100),0,0,FIRST_SPEED);
 				if(Position_t.Y >= 3100 + WIDTH/2 - FIR_ADV)
+				{
 					state = 2;
-			}break;
+				}
+			}
+			break;
 			
 			//上边，目标角度90度
 			case 2:
 			{
-				StaightCLose(0,3100 + WIDTH/2 + 100,90,RUN_SPEED);
+				StaightCLose(0, 3100 + WIDTH/2 + 100, 90, RUN_SPEED);
 				if(Position_t.X <= -275 - WIDTH/2-SPREAD_DIS + ADV_TUEN)
+				{
 					state = 3;
-			}break;
+				}
+			}
+			break;
 			
 			//左边，目标角度180度
 			case 3:
 			{
 				StaightCLose((-275 - WIDTH/2 - SPREAD_DIS),0,180,RUN_SPEED);
 				if(Position_t.Y <= 1700 - WIDTH/2-SPREAD_DIS + ADV_TUEN )
+				{
 					state = 4;
-			}break;
+				}
+			}
+			break;
 			
 			//下边，目标角度-90度
 			case 4:
@@ -745,7 +880,8 @@ bool FirstRoundW(void)
 				{
 				  return true;
 				}
-			}break;
+			}
+			break;
 		}
 	
 	return false;
@@ -769,28 +905,41 @@ bool	RunRectangleW(int length,int wide,float speed)
 		{
 			StaightCLose(275 + wide,0,0,speed);
 			if(Position_t.Y >= 3100 + length - ADV_TUEN)
+			{
 				state = 2;
-		}break;
+			}
+		}
+		break;
 		
 		//长方形上边，目标角度90度
 		case 2:
 		{
 			StaightCLose(0,3100 + length,90,speed);
-			if(wide	+ SPREAD_DIS	>= 2125 - WIDTH/2 - 100) 
-				wide		= 2125 - WIDTH/2 - SPREAD_DIS - 100;
+			if(wide	+ SPREAD_DIS	>= 2125 - WIDTH/2 - 100)
+			{
+				wide = 2125 - WIDTH/2 - SPREAD_DIS - 100;
+			} 
 			if(Position_t.X <= -275 - wide-SPREAD_DIS + ADV_TUEN)
+			{
 				state = 3;
-		}break;
+			}
+		}
+		break;
 			
 		//长方形左边，目标角度180度
 		case 3:
 		{
 			StaightCLose(-275 - wide-SPREAD_DIS,0,180,speed);
 			if(length + SPREAD_DIS >= 1700 - WIDTH/2 - 100)
+			{
 				length = 1700 - WIDTH/2 - SPREAD_DIS - 100;
+			}
 			if(Position_t.Y <= 1700 - length - SPREAD_DIS + ADV_TUEN)
+			{
 				state = 4;		
-		}break;
+			}
+		}
+		break;
 		
 		//长方形下边，目标角度-90度
 		case 4:
@@ -801,7 +950,8 @@ bool	RunRectangleW(int length,int wide,float speed)
 				state = 1;
 				return true;
 			}
-		}break;
+		}
+		break;
 	}
 	return false;
 }
@@ -814,14 +964,14 @@ bool	RunRectangleW(int length,int wide,float speed)
 =======================================================================================*/
 POSXY_T RightHeadPos(void)
 {
-	float angle=0;
+	float angle = 0;
 	POSXY_T  position;
 	
 	//计算右车尖与陀螺仪连线在直角坐标系中与X轴的夹角
-	angle=AvoidOverAngle(Position_t.angle-ANGRIGHTGYRO+90);
-	angle=ANGTORAD(angle);
-	position.X=Position_t.X+DISRIGHTGYRO*cos(angle);
-	position.Y=Position_t.Y+DISRIGHTGYRO*sin(angle);  
+	angle = AvoidOverAngle(Position_t.angle - ANGRIGHTGYRO+90);
+	angle = ANGTORAD(angle);
+	position.X = Position_t.X + DISRIGHTGYRO * cos(angle);
+	position.Y = Position_t.Y + DISRIGHTGYRO * sin(angle);  
 	return position;
 }
 /*======================================================================================
@@ -832,12 +982,12 @@ POSXY_T RightHeadPos(void)
 =======================================================================================*/
 POSXY_T ShootPointPos(void)
 {
-	float angle=0;
-	POSXY_T position;
-	angle=AvoidOverAngle(Position_t.angle+90);
-	angle=ANGTORAD(angle);
-	position.X=Position_t.X+DISSHOOTTOGYRO*cos(angle);
-	position.Y=Position_t.Y+DISSHOOTTOGYRO*sin(angle);  
+	float angle = 0;
+	POSXY_T position = {0,0};
+	angle = AvoidOverAngle(Position_t.angle + 90);
+	angle = ANGTORAD(angle);
+	position.X = Position_t.X + DISSHOOTTOGYRO * cos(angle);
+	position.Y = Position_t.Y + DISSHOOTTOGYRO * sin(angle);  
 	return position;
 }
 
@@ -849,115 +999,237 @@ POSXY_T ShootPointPos(void)
 =======================================================================================*/
 int IfEscape(void)
 {
-	static int backSignal=0,Step=1;
-	int success=0;
+	static int backSignal = 0, Step = 1;
+	int success = 0;
 	switch(Step)
 	{
 		case 1:
-			VelCrl(CAN1, 1, -8000);
-			VelCrl(CAN1, 2, 8000);
+			VelCrl(CAN2, 1, -8000);
+			VelCrl(CAN2, 2, 8000);
 			backSignal++;
 	
 			//倒车1s，则进入下一状态
-			if(backSignal>100)
+			if(backSignal > 100)
 			{
-				backSignal=0;
-				Step=2;
+				backSignal = 0;
+				Step = 2;
 			}
 			break;
 		case 2:
 			backSignal++;
 		
 			//表明为大圈，左转
-			if(Position_t.X<=-1200||Position_t.X>=1200||Position_t.Y>=3600||Position_t.Y<=1200)
+			if(Position_t.X <= -1200 || Position_t.X >= 1200 || Position_t.Y >= 3600 || Position_t.Y <= 1200)
 			{
-				VelCrl(CAN1, 1, 4500);
-				VelCrl(CAN1, 2, 8100);
+				VelCrl(CAN2, 1, 4500);
+				VelCrl(CAN2, 2, 8100);
 			}
 			
 			//否则为小圈，右转
 			else
 			{
-				VelCrl(CAN1, 1,-8100);
-				VelCrl(CAN1, 2, -4500);
+				VelCrl(CAN2, 1,-8100);
+				VelCrl(CAN2, 2, -4500);
 			}
 			
 			//返回值为1，表明避障初步完成
-			if(backSignal>=20)
+			if(backSignal >= 20)
 			{
-				Step=1;
-				backSignal=0;
-				success=1;
+				Step = 1;
+				backSignal = 0;
+				success = 1;
 			}
 			break;
 		}
 	return success;
 }
+ 
 /*======================================================================================
-函数定义		：			给投球电机发送速度（脉冲/s）
-函数参数		：		  投球电机速度（脉冲/s）
+函数定义		：		一系列控制发射电机用的函数	
+函数参数		：		无
 
-函数返回值	：	    无
+函数返回值	    ：	    无
 =======================================================================================*/
-void SendUint8(int32_t pulse)
+//发射航向角转换函数 由度转换为脉冲
+float YawTransform(float yawAngle)
 {
-	//定义联合体
-	num_t u_Num;
-	u_Num.Int32 = pulse;
+	return (yawAngle * YAW_REDUCTION_RATIO * COUNT_PER_DEGREE);
+}
 
-	//起始位
-	USART_SendData(USART1, 'A');
+//发射航向角控制函数 单位：度（枪顺时针转为正，逆时针为负）
+void YawAngleCtr(float yawAngle)
+{
 
-	//通过串口1发数
-	USART_SendData(USART1, u_Num.Uint8[0]);
-	USART_SendData(USART1, u_Num.Uint8[1]);
-	USART_SendData(USART1, u_Num.Uint8[2]);
-	USART_SendData(USART1, u_Num.Uint8[3]);
+	PosCrl(CAN1, GUN_YAW_ID, POS_ABS, YawTransform(yawAngle)); 
+}
 
-	//终止位
-	USART_SendData(USART1, 'J');
+
+//送弹推球函数
+void PushBall(void)
+{
+	PosCrl(CAN1, PUSH_BALL_ID, POS_ABS, PUSH_POSITION);
+}
+
+//送弹推球收回函数
+void PushBallReset(void)
+{
+	PosCrl(CAN1, PUSH_BALL_ID, POS_ABS, PUSH_RESET_POSITION);
+}
+
+//收球电机速度转换函数 由转每秒转换为脉冲
+float CollectBallVelTrans(float round)
+{
+	return round * COUNT_PER_ROUND;
+}
+
+//收球电机速度控制函数 单位：转每秒
+void CollectBallVelCtr(float round)
+{
+	VelCrl(CAN1, COLLECT_BALL_ID, CollectBallVelTrans(round));
+}
+
+//发射电机速度转换函数 由转每秒转换为脉冲
+int32_t shootVelTrans(float roundPerS)
+{
+	return (int32_t)-roundPerS * COUNT_PER_ROUND;
+}
+
+//发射电机速度控制函数 单位：转每秒
+void ShootCtr(float rps)
+{
+    shootPara_t shootPara;
+	
+	shootPara.velInt32 = shootVelTrans(rps);
+
+    //起始位
+    USART_SendData(USART1, 'A');
+    //通过串口1发数
+    USART_SendData(USART1, shootPara.velUint8[0]);
+    USART_SendData(USART1, shootPara.velUint8[1]);
+    USART_SendData(USART1, shootPara.velUint8[2]);
+    USART_SendData(USART1, shootPara.velUint8[3]);
+    //终止位
+    USART_SendData(USART1, 'J');
 }
 /*======================================================================================
 函数定义		：			定点投球方案
-函数参数		：		  无
+函数参数		：		    无
 
-函数返回值	：	    无
+函数返回值	    ：	        1 表明射球完成
 =======================================================================================*/
-void ShootBall(void)
+int ShootBall(void)
 {
-	//球出射速度，mm/s
-	float V=0;
-	float distance=0,aimAngle=0;
-	int32_t pulse=0;
-	POSXY_T posShoot={0,0};
+	static uint16_t count = 0, noBall = 0;
+	static int32_t pulse = 0;
+	static POSXY_T posShoot = {0,0};
+	static float distance = 0, aimAngle = 0, shootAngle = 0, V = 0, rps = 0;
 	
 	//计算投球点的坐标
-	posShoot.X=ShootPointPos().X;
-	posShoot.Y=ShootPointPos().Y;
+	posShoot.X = ShootPointPos().X;
+	posShoot.Y = ShootPointPos().Y;
+	count++;
+
+	// 没有球，g_ballSignal = 1
+//	if (g_ballSignal)
+//	{
+//		noBall++;
+
+//		// 6s(两个送球周期)之内没有球，表明车内没球，射球完成，返回1
+//		if (noBall >= 600)
+//		{
+//			noBall = 0;
+//			return 1;
+//		}
+//	}
+
+//    // 表明g_ballSignal = 0, 进入了CCD的CAN中断，
+//	else
+//	{
+//		g_ballSignal = 1;
+//		noBall = 0;
+//	}
+
+	//1500ms的时间送弹推球
+	if(count <= 150)
+	{
+		PushBall();
+	}
 	
+	//500ms的时间送弹推球收回
+	if(count > 150 && count <= 300)
+	{
+		if(count == 300)
+		{
+			count = 0;
+		}
+		PushBallReset();
+	}
 	//球是白球
 	if(whiteBall)
 	{
-		whiteBall=0;
-		distance=sqrt((posShoot.X-WHITEX)*(posShoot.X-WHITEX)+(posShoot.Y-BALLY)*(posShoot.Y-BALLY));
+		distance = sqrt((posShoot.X - WHITEX) * (posShoot.X - WHITEX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
 		
 		//将角度装换成陀螺仪角度坐标系里的角度值
-		aimAngle=atan2(BALLY-posShoot.Y,WHITEX-posShoot.X)+90;
-		aimAngle=AvoidOverAngle(aimAngle);
+		aimAngle = atan2(BALLY - posShoot.Y, WHITEX - posShoot.X);
+		aimAngle = RADTOANG(aimAngle) - 90;
+		
+		//枪顺时针转为正，逆时针为负
+		aimAngle = AvoidOverAngle(aimAngle);
+		
+		//计算枪应该转的角度(顺时针+，逆时针-)
+		shootAngle = AvoidOverAngle(Position_t.angle - aimAngle);
 	}
 	
 	//球是黑球
 	if(blackBall)
 	{
-		blackBall=0;
-		distance=sqrt((posShoot.X-BLACKX)*(posShoot.X-BLACKX)+(posShoot.Y-BALLY)*(posShoot.Y-BALLY));
+		distance=sqrt((posShoot.X - BLACKX) * (posShoot.X - BLACKX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
 		
-		//将角度装换成陀螺仪角度坐标系里的角度值
-		aimAngle=atan2(BALLY-posShoot.Y,BLACKX-posShoot.X)+90;
-		aimAngle=AvoidOverAngle(aimAngle);
-	}
+		//将角度转换成陀螺仪角度坐标系里的角度值
+		aimAngle = atan2(BALLY - posShoot.Y, BLACKX - posShoot.X);
+		aimAngle = RADTOANG(aimAngle) - 90;
+		aimAngle = AvoidOverAngle(aimAngle);
+		
+		//计算枪应该转的角度(顺时针+，逆时针-)
+		shootAngle = AvoidOverAngle(Position_t.angle - aimAngle);
+		
+	} 
 	
-	//球出射速度(mm/s)与投球点距离篮筐的距离的关系
-	V=sqrt(1000*G*distance*distance/(cos(ANGTORAD(51)*cos(ANGTORAD(51))*(tan(ANGTORAD(51))*distance-424.6))));
-	pulse=V*VTOPULSE; 
+    //球出射速度(mm/s)与投球点距离篮筐的距离的关系
+    //V=sqrt(0.5*G*distance*distance/(cos(ANGTORAD(51))*cos(ANGTORAD(51)))*(tan(ANGTORAD(51))*distance-424.6));
+
+    // distance的取值范围
+    if (distance <= 345)
+    {
+    	V = 0;
+    }
+    else
+    {
+		V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));	
+    }
+	rps = V / (PI * 66);
+	ShootCtr(2.7 * rps);
+	
+	//控制发射航向角
+	YawAngleCtr(shootAngle);
+}
+/*======================================================================================
+函数定义		：			徐鹏学长任务
+函数参数		：		  
+函数返回值	    ：	    
+=======================================================================================*/
+void DingDian(float X, float Y, float V)
+{
+	if(Position_t.Y < 1000)
+	{
+		static float aimAngle = 0;
+		aimAngle = atan2(Position_t.Y - Y,Position_t.X - X) - 90;
+		aimAngle = AvoidOverAngle(aimAngle);
+		angClose(V, aimAngle, 100);
+	}
+	if(Position_t.Y > 1000)
+	{
+		VelCrl(CAN2, 1, 5000);
+	  VelCrl(CAN2, 2, 5000);
+	}
 }

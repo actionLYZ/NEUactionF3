@@ -104,13 +104,13 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 		//计算脉冲
 		if(speed >= 0)
 		{
-			VelCrl(CAN1,1,  (int)(speed * SP2PULSE) + g_plan * (Ainput + Dinput));
-			VelCrl(CAN1,2, -(int)(speed * SP2PULSE) + g_plan * (Ainput + Dinput));
+			VelCrl(CAN2,1,  (int)(speed * SP2PULSE) + g_plan * (Ainput + Dinput));
+			VelCrl(CAN2,2, -(int)(speed * SP2PULSE) + g_plan * (Ainput + Dinput));
 		}
 		else
 		{
-			VelCrl(CAN1,1,  (int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
-			VelCrl(CAN1,2, -(int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
+			VelCrl(CAN2,1,  (int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
+			VelCrl(CAN2,2, -(int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
 		}
 		
 }
@@ -131,8 +131,9 @@ void GoGoGo()
 		{
 			if(FirstRound(FIRST_SPEED) == 1)
 			{
-				length += SPREAD_DIS;				//初始化长方形跑场参数
-				wide	 += SPREAD_DIS;
+				//初始化长方形跑场参数
+				length += SPREAD_DIS;				
+				wide += SPREAD_DIS;
 				state = 2;
 			}
 		}break;
@@ -142,10 +143,17 @@ void GoGoGo()
 		{
 			if(RunRectangle(length,wide,RUN_SPEED))
 			{
-				length += SPREAD_DIS;				//逐渐增加长方形跑场参数
+				//逐渐增加长方形跑场参数
+				length += SPREAD_DIS;				
 				wide	 += SPREAD_DIS;
-				if(length >= 1700 - WIDTH/2 - 100) length = 1700 - WIDTH/2 - 100;
-				if(wide		>= 2125 - WIDTH/2 - 100) wide		= 2125 - WIDTH/2 - 100;
+				if(length >= 1700 - WIDTH/2 - 100) 
+				{
+					length = 1700 - WIDTH/2 - 100;
+				}
+				if(wide	>= 2125 - WIDTH/2 - 100) 
+				{
+					wide = 2125 - WIDTH/2 - 100;
+				}
 			}
 			if(length >= 1700 - WIDTH/2 - 100 && wide >= 2125 - WIDTH/2 - 100)
 				state = 3;
@@ -154,7 +162,7 @@ void GoGoGo()
 		//进行坐标校正
 		case 3:
 		{
-			CheckPosition();
+			CheckError();
 		}break;
 		case 4:
 		{
@@ -369,7 +377,7 @@ void CheckPosition()
 		//激光校正
 		case 4:
 		{
-			if(LaserCheck())	
+			if(LaserCheck()) 	
 			{
 				state = 5;	//矫正成功，开始第二阶段跑场
 			}
@@ -402,12 +410,13 @@ void	RunCamera()
 
 	if(g_camera == 2)
 	{
-		VelCrl(CAN1, 1,  500*SP2PULSE);
-		VelCrl(CAN1, 2, -500*SP2PULSE);
+		VelCrl(CAN2, 1,  500*SP2PULSE);
+		VelCrl(CAN2, 2, -500*SP2PULSE);
 	} 
 	else if(g_camera == 1)
-
-	;
+  {
+		
+	}
 }
 
 /*======================================================================================
@@ -434,15 +443,15 @@ void TurnAngle(float angel,int speed)
 	if(Dangel > 15 || Dangel < -15)
 
 	{
-		VelCrl(CAN1,2, g_plan * speed);
-		VelCrl(CAN1,1, g_plan * speed);
+		VelCrl(CAN2,2, g_plan * speed);
+		VelCrl(CAN2,1, g_plan * speed);
 	}
 	
 	//角度小于10，pid控制输出
 	else
 	{
-		VelCrl(CAN1,2, g_plan * Input);
-		VelCrl(CAN1,1, g_plan * Input);
+		VelCrl(CAN2,2, g_plan * Input);
+		VelCrl(CAN2,1, g_plan * Input);
 	}
 }
 /*======================================================================================
@@ -465,11 +474,42 @@ int	LaserCheck()
 	//没有被挡，返回
 	else
 	{
-		angleError = angleError + Position_t.angle;		//纠正角度坐标
-		yError = (getPosition_t.Y*cos(Angel2PI(angleError))-getPosition_t.X*sin(Angel2PI(angleError)));
-		xError = (getPosition_t.X*cos(Angel2PI(angleError))+getPosition_t.Y*sin(Angel2PI(angleError)))-(2400-laserGetRight);//纠正X坐标
-		USART_OUT(USART1,(u8*)"laserGet%d\r\n",(int)laserGetRight);
-		return 1;
+		//靠的墙是Y=0
+		if(Position_t.angle<45&&Position_t.angle>-45)
+		{
+			angleError += Position_t.angle;		//纠正角度坐标
+			xError = (getPosition_t.X*cos(Angel2PI(angleError))+getPosition_t.Y*sin(Angel2PI(angleError)))-(2400-laserGetRight);
+			yError = (getPosition_t.Y*cos(Angel2PI(angleError))-getPosition_t.X*sin(Angel2PI(angleError)));
+			return 1;
+	    }
+
+	    //靠X=1400的墙
+	    else if (Position_t.angle<135&&Position_t.angle>45)
+	    {
+	    	angleError += Position_t.angle-90;
+            xError = (getPosition_t.X*cos(Angel2PI(angleError))+getPosition_t.Y*sin(Angel2PI(angleError))) - (2400 - 64.65);
+			yError = (getPosition_t.Y*cos(Angel2PI(angleError))-getPosition_t.X*sin(Angel2PI(angleError)))-(4800 - 64.65 - laserGetRight);
+			return 1;
+	    }
+
+	    //靠Y=4800的墙
+	    else if (Position_t.angle>135&&Position_t.angle<-135)
+	    {
+	    	angleError += Position_t.angle-180;
+	    	angleError = AvoidOverAngle(angleError);
+	    	xError = (getPosition_t.X*cos(Angel2PI(angleError))+getPosition_t.Y*sin(Angel2PI(angleError)))-(2400-laserGetLeft);
+			yError = (getPosition_t.Y*cos(Angel2PI(angleError))-getPosition_t.X*sin(Angel2PI(angleError))) - (4800-64.65-64.65);
+			return 1;
+	    }
+
+	    //靠X=-2400的墙
+	    else
+	    {
+            angleError += Position_t.angle + 90;
+            xError = (getPosition_t.X*cos(Angel2PI(angleError))+getPosition_t.Y*sin(Angel2PI(angleError))) - (-2400 + 64.65);
+			yError = (getPosition_t.Y*cos(Angel2PI(angleError))-getPosition_t.X*sin(Angel2PI(angleError)))-(laserGetRight - 64.65);
+			return 1;
+	    }
 	}
 }
 
@@ -480,3 +520,4 @@ float Angel2PI(float angel)
 	res = PI*(angel) / 180;
 	return res;
 }
+

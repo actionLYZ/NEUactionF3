@@ -50,7 +50,8 @@ extern int g_plan;								//跑场方案（顺逆时针）
 extern int8_t whiteBall;          //白球信号
 extern int8_t blackBall;          //黑球信号
 extern float angleError,xError,yError;
-void CAN1_RX0_IRQHandler(void)
+extern uint8_t g_ballSignal;      
+void CAN2_RX0_IRQHandler(void)
 {
 	
 	OS_CPU_SR cpu_sr;
@@ -59,49 +60,6 @@ void CAN1_RX0_IRQHandler(void)
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
   
-	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
-	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
-	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
-	CAN_ClearFlag(CAN1, CAN_FLAG_LEC);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FMP0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FF0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FOV0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FMP1);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FF1);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
-	OSIntExit();
-}
-
-/**
-  * @brief  CAN2 receive FIFO0 interrupt request handler
-  * @note
-  * @param  None
-  * @retval None
-  */
-void CAN2_RX0_IRQHandler(void)
-{
-	uint32_t StdId = 0x30;
-	uint8_t i=1;
-	uint8_t CAN2Buffer[8]={0};
-	OS_CPU_SR cpu_sr;
-
-	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR          */
-	OSIntNesting++;
-	OS_EXIT_CRITICAL();
-  if(CAN_MessagePending(CAN2,CAN_FIFO0)!=0)
-	{
-		CAN_RxMsg(CAN2,&StdId,CAN2Buffer,&i);
-		if(CAN2Buffer[0]==100)
-		{
-			//白球信号来临
-			whiteBall=1;
-		}
-		if(CAN2Buffer[0]==1)
-		{
-			//黑球信号来临
-			blackBall=1;
-		}
-	}
 	CAN_ClearFlag(CAN2, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN2, CAN_FLAG_EPV);
 	CAN_ClearFlag(CAN2, CAN_FLAG_BOF);
@@ -112,6 +70,58 @@ void CAN2_RX0_IRQHandler(void)
 	CAN_ClearFlag(CAN2, CAN_FLAG_FMP1);
 	CAN_ClearFlag(CAN2, CAN_FLAG_FF1);
 	CAN_ClearFlag(CAN2, CAN_FLAG_FOV1);
+	OSIntExit();
+}
+
+/**
+  * @brief  CAN2 receive FIFO0 interrupt request handler
+  * @note
+  * @param  None
+  * @retval None
+  */
+void CAN1_RX0_IRQHandler(void)
+{
+	static uint32_t StdId = 0;
+	static uint8_t i=1;
+	static uint8_t CAN1Buffer[8]={0};
+
+	// g_ballSignal置0，表明球来了
+	g_ballSignal = 0;
+	OS_CPU_SR cpu_sr; 
+
+	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR          */
+	OSIntNesting++;
+	OS_EXIT_CRITICAL();
+	CAN_RxMsg(CAN1,&StdId,CAN1Buffer,&i);
+  if(CAN_MessagePending(CAN1,CAN_FIFO0)!=0)
+	{
+		//分球的ID 0x30
+		if(StdId == 0x30)
+		{
+			if(CAN1Buffer[0] == 100)
+			{
+				//白球信号来临
+				whiteBall = 1;
+		    blackBall = 0;
+			}
+			if(CAN1Buffer[0] == 1)
+			{
+				//黑球信号来临
+				blackBall = 1;
+		    whiteBall = 0;
+			}
+		}
+	}
+	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
+	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
+	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
+	CAN_ClearFlag(CAN1, CAN_FLAG_LEC);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FMP0);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FF0);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FOV0);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FMP1);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FF1);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
 	OSIntExit();
 }
 
@@ -311,7 +321,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 				getPosition_t.X     = posture.ActVal[3];
 				getPosition_t.Y 	= posture.ActVal[4];
 				
-				//计算角度误差
+				//矫正角度
 				Position_t.angle = getPosition_t.angle - angleError;
 				if(Position_t.angle > 	180)  Position_t.angle -= 360;
 				if(Position_t.angle <= -180) 	Position_t.angle += 360;
@@ -323,7 +333,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 				
 				//平移坐标系
 				Position_t.X -= xError;
-				Position_t.Y -= yError;
+				Position_t.Y -= yError; 
 				
 				//计算,角度与x坐标镜像对称
 				Position_t.angle 	*= g_plan;	
@@ -376,6 +386,7 @@ extern int8_t g_cameraAng[50];
 extern uint8_t g_cameraDis[50];
 extern int8_t g_cameraFin;
 extern int8_t g_cameraNum;
+extern uint8_t g_cameraPlan;
 void USART2_IRQHandler(void)
 {
 
@@ -391,7 +402,7 @@ void USART2_IRQHandler(void)
 		g_camera = USART_ReceiveData(USART2);
 		
 		//E4,E6全为高电平，发送的是所有球的极坐标
-		if(READPE4==1&&READPE6==1)
+		if(g_cameraPlan==3)
 		{
 			//接收到终止位，表明接收数据停止
 			if(g_camera==0xD5)
@@ -427,7 +438,7 @@ void USART2_IRQHandler(void)
 		}
 		
 	 //最近球的极坐标
-	 else if(READPE4==1&&READPE6==0)
+	 else if(g_cameraPlan==2)
 	 {
 		 if(flag)
 		 {
@@ -450,7 +461,7 @@ void USART2_IRQHandler(void)
 	 }
 	 
 	 //球最多的角度
-	 else if(READPE4==0&&READPE6==1)
+	 else if(g_cameraPlan==1)
 	 {
 		 if(flag)
 		 {
@@ -467,7 +478,7 @@ void USART2_IRQHandler(void)
 	 }
 	 
 	 //三个区域球的数量 三个数
-	 else if(READPE4==0&&READPE6==0)
+	 else if(g_cameraPlan==0)
 	 {
 		 if(flag)
 		 {
@@ -561,8 +572,7 @@ void BusFault_Handler(void)
   * @param  None
   * @retval None
   */
-void UsageFault_Handler
-	(void)
+void UsageFault_Handler(void)
 {
 
 	/* Go to infinite loop when Usage Fault exception occurs */
