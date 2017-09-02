@@ -15,7 +15,8 @@
 #include "lyz.h"
 #include "stm32f4xx_adc.h"
 #include "c0.h"
-
+#include "MotionCard.h"
+#include "moveBase.h"
 /*=====================================================信号量定义===================================================*/
 
 OS_EXT INT8U OSCPUUsage;
@@ -27,6 +28,9 @@ static OS_STK WalkTaskStk[Walk_TASK_STK_SIZE];
 
 extern POSITION_T Position_t;			//定位系统
 extern POSITION_T getPosition_t;	//获得的定位
+
+void TwoWheelVelControl(float vel,float rotateVel);
+float TwoWheelAngleControl(float targetAng);
 
 int g_plan = 1;						//跑场方案（顺逆时针）
 int g_camera = 0;					//摄像头收到的数
@@ -71,18 +75,18 @@ void ConfigTask(void)
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
 	CAN_Config(CAN2, 500, GPIOB, GPIO_Pin_5, GPIO_Pin_6);
 	USART3_Init(115200);
-	USART1_Init(9600);
+	USART1_Init(115200);
 	USART2_Init(115200);
-	
-	//驱动器初始化
-	elmo_Init(CAN1);
-	elmo_Enable(CAN1,1);
-	elmo_Enable(CAN1,2);
-	
-	//配置速度环
-	Vel_cfg(CAN2, 1, 50000, 50000);
-	Vel_cfg(CAN2, 2, 50000, 50000);
-
+//	
+//	//驱动器初始化
+//	elmo_Init(CAN1);
+//	elmo_Enable(CAN1,1);
+//	elmo_Enable(CAN1,2);
+//	
+//	//配置速度环
+//	Vel_cfg(CAN2, 1, 50000, 50000);
+//	Vel_cfg(CAN2, 2, 50000, 50000);
+ 
 	delay_ms(2000);
 	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000,50000);
 	CollectBallVelCtr(50);
@@ -94,9 +98,10 @@ void ConfigTask(void)
 	//VelCrl(CAN2, 1, 5552);
 	//VelCrl(CAN2, 2, -4096);
 
+//控制卡初始化 
+	BufferZizeInit(400);
 }
-//增加函数声明
-int In_Or_Out(void);
+
 //看车是在跑，还是在矫正、射球
 int carRun=1;
 /*=====================================================执行函数===================================================*/
@@ -107,18 +112,18 @@ void WalkTask(void)
 	int ifEscape = 0,time=0;			        //是否执行逃逸函数
 
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
-	
+
 	//等待激光被触发
 	while(IfStart() == 0)	{};
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);			//关闭蜂鸣器
 	g_plan = IfStart();
-		
+
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-
-			
+		
+		//GivenPoint(0,1500,1000);	
 		if(ifEscape)
 		{
 			/*
@@ -136,13 +141,13 @@ void WalkTask(void)
 			{
           if(!In_Or_Out())
 				  {
-					VelCrl(CAN2, 1, 4000);
-					VelCrl(CAN2, 2, -10000);
+					  VelCrl(CAN2, 1, 4000);
+					  VelCrl(CAN2, 2, -10000);
 			    }
  		      else
 			    {
-					VelCrl(CAN2, 1, 10000);
-					VelCrl(CAN2, 2, -4000);      
+					  VelCrl(CAN2, 1, 10000);
+					  VelCrl(CAN2, 2, -4000);      
 			    }	
 			}
 			if(time>200)
@@ -151,11 +156,9 @@ void WalkTask(void)
 				time=0;
 			}
 		}
-		else    
-			
+		else    			
 		{
 			GoGoGo();
-
 		}
 		if(IfStuck() == 1)
 		{
@@ -166,3 +169,41 @@ void WalkTask(void)
 		}			
 	}
 }
+
+void TwoWheelWalk(float x,float y,float vel)
+{
+	
+	
+	float angle = 0.0f;
+	float rotateVel = 0.0f;
+	//当前点到目标点的方向角度
+	angle = atan2(y - Position_t.Y,Position_t.X) * 180.0f / 3.1415926f;
+	
+	
+	rotateVel = TwoWheelAngleControl(angle);
+	
+	TwoWheelVelControl(vel,rotateVel);
+//	MultiPinThroughPro(0,0,x,y,vel);
+}
+
+
+void TwoWheelVelControl(float vel, float rotateVel)
+{
+	rotateVel = rotateVel * 3.1415926f / 180.0f;
+	VelCrl(CAN2,1,SP2PULSE * (vel + rotateVel * WIDTH * 0.5f));
+	VelCrl(CAN2,2,-SP2PULSE * (vel - rotateVel * WIDTH * 0.5f));  
+}
+
+float angleErr ; 
+float anglePresent;
+//角度闭环
+float TwoWheelAngleControl(float targetAng)
+{
+	angleErr = targetAng - GetAngleZ();
+	
+	if(angleErr > 180) angleErr = angleErr - 360;
+	if(angleErr < -180) angleErr = angleErr + 360;
+	anglePresent = GetAngleZ();
+	return (angleErr * 10.0f);
+}
+

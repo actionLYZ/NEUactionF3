@@ -181,24 +181,25 @@ void GoGoGo(void)
 							GPIO_ResetBits(GPIOE,GPIO_Pin_4);
 							GPIO_SetBits(GPIOE,GPIO_Pin_6);							
 						}
-//						else if(cameraScheme==1)
-//						{
-//							cameraScheme=2;
-//							GPIO_SetBits(GPIOE,GPIO_Pin_4);
-//							GPIO_SetBits(GPIOE,GPIO_Pin_6);
-//						}
+						else if(cameraScheme==1)
+						{
+							cameraScheme=2;
+							GPIO_SetBits(GPIOE,GPIO_Pin_4);
+							GPIO_SetBits(GPIOE,GPIO_Pin_6);
+						}
 						else if(cameraScheme==1)
 						{
 							cameraScheme=3;
 							GPIO_SetBits(GPIOE,GPIO_Pin_4);
 							GPIO_ResetBits(GPIOE,GPIO_Pin_6);
 						}
-						else{}
-						
+						else
+            {
+						}						
 					}break;
 					case 2:state=6;break;
 					default:break;	
-      			}				
+      	}				
 			}
 			else
 			{
@@ -429,6 +430,10 @@ int CheckPosition(void)
 			{
 				state = 4;
 			}
+			else
+			{
+				state = 5;
+			}
 		}break;
 		
 		//激光校正
@@ -445,14 +450,18 @@ int CheckPosition(void)
 				state = 6;	//矫正失败，继续矫正
 		}break;
 		
-//		//第二阶段跑场
-//		case 5:
-//		{
-//			
-//			if(RunRectangle(1000,800,1500) == 1)
-//				state = 1;
-//		}break;
-//		
+		//换个位置再后退
+		case 5:
+		{
+		    StaightCLose((tempx+500),tempy,0,800);
+			  if(Position_t.Y>1000)
+				{
+				  tempx = Position_t.X;			//记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
+				  tempy = Position_t.Y;
+				  state = 3;					
+				}
+		}break;
+		
 		//继续矫正
 		//前进
 		case 6:
@@ -485,11 +494,9 @@ int CheckPosition(void)
 				 yError=-y1*cos(ANGTORAD(angleError))+x1*sin(ANGTORAD(angleError));	
          keepgo=1;	
 				 state = 1;
-	       tempx = 0,tempy = 0;				
+	       tempx = 0,tempy = 0;			
 			}
-		}break;
-		
-		
+		}break;		
 	}
 	return keepgo;
 }
@@ -501,8 +508,6 @@ extern float bestAngle;
 //方案3 最近球的极坐标
 extern float nearestAngle,nearestDis;
 //方案4 所有球的角度和距离
-extern int8_t arr1[20];
-extern uint8_t arr2[20];
 extern int go,arr_number;
 /*======================================================================================
 函数定义		：			利用摄像头跑场
@@ -514,11 +519,13 @@ extern int go,arr_number;
 函数返回值	：			1:               已完成一次摄像头扫场
                     0:               还未完成
 =======================================================================================*/
+extern float bestTraX[20],bestTraY[20],bestTraAngle[20];
 int	RunCamera(void)
 {
-	static int i,d1=0,d2=0,haveBall=0,run=0,ballAngle,traceH[10][10]={0},traceS[10][10]={0},stagger=0,left=1,right=1,up=1,down=1;
-  static float cameraX,cameraY,TraceX[20],TraceY[20],bestTraceX[20],bestTraceY[20],bestTraceAngle[20],bestSum;
+	static int gone=1,haveBall=0,run=0,ballAngle,traceH[10][10]={0},traceS[10][10]={0},stagger=0,left=1,right=1,up=1,down=1;
+  static float cameraX,cameraY;
 	int finish=0;
+	POSITION_T basePoint;
 	//到边界要拐弯了
 	if(fabs(Position_t.X)>2000||Position_t.Y<400||Position_t.Y>4400)
 	{
@@ -555,14 +562,13 @@ int	RunCamera(void)
 	{ 
 		stagger=0;
 		left=Least_S(traceH[0],traceH[1],traceH[2],traceH[3]);
-		right=Least_S(traceH[6],traceH[7],traceH[8],traceH[9]);	
-		down=Least_H(traceS[0],traceS[1],traceS[2]);	
-		up=Least_H(traceS[7],traceS[8],traceS[9]);	
-	}
-	
+		right=Least_S(traceH[6],traceH[7],traceH[8],traceH[9]);
+		down=Least_H(traceS[0],traceS[1],traceS[2]);
+		up=Least_H(traceS[7],traceS[8],traceS[9]);
+	}	
 	switch(cameraScheme)
 	{
-		case 1: 
+		case 1:
  		{
 			if(go)
 			{
@@ -601,426 +607,39 @@ int	RunCamera(void)
 			}	
 		}break;
 		case 2:
-		{		
+		{
+			cameraX=Position_t.X-CAMERATOGYRO*sin(Position_t.angle);
+			cameraY=Position_t.Y+CAMERATOGYRO*cos(Position_t.angle);
 			if(go==1)
 			{
 				go=0;
-			  if(arr_number==0)		
+				if(gone==1)
+				{
+					basePoint.X=cameraX;
+					basePoint.Y=cameraY;
+					basePoint.angle=Position_t.angle;
+				}
+				//判断是否已走过该区域，继续扫面下一个区域
+        if(P2P(cameraX,cameraY,basePoint.X,basePoint.Y)>=1900||Position_t.angle>=basePoint.angle+25||Position_t.angle<=basePoint.angle-25)
+				{
+					gone=1;
+				}
+				else
+				{
+					gone=0;
+				}
+			}
+			if(go==1&&gone==1)
+			{
+			  if(arr_number==0)
 				{
 					haveBall=0;
 				}
 				else
 				{
 					haveBall=1;
-					cameraX=Position_t.X-CAMERATOGYRO*sin(Position_t.angle);
-					cameraY=Position_t.Y+CAMERATOGYRO*cos(Position_t.angle);						
-					bestAngle=MostSector();
-					Left2Right();
-					arr1[0] -= asin(200/arr2[0]);
-          TraceX[0]=cameraX-arr2[0]*sin(Position_t.angle+arr1[0]);
-					TraceY[0]=cameraY+arr2[0]*sin(Position_t.angle+arr1[0]);					
-					arr1[(arr_number-1)] += asin(200/arr2[(arr_number-1)]);
-          TraceX[1]=cameraX-arr2[(arr_number-1)]*sin(Position_t.angle+arr1[(arr_number-1)]);
-					TraceY[1]=cameraY+arr2[(arr_number-1)]*sin(Position_t.angle+arr1[(arr_number-1)]);							
-					Down2Up();
-					for(i=2;i<arr_number;i++)
-					{
-						TraceX[i]=cameraX-arr2[i-1]*sin(Position_t.angle+arr1[i-1]);
-						TraceY[i]=cameraY+arr2[i-1]*sin(Position_t.angle+arr1[i-1]);										
-					}
-					for(i=1;i<(arr_number-1);i++)
-					{
-						if(arr2[i]<=arr2[0])
-						{
-							d1++;
-						}
-						if(arr2[i]<=arr2[(arr_number-1)])
-						{
-							d2++;
-						}
-					}
-					if(d1>d2)
-					{
-						if(d2==1)
-						{
-							bestTraceX[0]=TraceX[2];bestTraceY[0]=TraceY[2];
-              bestTraceX[1]=TraceX[1];bestTraceY[1]=TraceY[1];
-              if(d1==2)
-							{
-								bestTraceX[2]=TraceX[3];bestTraceY[2]=TraceY[3];
-								bestTraceX[3]=TraceX[0];bestTraceY[3]=TraceY[0];
-								
-							  for(i=4;i<(arr_number-1);i++)
-							  {
-								  if(P2P(TraceX[i],TraceY[i],TraceX[i+1],TraceY[i+1])<450)
-								  {
-									   bestTraceX[i]=(TraceX[i]+TraceX[i+1])/2;
-								     bestTraceY[i]=(TraceY[i]+TraceY[i+1])/2;
-							  	}
-                  else 
-								  {
-								  	if(fabs(arr1[i-1]-arr1[i-2])<fabs(arr1[i]-arr1[i-2]))
-								  	{
-									  	bestTraceX[i]=TraceX[i];
-									  	bestTraceY[i]=TraceY[i];
-									  }
-									  else
-									  {
-									  	bestTraceX[i]=TraceX[i+1];
-								  		bestTraceY[i]=TraceY[i+1];										
-								  	}
-							  	}
-							  }              							
-						  }									
-              else 
-							{
-								for(i=2;i<d1;i++)
-								{
-									if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
-									{
-										bestTraceX[i]=(TraceX[i+1]+TraceX[i+2])/2;
-										bestTraceY[i]=(TraceY[i+1]+TraceY[i+2])/2;
-									}
-									else 
-									{
-										if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
-										{
-											bestTraceX[i]=TraceX[i+1];
-											bestTraceY[i]=TraceY[i+1];
-										}
-										else 
-										{
-											bestTraceX[i]=TraceX[i+2];
-											bestTraceY[i]=TraceY[i+2];										
-										}
-									}
-							  }
-								bestTraceX[d1]=TraceX[0];
-							  bestTraceY[d1]=TraceY[0];											
-							  for(i=(d1+1);i<(arr_number-2);i++)
-							  {
-								  if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
-								  {
-								  	 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
-								     bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
-								  }
-                  else 
-								  {
-									  if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
-									  {
-										  bestTraceX[i]=TraceX[i+2];
-										  bestTraceY[i]=TraceY[i+2];
-									  }
-									  else
-									  {
-										  bestTraceX[i]=TraceX[i+3];
-										  bestTraceY[i]=TraceY[i+3];										
-									  }
-								  }
-							 }              							
-						 }
-			    }
-            else if(d2==0)
-						{
-							bestTraceX[0]=TraceX[1];bestTraceY[0]=TraceY[1];
-							
-						}
-						else 
-						{
-							for(i=0;i<(d2-1);i++)
-							{
-								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
-								{
-									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
-								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
-								}
-                else 
-								{
-									if(fabs(arr1[i+1]-arr1[i+3])<fabs(arr1[i+2]-arr1[i+3]))
-									{
-										bestTraceX[i]=TraceX[i+2];
-										bestTraceY[i]=TraceY[i+2];
-									}
-									else 
-									{
-										bestTraceX[i]=TraceX[i+3];
-										bestTraceY[i]=TraceY[i+3];										
-									}
-								}
-							}
-							bestTraceX[d2-1]=TraceX[1];
-							bestTraceY[d2-1]=TraceY[1];
-							for(i=d2;i<(d1-1);i++)
-							{
-								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
-								{
-									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
-								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
-								}
-                else 
-								{
-									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
-									{
-										bestTraceX[i]=TraceX[i+2];
-										bestTraceY[i]=TraceY[i+2];
-									}
-									else 
-									{
-										bestTraceX[i]=TraceX[i+3];
-										bestTraceY[i]=TraceY[i+3];										
-									}
-								}
-							}
-							bestTraceX[d1-1]=TraceX[0];
-							bestTraceY[d1-1]=TraceY[0];
-							for(i=d1;i<(arr_number-3);i++)
-							{
-								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
-								{
-									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
-								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
-								}
-                else 
-								{
-									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
-									{
-										bestTraceX[i]=TraceX[i+2];
-										bestTraceY[i]=TraceY[i+2];
-									}
-									else
-									{
-										bestTraceX[i]=TraceX[i+3];
-										bestTraceY[i]=TraceY[i+3];										
-									}
-								}
-							}
-						}
-				
-					}
-					else if(d1==d2)
-					{
-						if(d1==0)
-						{
-							if(bestAngle>0)
-							{
-								  bestTraceX[0]=TraceX[0];
-									bestTraceY[0]=TraceY[0];
-							}
-							else 
-							{
-									bestTraceX[0]=TraceX[1];
-									bestTraceY[0]=TraceY[1];									
-							}						
-							for(i=1;i<(arr_number-4);i++)
-							{
-								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
-								{
-									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
-								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
-								}
-                else 
-								{
-									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
-									{
-										bestTraceX[i]=TraceX[i+2];
-										bestTraceY[i]=TraceY[i+2];
-									}
-									else
-									{
-										bestTraceX[i]=TraceX[i+3];
-										bestTraceY[i]=TraceY[i+3];										
-									}
-								}
-							}
-						}
-            else
-						{
-							for(i=0;i<(d2-1);i++)
-							{
-								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
-								{
-									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
-								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
-								}
-                else 
-								{
-									if(fabs(arr1[i+1]-arr1[i+3])<fabs(arr1[i+2]-arr1[i+3]))
-									{
-										bestTraceX[i]=TraceX[i+2];
-										bestTraceY[i]=TraceY[i+2];
-									}
-									else 
-									{
-										bestTraceX[i]=TraceX[i+3];
-										bestTraceY[i]=TraceY[i+3];										
-									}
-								}
-							}
-							if(P2P(TraceX[0],TraceY[0],TraceX[1],TraceY[1])<450)
-							{
-								bestTraceX[d2-1]=(TraceX[0]+TraceX[1])/2;
-								bestTraceY[d2-1]=(TraceY[0]+TraceY[1])/2;
-							}
-							else 
-							{
-								if(bestAngle>0)
-								{
-									bestTraceX[d2-1]=TraceX[0];
-									bestTraceY[d2-1]=TraceY[0];
-								}
-								else 
-								{
-									bestTraceX[d2-1]=TraceX[1];
-									bestTraceY[d2-1]=TraceY[1];									
-								}
-							}
-							for(i=d1;i<(arr_number-4);i++)
-							{
-								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
-								{
-									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
-								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
-								}
-                else 
-								{
-									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
-									{
-										bestTraceX[i]=TraceX[i+2];
-										bestTraceY[i]=TraceY[i+2];
-									}
-									else
-									{
-										bestTraceX[i]=TraceX[i+3];
-										bestTraceY[i]=TraceY[i+3];										
-									}
-								}
-							}							
-						}
-					}
-										
-          else 
-					{
-						if(d1==0)
-						{
-							bestTraceX[0]=TraceX[2];bestTraceY[0]=TraceY[2];bestTraceAngle[0]=arr1[1];		
-							for(i=d2;i<(d1-1);i++)
-							{
-								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
-								{
-									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
-								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
-								}
-                else 
-								{
-									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
-									{
-										bestTraceX[i]=TraceX[i+2];
-										bestTraceY[i]=TraceY[i+2];
-									}
-									else 
-									{
-										bestTraceX[i]=TraceX[i+3];
-										bestTraceY[i]=TraceY[i+3];										
-									}
-								}
-							}
-							bestTraceX[d1-1]=TraceX[0];
-							bestTraceY[d1-1]=TraceY[0];
-							for(i=d1;i<(arr_number-3);i++)
-							{
-								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
-								{
-									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
-								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
-								}
-                else 
-								{
-									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
-									{
-										bestTraceX[i]=TraceX[i+2];
-										bestTraceY[i]=TraceY[i+2];
-									}
-									else
-									{
-										bestTraceX[i]=TraceX[i+3];
-										bestTraceY[i]=TraceY[i+3];										
-									}
-								}
-							}              							
-						}
-						else 
-						{
-							for(i=0;i<(d2-1);i++)
-							{
-								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
-								{
-									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
-								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
-								}
-                else 
-								{
-									if(fabs(arr1[i+1]-arr1[i+3])<fabs(arr1[i+2]-arr1[i+3]))
-									{
-										bestTraceX[i]=TraceX[i+2];
-										bestTraceY[i]=TraceY[i+2];
-									}
-									else 
-									{
-										bestTraceX[i]=TraceX[i+3];
-										bestTraceY[i]=TraceY[i+3];										
-									}
-								}
-							}
-							bestTraceX[d2-1]=TraceX[1];
-							bestTraceY[d2-1]=TraceY[1];
-							for(i=d2;i<(d1-1);i++)
-							{
-								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
-								{
-									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
-								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
-								}
-                else 
-								{
-									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
-									{
-										bestTraceX[i]=TraceX[i+2];
-										bestTraceY[i]=TraceY[i+2];
-									}
-									else 
-									{
-										bestTraceX[i]=TraceX[i+3];
-										bestTraceY[i]=TraceY[i+3];										
-									}
-								}
-							}
-							bestTraceX[d1-1]=TraceX[0];
-							bestTraceY[d1-1]=TraceY[0];
-							for(i=d1;i<(arr_number-3);i++)
-							{
-								if(P2P(TraceX[i+2],TraceY[i+2],TraceX[i+3],TraceY[i+3])<450)
-								{
-									 bestTraceX[i]=(TraceX[i+2]+TraceX[i+3])/2;
-								   bestTraceY[i]=(TraceY[i+2]+TraceY[i+3])/2;
-								}
-                else 
-								{
-									if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
-									{
-										bestTraceX[i]=TraceX[i+2];
-										bestTraceY[i]=TraceY[i+2];
-									}
-									else
-									{
-										bestTraceX[i]=TraceX[i+3];
-										bestTraceY[i]=TraceY[i+3];										
-									}
-								}
-							}
-						}
-							
-				
-				  }
+          PathPlan(cameraX,cameraY);
+
 			  }
 			}
 			switch(haveBall)
@@ -1038,7 +657,7 @@ int	RunCamera(void)
 				}break;				 
 				case 1:
 				{
-						StaightCLose(cameraX, cameraY,ballAngle,800);
+						
 				}break;
 				default:
 				 break;
@@ -1173,7 +792,7 @@ float Angel2PI(float angel)
 =======================================================================================*/
 int ShootBall(void)
 {
-	  float horizonDis_W=2400,horizonDis_B=2400,shoot_PX,shoot_PY,tendAngle_W=90,tendAngle_B=90;
+	  float horizonDis_W,horizonDis_B,shoot_PX,shoot_PY,tendAngle_W,tendAngle_B;
 	  static int tim=0,noball=0,rev;
     int finish=0;
 	  tim++;	  
@@ -1189,50 +808,50 @@ int ShootBall(void)
 		{
 			tim=0;			
 		}
-//	  if(fabs(Position_t.angle)<1)
-//	  {
-//		  shoot_PX =(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
-//		  shoot_PY = POSYSTEM_TO_GUN;
-//		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
-//			tendAngle_W = atan2((BASKE_LOCATION_WY-shoot_PY),(BASKE_LOCATION_WX-shoot_PX));
-//			tendAngle_W = RADTOANG(tendAngle_W);
-//			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
-//			tendAngle_B = atan2((BASKE_LOCATION_BY-shoot_PY),(BASKE_LOCATION_BX-shoot_PX));
-//			tendAngle_B = RADTOANG(tendAngle_B);
-//	  }
-//		if(Position_t.angle>89&&Position_t.angle<91)
-//		{
-//			shoot_PX = 2400 - GUN_TO_BACK;
-//			shoot_PY = (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2+2400;
-//		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
-//			tendAngle_W = atan2((shoot_PX-BASKE_LOCATION_WX),(BASKE_LOCATION_WY-shoot_PY));
-//			tendAngle_W = RADTOANG(tendAngle_W);
-//			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
-//			tendAngle_B = atan2((shoot_PX-BASKE_LOCATION_BX),(BASKE_LOCATION_BY-shoot_PY));
-//			tendAngle_B = RADTOANG(tendAngle_B);			
-//		}
-//	  if(fabs(Position_t.angle)>179)
-//		{
-//			shoot_PX = -(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
-//		  shoot_PY = 4800 - POSYSTEM_TO_BACK - GUN_TO_BACK;	
-//		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
-//			tendAngle_W = atan2((shoot_PY-BASKE_LOCATION_WY),(shoot_PX-BASKE_LOCATION_WX));
-//			tendAngle_W = RADTOANG(tendAngle_W);
-//			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
-//			tendAngle_B = atan2((shoot_PY-BASKE_LOCATION_BY),(shoot_PX-BASKE_LOCATION_BX));
-//			tendAngle_B = RADTOANG(tendAngle_B);      			
-//		}
-//	  if(Position_t.angle>-91&&Position_t.angle<-89)
-//		{
-//			shoot_PX = - 2400 + GUN_TO_BACK;
-//			shoot_PY = 2400 - (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
-//		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
-//			tendAngle_W = atan2((BASKE_LOCATION_WX-shoot_PX),(shoot_PY-BASKE_LOCATION_WY));
-//			tendAngle_W = RADTOANG(tendAngle_W);
-//			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
-//			tendAngle_B = atan2((BASKE_LOCATION_BX-shoot_PX),(shoot_PY-BASKE_LOCATION_BY));
-//			tendAngle_B = RADTOANG(tendAngle_B);
-//		}	
+	  if(fabs(Position_t.angle)<1)
+	  {
+		  shoot_PX =(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
+		  shoot_PY = POSYSTEM_TO_GUN;
+		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
+			tendAngle_W = atan2((BASKE_LOCATION_WY-shoot_PY),(BASKE_LOCATION_WX-shoot_PX));
+			tendAngle_W = RADTOANG(tendAngle_W);
+			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
+			tendAngle_B = atan2((BASKE_LOCATION_BY-shoot_PY),(BASKE_LOCATION_BX-shoot_PX));
+			tendAngle_B = RADTOANG(tendAngle_B);
+	  }
+		if(Position_t.angle>89&&Position_t.angle<91)
+		{
+			shoot_PX = 2400 - GUN_TO_BACK;
+			shoot_PY = (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2+2400;
+		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
+			tendAngle_W = atan2((shoot_PX-BASKE_LOCATION_WX),(BASKE_LOCATION_WY-shoot_PY));
+			tendAngle_W = RADTOANG(tendAngle_W);
+			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
+			tendAngle_B = atan2((shoot_PX-BASKE_LOCATION_BX),(BASKE_LOCATION_BY-shoot_PY));
+			tendAngle_B = RADTOANG(tendAngle_B);			
+		}
+	  if(fabs(Position_t.angle)>179)
+		{
+			shoot_PX = -(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
+		  shoot_PY = 4800 - POSYSTEM_TO_BACK - GUN_TO_BACK;	
+		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
+			tendAngle_W = atan2((shoot_PY-BASKE_LOCATION_WY),(shoot_PX-BASKE_LOCATION_WX));
+			tendAngle_W = RADTOANG(tendAngle_W);
+			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
+			tendAngle_B = atan2((shoot_PY-BASKE_LOCATION_BY),(shoot_PX-BASKE_LOCATION_BX));
+			tendAngle_B = RADTOANG(tendAngle_B);      			
+		}
+	  if(Position_t.angle>-91&&Position_t.angle<-89)
+		{
+			shoot_PX = - 2400 + GUN_TO_BACK;
+			shoot_PY = 2400 - (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
+		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
+			tendAngle_W = atan2((BASKE_LOCATION_WX-shoot_PX),(shoot_PY-BASKE_LOCATION_WY));
+			tendAngle_W = RADTOANG(tendAngle_W);
+			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
+			tendAngle_B = atan2((BASKE_LOCATION_BX-shoot_PX),(shoot_PY-BASKE_LOCATION_BY));
+			tendAngle_B = RADTOANG(tendAngle_B);
+		}
 		
 		if(ballColor==0)
 		{
@@ -1242,13 +861,13 @@ int ShootBall(void)
 		{
 			rev=60*sqrt(((horizonDis_W-1500)/2+900)/900);
 			YawAngleCtr(90-tendAngle_W);
-			ShootCtr(80);
+			ShootCtr(rev);
 		}
 		else if(ballColor==2)
 		{
 			rev=60*sqrt(((horizonDis_B-1500)/2+900)/900);
 			YawAngleCtr(90-tendAngle_B);
-			ShootCtr(80);			
+			ShootCtr(rev);			
 		}
 		else 
 		{

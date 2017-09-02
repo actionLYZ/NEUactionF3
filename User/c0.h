@@ -147,6 +147,9 @@ void CollectBallVelCtr(float round);
 int32_t shootVelTrans(float roundPerS);
 void ShootCtr(float rps);
 
+void GivenPoint(float pointX,float pointY,float givenSpeed);
+void PathPlan(float camX,float camY);
+
 /*=====================================================函数定义（万典学长的函数）===================================================*/
 float AngCamera2Gyro(float distance,float angle);
 float AvoidOverAngle(float angle);

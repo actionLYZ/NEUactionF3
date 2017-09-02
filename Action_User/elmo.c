@@ -132,10 +132,6 @@ void VelCrl(CAN_TypeDef *CANx, uint8_t ElmoNum, int vel)
 	TxMessage.IDE = CAN_Id_Standard;   // type of identifier for the message is Standard
 	TxMessage.RTR = CAN_RTR_Data;	  // the type of frame for the message that will be transmitted
 	TxMessage.DLC = 8;
-	if (vel > VEL_LIMIT)
-		vel = VEL_LIMIT;
-	if (vel < -VEL_LIMIT)
-		vel = -VEL_LIMIT;
 	data[0][1] = vel;
 	for (i = 0; i < 2; i++)
 	{

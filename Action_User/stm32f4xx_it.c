@@ -54,7 +54,7 @@ POSITION_T getPosition_t;	//获得的定位
 extern int g_plan;								//跑场方案（顺逆时针）
 extern float angleError,xError,yError;
 
-void CAN1_RX0_IRQHandler(void)
+void CAN2_RX0_IRQHandler(void)
 {
 	OS_CPU_SR cpu_sr;
 
@@ -62,16 +62,16 @@ void CAN1_RX0_IRQHandler(void)
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
 
-	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
-	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
-	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
-	CAN_ClearFlag(CAN1, CAN_FLAG_LEC);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FMP0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FF0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FOV0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FMP1);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FF1);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
+	CAN_ClearFlag(CAN2, CAN_FLAG_EWG);
+	CAN_ClearFlag(CAN2, CAN_FLAG_EPV);
+	CAN_ClearFlag(CAN2, CAN_FLAG_BOF);
+	CAN_ClearFlag(CAN2, CAN_FLAG_LEC);
+	CAN_ClearFlag(CAN2, CAN_FLAG_FMP0);
+	CAN_ClearFlag(CAN2, CAN_FLAG_FF0);
+	CAN_ClearFlag(CAN2, CAN_FLAG_FOV0);
+	CAN_ClearFlag(CAN2, CAN_FLAG_FMP1);
+	CAN_ClearFlag(CAN2, CAN_FLAG_FF1);
+	CAN_ClearFlag(CAN2, CAN_FLAG_FOV1);
 	OSIntExit();
 }
 
@@ -82,7 +82,7 @@ void CAN1_RX0_IRQHandler(void)
   * @retval None
   */
 extern int shootStart,ballColor;
-void CAN2_RX0_IRQHandler(void)
+void CAN1_RX0_IRQHandler(void)
 {
 	uint32_t Id;
 	uint8_t re[1];
@@ -95,7 +95,7 @@ void CAN2_RX0_IRQHandler(void)
 	{
 		if(shootStart)
 		{
-			if(CAN_RxMsg(CAN2,&Id,re,1))
+			if(CAN_RxMsg(CAN1,&Id,re,1))
 			{
 				if(Id==0x30)
 			  {
@@ -115,16 +115,16 @@ void CAN2_RX0_IRQHandler(void)
 			}
 		}    		
 	}
-	CAN_ClearFlag(CAN2, CAN_FLAG_EWG);
-	CAN_ClearFlag(CAN2, CAN_FLAG_EPV);
-	CAN_ClearFlag(CAN2, CAN_FLAG_BOF);
-	CAN_ClearFlag(CAN2, CAN_FLAG_LEC);
-	CAN_ClearFlag(CAN2, CAN_FLAG_FMP0);
-	CAN_ClearFlag(CAN2, CAN_FLAG_FF0);
-	CAN_ClearFlag(CAN2, CAN_FLAG_FOV0);
-	CAN_ClearFlag(CAN2, CAN_FLAG_FMP1);
-	CAN_ClearFlag(CAN2, CAN_FLAG_FF1);
-	CAN_ClearFlag(CAN2, CAN_FLAG_FOV1);
+	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
+	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
+	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
+	CAN_ClearFlag(CAN1, CAN_FLAG_LEC);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FMP0);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FF0);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FOV0);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FMP1);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FF1);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
 	OSIntExit();
 }
 
@@ -367,6 +367,24 @@ void USART3_IRQHandler(void) //更新频率200Hz
 	}
 	OSIntExit();
 }
+
+float GetAngleZ(void)
+{
+	float angle = Position_t.angle + 90;
+	if(angle > 180) angle = angle - 360;
+	return angle;
+}
+float GetPosx(void)
+{
+	return Position_t.X;
+}
+float GetPosy(void)
+{
+	return Position_t.Y;
+}
+
+
+
 //void USART2_IRQHandler(void)
 //{
 //	OS_CPU_SR cpu_sr;

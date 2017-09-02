@@ -55,6 +55,10 @@ typedef struct
 	float Y;
 }POSITION_T;
 
+float GetAngleZ(void);
+float GetPosx(void);
+float GetPosy(void);
+
 #ifdef __cplusplus
 }
 #endif

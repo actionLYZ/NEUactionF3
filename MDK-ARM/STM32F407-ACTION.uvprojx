@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\CMSIS;..\Libraries\CMSIS\startup;..\Action_User;..\uCOS-ii\Port;..\uCOS-ii\Source;..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\Action_User;..\User</IncludePath>
+              <IncludePath>..\Libraries\CMSIS;..\Libraries\CMSIS\startup;..\Action_User;..\uCOS-ii\Port;..\uCOS-ii\Source;..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\Action_User;..\User;..\pathplan\motion;..\pathplan\motion</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -433,11 +433,6 @@
               <FileName>wan.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\User\wan.c</FilePath>
-            </File>
-            <File>
-              <FileName>c0.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\User\c0.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -565,6 +560,11 @@
               <FilePath>..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_gpio.c</FilePath>
             </File>
             <File>
+              <FileName>c0.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\User\c0.c</FilePath>
+            </File>
+            <File>
               <FileName>stm32f4xx_rcc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Libraries\STM32F4xx_StdPeriph_Driver\src\stm32f4xx_rcc.c</FilePath>
@@ -628,6 +628,46 @@
               <FileName>Readme.txt</FileName>
               <FileType>5</FileType>
               <FilePath>.\Readme.txt</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>pathplaning</GroupName>
+          <Files>
+            <File>
+              <FileName>Bspline.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\pathplan\motion\Bspline.c</FilePath>
+            </File>
+            <File>
+              <FileName>calculate.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\pathplan\motion\calculate.c</FilePath>
+            </File>
+            <File>
+              <FileName>flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\pathplan\motion\flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>pathFollowing.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\pathplan\motion\pathFollowing.c</FilePath>
+            </File>
+            <File>
+              <FileName>posSystem.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\pathplan\motion\posSystem.c</FilePath>
+            </File>
+            <File>
+              <FileName>ringbuffer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\pathplan\motion\ringbuffer.c</FilePath>
+            </File>
+            <File>
+              <FileName>SpeedPlaning.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\pathplan\motion\SpeedPlaning.c</FilePath>
             </File>
           </Files>
         </Group>
