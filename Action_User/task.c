@@ -15,6 +15,7 @@
 #include "lyz.h"
 #include "stm32f4xx_adc.h"
 #include "wan.h"
+#include "moveBase.h"
 /*=====================================================信号量定义===================================================*/
 
 OS_EXT INT8U OSCPUUsage;
@@ -76,11 +77,19 @@ void ConfigTask(void)
 	//CAN初始化
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
 	CAN_Config(CAN2, 500, GPIOB, GPIO_Pin_5, GPIO_Pin_6);
-	USART1_Init(115200);
-	USART2_Init(115200);
-	USART3_Init(115200);
-	UART5_Init(115200);
 	
+	//射球转速
+	USART1_Init(115200);
+	
+	//树莓派
+	USART2_Init(115200);
+	
+	//坐标
+	USART3_Init(115200);
+	
+	//蓝牙串口
+	UART5_Init(115200);
+
 	//驱动器初始化
 	elmo_Init(CAN2);
 	elmo_Enable(CAN2,1);
@@ -92,8 +101,6 @@ void ConfigTask(void)
 
 	//收球电机初始化
 	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000,50000);
-
-	// delay_ms(2000);
 	
 	VelCrl(CAN2, 1, 0);
 	VelCrl(CAN2, 2, 0);
@@ -106,29 +113,30 @@ void WalkTask(void)
 {
 	CPU_INT08U os_err;
 	os_err = os_err;
+	
   //拉低PE4，拉高PE6的电平，接收球最多区域的角度
 	GPIO_ResetBits(GPIOE,GPIO_Pin_4);
 	GPIO_SetBits(GPIOE,GPIO_Pin_6);
 	g_cameraPlan=1;
-  //delay_s(12);
+  delay_s(10);
 	OSSemSet(PeriodSem, 0, &os_err);
-	int j=0;
-	int plan;							                  //执行方案
-	int ifEscape = 0;			                  //是否执行逃逸函数
 
-	//GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
+	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
 	 
 	//等待激光被触发(BUG有时会进入void HardFault_Handler(void)循环中)
-//	while(IfStart() == 0)	{};
-//	GPIO_ResetBits(GPIOE,GPIO_Pin_7);			//关闭蜂鸣器
-//	g_plan = IfStart();
+	while(IfStart() == 0)	{};
+	GPIO_ResetBits(GPIOE,GPIO_Pin_7);			//关闭蜂鸣器
+	g_plan = IfStart();
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		USART_OUT(UART5,(u8*)"%d\r\n",(int)Position_t.X);
+		USART_OUT(UART5,(u8*)"X %d\tY %d\tangle %d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+		
 		//收球电机速度控制函数 单位：转每秒
-		CollectBallVelCtr(40.0f);
-		ShootBall();
+		CollectBallVelCtr(40.0f); 
+		//ShootBall();
+		//GoGoGo();
+		StaightCLose((275 + WIDTH/2 + 100),0,0,FIRST_SPEED);
 /*		if(IfStuck() == 1) ifEscape = 1;
 		if(ifEscape)
 		{

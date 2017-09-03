@@ -127,7 +127,7 @@ float AvoidOverAngle(float angle);
 void angClose(float V,float aimAngle,float Kp);  
 
 //矫正函数
-void CheckError();       
+void CheckError(void);       
 
 //将小球相对于摄像头的角度转换成相对于陀螺仪的角度(度) 
 float AngCamera2Gyro(float distance,float angle);        

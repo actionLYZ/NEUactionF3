@@ -89,7 +89,7 @@ void angClose(float V,float aimAngle,float Kp)
 函数参数	  ：		无
 函数返回值    ：	    成功返回1，失败返回0
 =======================================================================================*/
-void CheckError()
+void CheckError(void)
 {
 	static int8_t signal=0;
 	static int8_t step=2,count=0,angle=0;
@@ -163,7 +163,7 @@ void CheckError()
 		   //行程开关触发
 		   if (SWITCHA0 == 1 && SWITCHC0 == 1)
 		   {
-				step=4;
+				 step = 4;
 		   }
 		break;
 		case 4:
@@ -1099,7 +1099,7 @@ void ShootCtr(float rps)
 {
     shootPara_t shootPara;
 	
-	shootPara.velInt32 = shootVelTrans(rps);
+	  shootPara.velInt32 = shootVelTrans(rps);
 
     //起始位
     USART_SendData(USART1, 'A');
@@ -1149,16 +1149,16 @@ int ShootBall(void)
 //		noBall = 0;
 //	}
 
-	//1500ms的时间送弹推球
-	if(count <= 150)
+	//2000ms的时间送弹推球
+	if(count <= 200)
 	{
 		PushBall();
 	}
 	
-	//500ms的时间送弹推球收回
-	if(count > 150 && count <= 300)
+	//2000ms的时间送弹推球收回
+	if(count > 200 && count <= 400)
 	{
-		if(count == 300)
+		if(count == 400)
 		{
 			count = 0;
 		}
@@ -1199,16 +1199,16 @@ int ShootBall(void)
     //V=sqrt(0.5*G*distance*distance/(cos(ANGTORAD(51))*cos(ANGTORAD(51)))*(tan(ANGTORAD(51))*distance-424.6));
 
     // distance的取值范围
-    if (distance <= 345)
-    {
-    	V = 0;
-    }
-    else
-    {
+	if (distance <= 345)
+	{
+    V = 0;
+	}
+	else
+	{
 		V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));	
-    }
-	rps = V / (PI * 66);
-	ShootCtr(2.7 * rps);
+	}
+	rps = 2 * V / (PI * 66) + 17;
+	ShootCtr(rps);
 	
 	//控制发射航向角
 	YawAngleCtr(shootAngle);

@@ -81,24 +81,51 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 		//计算距离输出
 		Ddis = Piont2Straight(aimx,aimy,angle);
 
-		if		 (fabs(speed) <=  500) 	Dinput = 9 	* Ddis + 1.5 * (Ddis - LDdis);
-		else if(fabs(speed) <= 1000) 	Dinput = 12 * Ddis +   3 * (Ddis - LDdis);
-		else if(fabs(speed) <= 1500) 	Dinput = 18 * Ddis +   3 * (Ddis - LDdis);
-		else 													Dinput = 24 * Ddis +   3 * (Ddis - LDdis);
-
+		if(fabs(speed) <=  500) 
+		{
+			Dinput = 9 	* Ddis + 1.5 * (Ddis - LDdis);
+		}
+		else if(fabs(speed) <= 1000) 	
+		{
+			Dinput = 12 * Ddis +   3 * (Ddis - LDdis);
+		}
+		else if(fabs(speed) <= 1500) 
+		{
+			Dinput = 18 * Ddis +   3 * (Ddis - LDdis);
+		}
+		else
+		{
+			Dinput = 24 * Ddis +   3 * (Ddis - LDdis);
+		}
 		LDdis = Ddis;
 		
 		//计算角度输出
 		Dangle = (angle - Position_t.angle);
-		if(Dangle >  180) Dangle -= 360;
-		if(Dangle < -180) Dangle += 360;
-		
+		if(Dangle >  180) 
+		{
+			Dangle -= 360;
+		}
+		if(Dangle < -180) 
+		{
+			Dangle += 360;
+		}
 
-		if		 (fabs(speed) <=  500) 	Ainput = 100*Dangle +  1 * (Dangle - LDangle);
-		else if(fabs(speed) <= 1000) 	Ainput = 160*Dangle + 30 * (Dangle - LDangle);
-		else if(fabs(speed) <= 1500) 	Ainput = 250*Dangle + 30 * (Dangle - LDangle);
-		else 													Ainput = 350*Dangle + 30 * (Dangle - LDangle);
-
+		if(fabs(speed) <=  500) 
+		{
+			Ainput = 100*Dangle +  1 * (Dangle - LDangle);
+		}
+		else if(fabs(speed) <= 1000)
+		{
+			Ainput = 160*Dangle + 30 * (Dangle - LDangle);
+		}
+		else if(fabs(speed) <= 1500) 
+		{
+			Ainput = 250*Dangle + 30 * (Dangle - LDangle);
+		}
+		else 	
+		{
+			Ainput = 350*Dangle + 30 * (Dangle - LDangle);
+		}
 		LDangle = Dangle;
 		
 		//计算脉冲
@@ -122,7 +149,7 @@ void StaightCLose(float aimx,float aimy,float angle,float speed)
 =======================================================================================*/
 void GoGoGo()
 {
-	static int state = 1;							//应该执行的状态
+	static int state = 1;							            //应该执行的状态
 	static int length = WIDTH/2,wide = WIDTH/2;		//长方形跑场参数
 	switch(state)
 	{
@@ -136,7 +163,8 @@ void GoGoGo()
 				wide += SPREAD_DIS;
 				state = 2;
 			}
-		}break;
+		}
+		break;
 
 		//向外扩散扫场
 		case 2:
@@ -145,7 +173,7 @@ void GoGoGo()
 			{
 				//逐渐增加长方形跑场参数
 				length += SPREAD_DIS;				
-				wide	 += SPREAD_DIS;
+				wide += SPREAD_DIS;
 				if(length >= 1700 - WIDTH/2 - 100) 
 				{
 					length = 1700 - WIDTH/2 - 100;
@@ -156,22 +184,28 @@ void GoGoGo()
 				}
 			}
 			if(length >= 1700 - WIDTH/2 - 100 && wide >= 2125 - WIDTH/2 - 100)
+			{
 				state = 3;
-		}break;
+			}
+		}
+		break;
 
 		//进行坐标校正
 		case 3:
 		{
 			CheckError();
-		}break;
+		}
+		break;
 		case 4:
 		{
 			//射球
-		}break;
+		}
+		break;
 		case 5:
 		{
 			RunCamera();
-		}break;
+		}
+		break;
 	}
 }
 
@@ -459,7 +493,7 @@ void TurnAngle(float angel,int speed)
 函数参数		：			无
 函数返回值	：			矫正成功返回1，失败返回0
 =======================================================================================*/
-int	LaserCheck()
+int	LaserCheck(void)
 {
 	int laserGetRight=0,laserGetLeft=0;
 	laserGetRight = Get_Adc_Average(RIGHT_LASER,20);

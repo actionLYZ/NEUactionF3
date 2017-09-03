@@ -12,7 +12,7 @@ bool	RunRectangle(int length,int wide,float speed);										//长方形跑场
 void 	TurnAngle(float angel,int speed);																	//原地旋转指定角度
 void	CheckPosition(void);																							//坐标校正
 void	RunCamera(void);																									//利用摄像头跑场
-int	LaserCheck();																									      //激光矫正,矫正成功返回true,不成功返回false
+int	LaserCheck(void);																									      //激光矫正,矫正成功返回true,不成功返回false
 float Angel2PI(float angel);																						//将角度转换为PI
 void InputArr(char[],unsigned char[],int);								              //输出两个数组
 

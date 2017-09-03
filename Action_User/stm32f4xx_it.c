@@ -89,7 +89,7 @@ void CAN1_RX0_IRQHandler(void)
 	g_ballSignal = 0;
 	OS_CPU_SR cpu_sr; 
 
-	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR          */
+	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR */
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
 	CAN_RxMsg(CAN1,&StdId,CAN1Buffer,&i);
@@ -244,10 +244,17 @@ void USART1_IRQHandler(void)
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
 
-	if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
+	if (USART_GetFlagStatus(USART1, USART_FLAG_ORE) != RESET)
 	{
-		
+		USART_ReceiveData(USART1);
+	}
+	else if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
+	{
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+	}
+	else
+	{
+		USART_OUT(USART1,(u8*)"error");
 	}
 	OSIntExit();
 }
@@ -272,7 +279,6 @@ void USART3_IRQHandler(void) //更新频率200Hz
 
 	if (USART_GetITStatus(USART3, USART_IT_RXNE) == SET)
 	{
-		float tempx,tempy;
 		USART_ClearITPendingBit(USART3, USART_IT_RXNE);
 		ch = USART_ReceiveData(USART3);
 		switch (count)
@@ -364,22 +370,16 @@ void USART3_IRQHandler(void) //更新频率200Hz
 		USART_ClearITPendingBit(USART3, USART_IT_FE);
 		USART_ReceiveData(USART3);
 	}
+//	else if (USART_GetITStatus(USART3, USART_IT_RXNE) == SET)
+//	{
+//		USART_ClearITPendingBit(USART3, USART_IT_RXNE);
+//	}
+//	else
+//	{
+//		USART_OUT(USART3,(u8*)"error");
+//	}
 	OSIntExit();
 }
-
-//void USART2_IRQHandler(void)
-//{
-//	OS_CPU_SR cpu_sr;
-//	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
-//	OSIntNesting++;
-//	OS_EXIT_CRITICAL();
-
-//	if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
-//	{
-//		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
-//	}
-//	OSIntExit();
-//}
 
 extern uint8_t g_camera;
 extern int8_t g_cameraAng[50];
@@ -396,9 +396,8 @@ void USART2_IRQHandler(void)
 	OS_EXIT_CRITICAL();
 
 	static bool AngOrDis=0,flag=0;
-	if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
+	if (USART_GetFlagStatus(USART2, USART_FLAG_ORE) != RESET)
 	{
-		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
 		g_camera = USART_ReceiveData(USART2);
 		
 		//E4,E6全为高电平，发送的是所有球的极坐标
@@ -496,20 +495,13 @@ void USART2_IRQHandler(void)
 	 {
 	 }
 	}
-	else			//清除一些标志位
+	else if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)			
 	{
-		USART_ClearITPendingBit(USART2, USART_IT_PE);
-		USART_ClearITPendingBit(USART2, USART_IT_TXE);
-		USART_ClearITPendingBit(USART2, USART_IT_TC);
-		USART_ClearITPendingBit(USART2, USART_IT_ORE_RX);
-		USART_ClearITPendingBit(USART2, USART_IT_IDLE);
-		USART_ClearITPendingBit(USART2, USART_IT_LBD);
-		USART_ClearITPendingBit(USART2, USART_IT_CTS);
-		USART_ClearITPendingBit(USART2, USART_IT_ERR);
-		USART_ClearITPendingBit(USART2, USART_IT_ORE_ER);
-		USART_ClearITPendingBit(USART2, USART_IT_NE);
-		USART_ClearITPendingBit(USART2, USART_IT_FE);
-		USART_ReceiveData(USART2);
+		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
+	}
+	else
+	{
+		USART_OUT(USART2,(u8*)"error");
 	}
 	OSIntExit();
 }
