@@ -134,7 +134,7 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		
+		ShootBall();
 
 	}
 }
