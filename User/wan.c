@@ -1151,16 +1151,16 @@ int ShootBall(void)
 //		noBall = 0;
 //	}
 
-	//2000ms的时间送弹推球
-	if(count <= 200)
+	//1300ms的时间送弹推球
+	if(count <= 130)
 	{
 		PushBall();
 	}
 	
-	//2000ms的时间送弹推球收回
-	if(count > 200 && count <= 400)
+	//1300ms的时间送弹推球收回
+	if(count > 130 && count <= 260)
 	{
-		if(count == 400)
+		if(count == 260)
 		{
 			count = 0;
 		}
@@ -1203,7 +1203,7 @@ int ShootBall(void)
     // distance的取值范围
 	if (distance <= 345)
 	{
-      V = 0;
+     V = 0;
 	}
 	else
 	{
@@ -1212,15 +1212,15 @@ int ShootBall(void)
 	rps = 2 * V / (PI * 66) + 17;
 
 	// 表明射球蓝牙没有收到主控发送的数据
-	if (fabs(rps - g_shootV) > 1)
+	if (fabs(rps + g_shootV / 4096) > 5)
 	{
 		ShootCtr(rps);
 	}
-
+  
 	// 否则表明射球蓝牙收到了主控发送的数据，以后不需再发送
 	else
 	{}
-	
+	USART_OUT(UART5,(u8*)"shootV %d\r\n",g_shootV);
 	//控制发射航向角
 	YawAngleCtr(shootAngle);
 }

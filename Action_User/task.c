@@ -16,6 +16,7 @@
 #include "stm32f4xx_adc.h"
 #include "wan.h"
 #include "moveBase.h"
+#include "MotionCard.h"
 /*=====================================================信号量定义===================================================*/
 
 OS_EXT INT8U OSCPUUsage;
@@ -39,6 +40,10 @@ uint8_t g_cameraPlan = 0;            //摄像头接球方案
 uint8_t g_ballSignal = 1;            //判断CCD是否看到球
 int32_t g_shootV = 0;                //串口接收到的速度
 int32_t g_shootFactV = 0;            //发射电机的实时转速
+
+void TwoWheelVelControl(float vel,float rotateVel);
+float TwoWheelAngleControl(float targetAng);
+
 void App_Task()
 {
 	CPU_INT08U os_err;
@@ -74,10 +79,11 @@ void ConfigTask(void)
 //	BEEP_Init();         	
   LimitSwitch();            //行程开关初始化
 	NumTypeInit();            //摄像头高低电平拉数据PE4 PE6初始化
+  BufferZizeInit(400);      //控制卡初始化      
 
 	//CAN初始化
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
-	CAN_Config(CAN2, 500, GPIOB, GPIO_Pin_5, GPIO_Pin_6);
+  CAN_Config(CAN2, 500, GPIOB, GPIO_Pin_5, GPIO_Pin_6);
 	
 	//射球转速
 	USART1_Init(115200);
@@ -114,44 +120,60 @@ void WalkTask(void)
 {
 	CPU_INT08U os_err;
 	os_err = os_err;
-	
+	int count = 0,i = 0;
   //拉低PE4，拉高PE6的电平，接收球最多区域的角度
 	GPIO_ResetBits(GPIOE,GPIO_Pin_4);
 	GPIO_SetBits(GPIOE,GPIO_Pin_6);
 	g_cameraPlan=1;
-    delay_s(10);
-	OSSemSet(PeriodSem, 0, &os_err);
+	CollectBallVelCtr(40);
+	delay_s(10);
 
-	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
-	 
-	//等待激光被触发(BUG有时会进入void HardFault_Handler(void)循环中)
-	while(IfStart() == 0)	{};
-	GPIO_ResetBits(GPIOE,GPIO_Pin_7);			//关闭蜂鸣器
-	g_plan = IfStart();
+//	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
+	
+	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		//USART_OUT(UART5,(u8*)"X %d\tY %d\tangle %d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 		
-		//收球电机速度控制函数 单位：转每秒
-		CollectBallVelCtr(40.0f); 
-		ShootBall();
-		//GoGoGo();
-		//StaightCLose((275 + WIDTH/2 + 100),0,0,FIRST_SPEED);
-/*		if(IfStuck() == 1) ifEscape = 1;
-		if(ifEscape)
-		{
-			
-			if(IfEscape())  ifEscape = 0;
-			逃逸函数结束返回1，未结束返回0
-			
-		}
-		else
-		{
-			GoGoGo();
-		}*/
+
 	}
 }
 
+
+void TwoWheelWalk(float x,float y,float vel)
+{
+	
+	float angle = 0.0f;
+	float rotateVel = 0.0f;
+	//当前点到目标点的方向角度
+	angle = atan2(y - Position_t.Y,Position_t.X) * 180.0f / 3.1415926f;
+	
+	
+	rotateVel = TwoWheelAngleControl(angle);
+	
+	TwoWheelVelControl(vel,rotateVel);
+//	MultiPinThroughPro(0,0,x,y,vel);
+}
+
+
+void TwoWheelVelControl(float vel, float rotateVel)
+{
+	rotateVel = rotateVel * 3.1415926f / 180.0f;
+	VelCrl(CAN2,1,SP2PULSE * (vel + rotateVel * WIDTH * 0.5f));
+	VelCrl(CAN2,2,-SP2PULSE * (vel - rotateVel * WIDTH * 0.5f));  
+}
+
+float angleErr ; 
+float anglePresent;
+//角度闭环
+float TwoWheelAngleControl(float targetAng)
+{
+	angleErr = targetAng - GetAngleZ();
+	
+	if(angleErr > 180) angleErr = angleErr - 360;
+	if(angleErr < -180) angleErr = angleErr + 360;
+	anglePresent = GetAngleZ();
+	return (angleErr * 10.0f);
+}
 		 
 		
