@@ -27,6 +27,8 @@ extern int8_t whiteBall;          //白球信号
 extern int8_t blackBall;          //黑球信号
 extern uint8_t g_cameraPlan;      //摄像头接球方案
 extern uint8_t g_ballSignal;
+extern int32_t g_shootV;                //串口接收到的速度
+extern int32_t g_shootFactV;            //发射电机的实时转速
 /*======================================================================================
 函数定义	  ：		Send Get函数
 函数参数	  ：		
@@ -1099,7 +1101,7 @@ void ShootCtr(float rps)
 {
     shootPara_t shootPara;
 	
-	  shootPara.velInt32 = shootVelTrans(rps);
+	shootPara.velInt32 = shootVelTrans(rps);
 
     //起始位
     USART_SendData(USART1, 'A');
@@ -1201,14 +1203,23 @@ int ShootBall(void)
     // distance的取值范围
 	if (distance <= 345)
 	{
-    V = 0;
+      V = 0;
 	}
 	else
 	{
 		V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));	
 	}
 	rps = 2 * V / (PI * 66) + 17;
-	ShootCtr(rps);
+
+	// 表明射球蓝牙没有收到主控发送的数据
+	if (fabs(rps - g_shootV) > 1)
+	{
+		ShootCtr(rps);
+	}
+
+	// 否则表明射球蓝牙收到了主控发送的数据，以后不需再发送
+	else
+	{}
 	
 	//控制发射航向角
 	YawAngleCtr(shootAngle);

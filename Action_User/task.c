@@ -37,7 +37,8 @@ int8_t whiteBall = 1;                //白球信号
 int8_t blackBall = 0;                //黑球信号
 uint8_t g_cameraPlan = 0;            //摄像头接球方案
 uint8_t g_ballSignal = 1;            //判断CCD是否看到球
-
+int32_t g_shootV = 0;                //串口接收到的速度
+int32_t g_shootFactV = 0;            //发射电机的实时转速
 void App_Task()
 {
 	CPU_INT08U os_err;
@@ -118,7 +119,7 @@ void WalkTask(void)
 	GPIO_ResetBits(GPIOE,GPIO_Pin_4);
 	GPIO_SetBits(GPIOE,GPIO_Pin_6);
 	g_cameraPlan=1;
-  delay_s(10);
+    delay_s(10);
 	OSSemSet(PeriodSem, 0, &os_err);
 
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
@@ -130,13 +131,13 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		USART_OUT(UART5,(u8*)"X %d\tY %d\tangle %d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+		//USART_OUT(UART5,(u8*)"X %d\tY %d\tangle %d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 		
 		//收球电机速度控制函数 单位：转每秒
 		CollectBallVelCtr(40.0f); 
-		//ShootBall();
+		ShootBall();
 		//GoGoGo();
-		StaightCLose((275 + WIDTH/2 + 100),0,0,FIRST_SPEED);
+		//StaightCLose((275 + WIDTH/2 + 100),0,0,FIRST_SPEED);
 /*		if(IfStuck() == 1) ifEscape = 1;
 		if(ifEscape)
 		{

@@ -50,7 +50,9 @@ extern int g_plan;								//跑场方案（顺逆时针）
 extern int8_t whiteBall;          //白球信号
 extern int8_t blackBall;          //黑球信号
 extern float angleError,xError,yError;
-extern uint8_t g_ballSignal;      
+extern uint8_t g_ballSignal;
+extern int32_t g_shootV;     
+extern int32_t g_shootFactV; 
 void CAN2_RX0_IRQHandler(void)
 {
 	
@@ -84,16 +86,16 @@ void CAN1_RX0_IRQHandler(void)
 	static uint32_t StdId = 0;
 	static uint8_t i=1;
 	static uint8_t CAN1Buffer[8]={0};
-
+  USART_OUT(UART5,(u8*)"ZHONGDUAN");
 	// g_ballSignal置0，表明球来了
 	g_ballSignal = 0;
 	OS_CPU_SR cpu_sr; 
-
+  
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR */
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
 	CAN_RxMsg(CAN1,&StdId,CAN1Buffer,&i);
-  if(CAN_MessagePending(CAN1,CAN_FIFO0)!=0)
+    if(CAN_MessagePending(CAN1,CAN_FIFO0)!=0)
 	{
 		//分球的ID 0x30
 		if(StdId == 0x30)
@@ -238,23 +240,81 @@ void UART4_IRQHandler(void)
 /***************************试场调参数用蓝牙串口中断*****************************************************/
 void USART1_IRQHandler(void)
 {
-
+    static uint8_t ch = 0;
+	static uint8_t count = 0, i = 0;
+	static union
+	{
+		int32_t vel32;
+        uint8_t vel[4];
+	}V;
 	OS_CPU_SR cpu_sr;
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
 
-	if (USART_GetFlagStatus(USART1, USART_FLAG_ORE) != RESET)
+	if (USART_GetITStatus(UART5, USART_IT_RXNE) == SET)
 	{
-		USART_ReceiveData(USART1);
-	}
-	else if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
-	{
-		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+		USART_ClearITPendingBit(UART5, USART_IT_RXNE);
+		ch = USART_ReceiveData(USART1);
+		switch(count)
+		{
+			case 0:
+				if (ch == 'A')
+				{
+					count++;
+				}
+				else
+				{
+					count = 0;
+				}
+			break;
+			case 1:
+                V.vel[i] = ch;
+                i++;
+                if (i >= 4)
+                {
+                   i = 0;
+                   count++;
+                }
+			break;
+			case 2:
+
+			    // 主控给蓝牙发送的目标速度 
+			    if (ch == 'R')
+			    {
+			    	g_shootV = V.vel32;
+			    }
+
+			    // 射球电机的实时转速
+			    else if (ch == 'V')
+			    {
+			    	g_shootFactV = V.vel32;
+
+			    	// 将发球电机的实时速度发送出去
+			    	USART_OUT(UART5,(u8*)"shootFactV %d\r\n",g_shootFactV);
+			    }
+			    else{}
+			    count = 0;
+			break;
+			default:
+				count = 0;
+			break;
+		}
 	}
 	else
 	{
-		USART_OUT(USART1,(u8*)"error");
+		USART_ClearITPendingBit(USART3, USART_IT_PE);
+		USART_ClearITPendingBit(USART3, USART_IT_TXE);
+		USART_ClearITPendingBit(USART3, USART_IT_TC);
+		USART_ClearITPendingBit(USART3, USART_IT_ORE_RX);
+		USART_ClearITPendingBit(USART3, USART_IT_IDLE);
+		USART_ClearITPendingBit(USART3, USART_IT_LBD);
+		USART_ClearITPendingBit(USART3, USART_IT_CTS);
+		USART_ClearITPendingBit(USART3, USART_IT_ERR);
+		USART_ClearITPendingBit(USART3, USART_IT_ORE_ER);
+		USART_ClearITPendingBit(USART3, USART_IT_NE);
+		USART_ClearITPendingBit(USART3, USART_IT_FE);
+		USART_ReceiveData(USART3);
 	}
 	OSIntExit();
 }
@@ -342,8 +402,8 @@ void USART3_IRQHandler(void) //更新频率200Hz
 				Position_t.Y -= yError; 
 				
 				//计算,角度与x坐标镜像对称
-				Position_t.angle 	*= g_plan;	
-				Position_t.X			*= g_plan;
+				Position_t.angle *= g_plan;	
+				Position_t.X *= g_plan;
 				if(Position_t.angle == -180) Position_t.angle = 180;
 				
 			}
@@ -396,8 +456,9 @@ void USART2_IRQHandler(void)
 	OS_EXIT_CRITICAL();
 
 	static bool AngOrDis=0,flag=0;
-	if (USART_GetFlagStatus(USART2, USART_FLAG_ORE) != RESET)
+	if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
 	{
+		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
 		g_camera = USART_ReceiveData(USART2);
 		
 		//E4,E6全为高电平，发送的是所有球的极坐标
@@ -494,14 +555,22 @@ void USART2_IRQHandler(void)
 	 else
 	 {
 	 }
-	}
-	else if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)			
-	{
-		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
+	 
 	}
 	else
 	{
-		USART_OUT(USART2,(u8*)"error");
+		USART_ClearITPendingBit(USART2, USART_IT_PE);
+		USART_ClearITPendingBit(USART2, USART_IT_TXE);
+		USART_ClearITPendingBit(USART2, USART_IT_TC);
+		USART_ClearITPendingBit(USART2, USART_IT_ORE_RX);
+		USART_ClearITPendingBit(USART2, USART_IT_IDLE);
+		USART_ClearITPendingBit(USART2, USART_IT_LBD);
+		USART_ClearITPendingBit(USART2, USART_IT_CTS);
+		USART_ClearITPendingBit(USART2, USART_IT_ERR);
+		USART_ClearITPendingBit(USART2, USART_IT_ORE_ER);
+		USART_ClearITPendingBit(USART2, USART_IT_NE);
+		USART_ClearITPendingBit(USART2, USART_IT_FE);
+		USART_ReceiveData(USART2);
 	}
 	OSIntExit();
 }
