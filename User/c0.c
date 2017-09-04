@@ -1,4 +1,5 @@
 #include "c0.h"
+#include "stdlib.h"
 
 extern POSITION_T Position_t;
 extern int g_plan;
@@ -590,6 +591,7 @@ int In_Or_Out(void)
 	    if(g_plan==1)  return 1;	
    } 
 }
+
 /*======================================================================================
 函数定义	  ：    比较三个数组谁含有的0多
 函数参数	  ：    a1[10]        第一个数组
@@ -601,7 +603,7 @@ int Least_H(int a1[10],int a2[10],int a3[10])
 {
   int i,b1=0,b2=0,b3=0,c;
 	for(i=0;i<10;i++)
-	{
+	{ 
 		if(!a1[i])
 		{
 			b1++;
@@ -1088,9 +1090,10 @@ void GivenPoint(float pointX,float pointY,float givenSpeed)
 函数返回值  ：	  无
 =======================================================================================*/
 float bestTraX[20],bestTraY[20],bestTraAngle[20];
+int bestSum;
 void PathPlan(float camX,float camY)
 {
-  static float TraceX[20],TraceY[20],bestSum,bestAng;
+  static float TraceX[20],TraceY[20],bestAng;
 	static int i,d1=0,d2=0;
 	bestAng=MostSector();
 	Left2Right();
@@ -1147,7 +1150,7 @@ void PathPlan(float camX,float camY)
 					  }
             else 
 				   	{
-					 	  if(fabs(arr1[i-1]-arr1[i-2])<fabs(arr1[i]-arr1[i-2]))
+					 	  if(abs(arr1[i-1]-arr1[i-2])<abs(arr1[i]-arr1[i-2]))
 					  	{
 							  bestTraX[i]=TraceX[i];
 							  bestTraY[i]=TraceY[i];
@@ -1173,7 +1176,7 @@ void PathPlan(float camX,float camY)
 					}
 					else 
 					{
-						if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
+						if(abs(arr1[i]-arr1[i-1])<abs(arr1[i+1]-arr1[i-1]))
 						{
 							bestTraX[i]=TraceX[i+1];
 							bestTraY[i]=TraceY[i+1];
@@ -1208,7 +1211,7 @@ void PathPlan(float camX,float camY)
 					  }
             else 
 					  {
-						  if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
+						  if(abs(arr1[i]-arr1[i-1])<abs(arr1[i+1]-arr1[i-1]))
 						  {
 							  bestTraX[i]=TraceX[i+1];
 							  bestTraY[i]=TraceY[i+1];
@@ -1251,7 +1254,7 @@ void PathPlan(float camX,float camY)
 					  }
 					  else 
 					  {
-						  if(fabs(arr1[i-1]-arr1[i-2])<fabs(arr1[i]-arr1[i-2]))
+						  if(abs(arr1[i-1]-arr1[i-2])<abs(arr1[i]-arr1[i-2]))
 						  {
 							  bestTraX[i]=TraceX[i];
 							  bestTraY[i]=TraceY[i];
@@ -1277,7 +1280,7 @@ void PathPlan(float camX,float camY)
 					}
 					else 
 					{
-						if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
+						if(abs(arr1[i]-arr1[i-1])<abs(arr1[i+1]-arr1[i-1]))
 						{
 							bestTraX[i]=TraceX[i+1];
 							bestTraY[i]=TraceY[i+1];
@@ -1312,7 +1315,7 @@ void PathPlan(float camX,float camY)
 					  }
 					  else 
 					  {
-						  if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
+						  if(abs(arr1[i]-arr1[i-1])<abs(arr1[i+1]-arr1[i-1]))
 						  {
 							  bestTraX[i]=TraceX[i+1];
 							  bestTraY[i]=TraceY[i+1];
@@ -1339,7 +1342,7 @@ void PathPlan(float camX,float camY)
 				}
         else 
 				{
-					if(fabs(arr1[i+1]-arr1[i+3])<fabs(arr1[i+2]-arr1[i+3]))
+					if(abs(arr1[i+1]-arr1[i+3])<abs(arr1[i+2]-arr1[i+3]))
 					{
 						bestTraX[i]=TraceX[i+2];
 						bestTraY[i]=TraceY[i+2];
@@ -1377,7 +1380,7 @@ void PathPlan(float camX,float camY)
 					  }
 					  else 
 					  {
-						  if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
+						  if(abs(arr1[i]-arr1[i-1])<abs(arr1[i+1]-arr1[i-1]))
 						  {
 							  bestTraX[i]=TraceX[i+1];
 							  bestTraY[i]=TraceY[i+1];
@@ -1403,7 +1406,7 @@ void PathPlan(float camX,float camY)
 				  }
           else 
 				  {
-					  if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+					  if(abs(arr1[i+1]-arr1[i])<abs(arr1[i+2]-arr1[i]))
 					  {
 					  	bestTraX[i]=TraceX[i+2];
 						  bestTraY[i]=TraceY[i+2];
@@ -1437,7 +1440,7 @@ void PathPlan(float camX,float camY)
 				    }
             else 
 				    {
-					    if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+					    if(abs(arr1[i+1]-arr1[i])<abs(arr1[i+2]-arr1[i]))
 					    {
 					 	    bestTraX[i]=TraceX[i+2];
 						    bestTraY[i]=TraceY[i+2];
@@ -1489,7 +1492,7 @@ void PathPlan(float camX,float camY)
 				  }
           else
 				  {
-					  if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
+					  if(abs(arr1[i]-arr1[i-1])<abs(arr1[i+1]-arr1[i-1]))
 					  {
 						  bestTraX[i]=TraceX[i+1];
 						  bestTraY[i]=TraceY[i+1];
@@ -1536,7 +1539,7 @@ void PathPlan(float camX,float camY)
 				  }
           else
 				  {
-					  if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
+					  if(abs(arr1[i]-arr1[i-1])<abs(arr1[i+1]-arr1[i-1]))
 					  {
 						  bestTraX[i]=TraceX[i+1];
 						  bestTraY[i]=TraceY[i+1];
@@ -1562,7 +1565,7 @@ void PathPlan(float camX,float camY)
 				}
         else 
 				{
-					if(fabs(arr1[i+1]-arr1[i+3])<fabs(arr1[i+2]-arr1[i+3]))
+					if(abs(arr1[i+1]-arr1[i+3])<abs(arr1[i+2]-arr1[i+3]))
 					{
 						bestTraX[i]=TraceX[i+2];
 						bestTraY[i]=TraceY[i+2];
@@ -1603,7 +1606,7 @@ void PathPlan(float camX,float camY)
 				  }
           else 
 				  {
-					  if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+					  if(abs(arr1[i+1]-arr1[i])<abs(arr1[i+2]-arr1[i]))
 					  {
 						  bestTraX[i]=TraceX[i+2];
 						  bestTraY[i]=TraceY[i+2];
@@ -1649,7 +1652,7 @@ void PathPlan(float camX,float camY)
 					  }
 					  else 
 					  {
-						  if(fabs(arr1[i-1]-arr1[i-2])<fabs(arr1[i]-arr1[i-2]))
+						  if(abs(arr1[i-1]-arr1[i-2])<abs(arr1[i]-arr1[i-2]))
 						  {
 							  bestTraX[i]=TraceX[i];
 							  bestTraY[i]=TraceY[i];
@@ -1675,7 +1678,7 @@ void PathPlan(float camX,float camY)
 					}
 					else 
 					{
-						if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
+						if(abs(arr1[i]-arr1[i-1])<abs(arr1[i+1]-arr1[i-1]))
 						{
 							bestTraX[i]=TraceX[i+1];
 							bestTraY[i]=TraceY[i+1];
@@ -1710,7 +1713,7 @@ void PathPlan(float camX,float camY)
 					  }
 					  else 
 					  {
-						  if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
+						  if(abs(arr1[i]-arr1[i-1])<abs(arr1[i+1]-arr1[i-1]))
 						  {
 							  bestTraX[i]=TraceX[i+1];
 							  bestTraY[i]=TraceY[i+1];
@@ -1754,7 +1757,7 @@ void PathPlan(float camX,float camY)
 					  }
             else 
 				   	{
-					 	  if(fabs(arr1[i-1]-arr1[i-2])<fabs(arr1[i]-arr1[i-2]))
+					 	  if(abs(arr1[i-1]-arr1[i-2])<abs(arr1[i]-arr1[i-2]))
 					  	{
 							  bestTraX[i]=TraceX[i];
 							  bestTraY[i]=TraceY[i];
@@ -1780,7 +1783,7 @@ void PathPlan(float camX,float camY)
 					}
 					else 
 					{
-						if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
+						if(abs(arr1[i]-arr1[i-1])<abs(arr1[i+1]-arr1[i-1]))
 						{
 							bestTraX[i]=TraceX[i+1];
 							bestTraY[i]=TraceY[i+1];
@@ -1815,7 +1818,7 @@ void PathPlan(float camX,float camY)
 					  }
             else 
 					  {
-						  if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
+						  if(abs(arr1[i]-arr1[i-1])<abs(arr1[i+1]-arr1[i-1]))
 						  {
 							  bestTraX[i]=TraceX[i+1];
 							  bestTraY[i]=TraceY[i+1];
@@ -1842,7 +1845,7 @@ void PathPlan(float camX,float camY)
 				}
         else 
 				{
-					if(fabs(arr1[i+1]-arr1[i+3])<fabs(arr1[i+2]-arr1[i+3]))
+					if(abs(arr1[i+1]-arr1[i+3])<abs(arr1[i+2]-arr1[i+3]))
 					{
 						bestTraX[i]=TraceX[i+2];
 						bestTraY[i]=TraceY[i+2];
@@ -1880,7 +1883,7 @@ void PathPlan(float camX,float camY)
 					  }
 					  else 
 					  {
-						  if(fabs(arr1[i]-arr1[i-1])<fabs(arr1[i+1]-arr1[i-1]))
+						  if(abs(arr1[i]-arr1[i-1])<abs(arr1[i+1]-arr1[i-1]))
 						  {
 							  bestTraX[i]=TraceX[i+1];
 							  bestTraY[i]=TraceY[i+1];
@@ -1906,7 +1909,7 @@ void PathPlan(float camX,float camY)
 				  }
           else 
 				  {
-					  if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+					  if(abs(arr1[i+1]-arr1[i])<abs(arr1[i+2]-arr1[i]))
 					  {
 					  	bestTraX[i]=TraceX[i+2];
 						  bestTraY[i]=TraceY[i+2];
@@ -1940,7 +1943,7 @@ void PathPlan(float camX,float camY)
 				    }
             else 
 				    {
-					    if(fabs(arr1[i+1]-arr1[i])<fabs(arr1[i+2]-arr1[i]))
+					    if(abs(arr1[i+1]-arr1[i])<abs(arr1[i+2]-arr1[i]))
 					    {
 					 	    bestTraX[i]=TraceX[i+2];
 						    bestTraY[i]=TraceY[i+2];

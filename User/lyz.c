@@ -12,15 +12,15 @@
 #include "stm32f4xx_it.h"
 #include "c0.h"
 #include "stm32f4xx_gpio.h"
+#include "MotionCard.h"
+#include "stdlib.h"
 
 /*==============================================全局变量声明区============================================*/
 extern POSITION_T Position_t;			//校正后定位
 extern POSITION_T getPosition_t;	//获得的定位
-extern int g_plan;
-extern int g_camera;
+extern int g_plan,g_camera,bestSum;
 float angleError = 0,xError = 0,yError = 0;
-int cameraScheme=0;
-int shootStart,ballColor;
+int cameraScheme=0,shootStart,ballColor=1;
 
 
 
@@ -244,7 +244,7 @@ bool FirstRound(float speed)
 			//右边，目标角度0度
 			case 1:
 			{
-				StaightCLose((275 + WIDTH/2 + 100),0,0,speed);
+				StaightCLose((255 + WIDTH/2 + 100),0,0,speed);
 				if(Position_t.Y >= 3100 + WIDTH/2 - FIR_ADV)
 					state = 2;
 			}break;
@@ -260,7 +260,7 @@ bool FirstRound(float speed)
 			//左边，目标角度180度
 			case 3:
 			{
-				StaightCLose((-275 - WIDTH/2 - 150),0,180,FIRST_SPEED);
+				StaightCLose((-255 - WIDTH/2 - 150),0,180,FIRST_SPEED);
 				if(Position_t.Y <= 1700 - WIDTH/2 + FIR_ADV - 500)
 					state = 4;
 			}break;
@@ -409,7 +409,7 @@ int CheckPosition(void)
 		case 2:
 		{
 			TurnAngle(0,5000);
-			if(fabs(Position_t.angle)<=5)
+			if(fabs(Position_t.angle)<=15)
 			{
 				tempx = Position_t.X;			//记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
 				tempy = Position_t.Y;
@@ -421,19 +421,19 @@ int CheckPosition(void)
 		case 3:
 		{
 			StaightCLose(tempx,tempy,0,-800);
-//			if(IfStuck2())								//到时候改成两个行程开关被触发
+			if(IfStuck2())								//到时候改成两个行程开关被触发
+			{
+				//if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_0)==0&&GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0)==0)
+			  {
+				  state = 4;
+			  }
+			}
 //			{
 //		//		USART_OUT(USART1,(uint8_t*) "case = 4\r\n");
 //				state = 4;
 //			}
-			if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_0)==0&&GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0)==0)
-			{
-				state = 4;
-			}
-			else
-			{
-				state = 5;
-			}
+	
+
 		}break;
 		
 		//激光校正
@@ -486,7 +486,8 @@ int CheckPosition(void)
 		case 8:
 		{
 			StaightCLose(tempx,tempy,90,-800);
-			if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_0)==0&&GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0)==0)
+			if(IfStuck2())
+			//if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_0)==0&&GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0)==0)
 			{
 				 x2=getPosition_t.X;
 		     y2=getPosition_t.Y;
@@ -526,6 +527,7 @@ int	RunCamera(void)
   static float cameraX,cameraY;
 	int finish=0;
 	POSITION_T basePoint;
+
 	//到边界要拐弯了
 	if(fabs(Position_t.X)>2000||Position_t.Y<400||Position_t.Y>4400)
 	{
@@ -638,8 +640,14 @@ int	RunCamera(void)
 				else
 				{
 					haveBall=1;
-          PathPlan(cameraX,cameraY);
-
+                    PathPlan(cameraX,cameraY);
+					//fix me
+                    //InputPoints2RingBuffer();
+                    //CaculatePath();
+                    //PathFollowing(1);
+                    //Pose_t bestTra[bestSum];
+					
+					
 			  }
 			}
 			switch(haveBall)
@@ -677,7 +685,7 @@ int	RunCamera(void)
 					haveBall=1;
 					cameraX=Position_t.X-CAMERATOGYRO*sin(Position_t.angle);
 					cameraY=Position_t.Y+CAMERATOGYRO*cos(Position_t.angle);
-			    if(Vehicle_Width(nearestDis,nearestAngle))
+			        if(Vehicle_Width(nearestDis,nearestAngle))
 					{
 						ballAngle=AvoidOverAngle(Position_t.angle);
 					}
@@ -796,19 +804,19 @@ int ShootBall(void)
 	  static int tim=0,noball=0,rev;
     int finish=0;
 	  tim++;	  
-	  if(tim<=100)
-		{
+	  if(tim<=150)
+		{  
 			PushBallReset();			
 		}
-		if(tim<200&&tim>100)
+		if(tim<300&&tim>150)
 		{
 			PushBall();
 		}
-		if(tim>=200)
+		if(tim>=300)
 		{
 			tim=0;			
 		}
-	  if(fabs(Position_t.angle)<1)
+	  if(fabs(Position_t.angle)<10)
 	  {
 		  shoot_PX =(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
 		  shoot_PY = POSYSTEM_TO_GUN;
@@ -819,7 +827,7 @@ int ShootBall(void)
 			tendAngle_B = atan2((BASKE_LOCATION_BY-shoot_PY),(BASKE_LOCATION_BX-shoot_PX));
 			tendAngle_B = RADTOANG(tendAngle_B);
 	  }
-		if(Position_t.angle>89&&Position_t.angle<91)
+		if(Position_t.angle>80&&Position_t.angle<100)
 		{
 			shoot_PX = 2400 - GUN_TO_BACK;
 			shoot_PY = (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2+2400;
@@ -830,7 +838,7 @@ int ShootBall(void)
 			tendAngle_B = atan2((shoot_PX-BASKE_LOCATION_BX),(BASKE_LOCATION_BY-shoot_PY));
 			tendAngle_B = RADTOANG(tendAngle_B);			
 		}
-	  if(fabs(Position_t.angle)>179)
+	  if(fabs(Position_t.angle)>170)
 		{
 			shoot_PX = -(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
 		  shoot_PY = 4800 - POSYSTEM_TO_BACK - GUN_TO_BACK;	
@@ -841,7 +849,7 @@ int ShootBall(void)
 			tendAngle_B = atan2((shoot_PY-BASKE_LOCATION_BY),(shoot_PX-BASKE_LOCATION_BX));
 			tendAngle_B = RADTOANG(tendAngle_B);      			
 		}
-	  if(Position_t.angle>-91&&Position_t.angle<-89)
+	  if(Position_t.angle>-100&&Position_t.angle<-80)
 		{
 			shoot_PX = - 2400 + GUN_TO_BACK;
 			shoot_PY = 2400 - (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
@@ -852,28 +860,27 @@ int ShootBall(void)
 			tendAngle_B = atan2((BASKE_LOCATION_BX-shoot_PX),(shoot_PY-BASKE_LOCATION_BY));
 			tendAngle_B = RADTOANG(tendAngle_B);
 		}
-		
-		if(ballColor==0)
+		switch(ballColor)
 		{
-			noball++;
-		}
-		else if(ballColor==1)
-		{
-			rev=60*sqrt(((horizonDis_W-1500)/2+900)/900);
-			YawAngleCtr(90-tendAngle_W);
-			ShootCtr(rev);
-		}
-		else if(ballColor==2)
-		{
-			rev=60*sqrt(((horizonDis_B-1500)/2+900)/900);
-			YawAngleCtr(90-tendAngle_B);
-			ShootCtr(rev);			
-		}
-		else 
-		{
-			
-		}
-			
+			case 0:
+			{
+			  noball++;
+			}break;
+			case 1:
+			{
+			  rev=60*sqrt(((horizonDis_W-1500)/2+900)/900);
+			  YawAngleCtr(90-tendAngle_W);
+			  ShootCtr(65);				
+			}break;
+			case 2:
+			{
+			  rev=60*sqrt(((horizonDis_B-1500)/2+900)/900);
+			  YawAngleCtr(90-tendAngle_B);
+			  ShootCtr(20);							
+			}break;
+			default:
+			 break;
+		}			
 		if(noball>=500)
 		{
 			noball=0;
@@ -882,3 +889,6 @@ int ShootBall(void)
 		
 	  return finish;
 }
+
+
+

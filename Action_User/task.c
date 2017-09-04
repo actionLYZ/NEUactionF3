@@ -17,6 +17,7 @@
 #include "c0.h"
 #include "MotionCard.h"
 #include "moveBase.h"
+
 /*=====================================================信号量定义===================================================*/
 
 OS_EXT INT8U OSCPUUsage;
@@ -34,6 +35,8 @@ float TwoWheelAngleControl(float targetAng);
 
 int g_plan = 1;						//跑场方案（顺逆时针）
 int g_camera = 0;					//摄像头收到的数
+int sweepingScheme=0,blockTime=0;
+u8 jiguang1,jiguang2;
 
 
 void App_Task()
@@ -89,9 +92,10 @@ void ConfigTask(void)
  
 	delay_ms(2000);
 	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000,50000);
-	CollectBallVelCtr(50);
+	CollectBallVelCtr(40);
 
 	//等待定位系统
+	//GPIO_SetBits(GPIOE,GPIO_Pin_7);
 	delay_s(12);
 	
 	//配置电基速度
@@ -112,33 +116,51 @@ void WalkTask(void)
 	int ifEscape = 0,time=0;			        //是否执行逃逸函数
 
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
-
+//  jiguang1=Get_Adc_Average(RIGHT_LASER,30);
+//	jiguang2=Get_Adc_Average(LEFT_LASER,30);
 	//等待激光被触发
 	while(IfStart() == 0)	{};
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);			//关闭蜂鸣器
-	g_plan = IfStart();
+	 g_plan = IfStart();
 
+	
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
 		
-		//GivenPoint(0,1500,1000);	
-		if(ifEscape)
+//	  if(jiguang1-Get_Adc_Average(RIGHT_LASER,30)>400)
+//	  {
+//      blockTime++;g_plan=1;
+//	  }
+//    else if(jiguang2-Get_Adc_Average(LEFT_LASER,30)>400)
+//	  {
+//		  blockTime++;g_plan=-1;
+//	  }
+//		if(g_plan)
+//		{
+//			if(fabs(jiguang1-Get_Adc_Average(RIGHT_LASER,30))<50||fabs(jiguang2-Get_Adc_Average(LEFT_LASER,30))<50)
+//			{
+//				fix me
+//			}
+//		}
+		
+		
+	//		StaightCLose(1000,0,0,500);
+
+		//GivenPoint(0,1500,1000);
+   // if(sweepingScheme)
 		{
-			/*
-			if(IfEscape())  ifEscape = 0;
-			逃逸函数结束返回true，未结束返回false
-			*/
-			//前一秒后退，后一秒拐弯，根据顺逆时针在内外位置来左/右拐
-			time++;
-			if(time<100)
-			{
-				VelCrl(CAN2, 1, -8000);
-				VelCrl(CAN2, 2, 8000);	
-			}
-			else 
-			{
+			if(ifEscape)
+		  {
+			  time++;
+			  if(time<100)
+			  {
+				  VelCrl(CAN2, 1, -8000);
+				  VelCrl(CAN2, 2, 8000);	
+			  }
+			  else 
+			  {
           if(!In_Or_Out())
 				  {
 					  VelCrl(CAN2, 1, 4000);
@@ -149,24 +171,27 @@ void WalkTask(void)
 					  VelCrl(CAN2, 1, 10000);
 					  VelCrl(CAN2, 2, -4000);      
 			    }	
-			}
-			if(time>200)
-			{
-				ifEscape=0;
-				time=0;
-			}
-		}
-		else    			
-		{
-			GoGoGo();
-		}
-		if(IfStuck() == 1)
-		{
-			if(carRun)
-				ifEscape = 1;
-			else
-				ifEscape = 0;
+			  }
+			  if(time>200)
+			  {
+				  ifEscape=0;
+				  time=0;
+			  }
+		  }
+		  else    			
+		  {
+				
+			  GoGoGo();
+		  }
+		  if(IfStuck() == 1)
+		  {
+			  if(carRun)
+				  ifEscape = 1;
+			  else
+				  ifEscape = 0;
+		  }			
 		}			
+
 	}
 }
 
@@ -206,4 +231,3 @@ float TwoWheelAngleControl(float targetAng)
 	anglePresent = GetAngleZ();
 	return (angleErr * 10.0f);
 }
-

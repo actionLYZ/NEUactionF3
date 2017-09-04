@@ -91,7 +91,7 @@ void CAN1_RX0_IRQHandler(void)
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR */
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
-	if(CAN_MessagePending(CAN2,CAN_FIFO0)!=0)
+	if(CAN_MessagePending(CAN1,CAN_FIFO0)!=0)
 	{
 		if(shootStart)
 		{
@@ -113,7 +113,11 @@ void CAN1_RX0_IRQHandler(void)
 			{
 				ballColor=0;
 			}
-		}    		
+		}
+		else
+		{
+			CAN_RxMsg(CAN1,&Id,re,1);
+		}
 	}
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
@@ -239,21 +243,7 @@ void UART4_IRQHandler(void)
 	OSIntExit();
 }
 /***************************试场调参数用蓝牙串口中断*****************************************************/
-void USART1_IRQHandler(void)
-{
 
-	OS_CPU_SR cpu_sr;
-	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
-	OSIntNesting++;
-	OS_EXIT_CRITICAL();
-
-	if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
-	{
-		
-		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-	}
-	OSIntExit();
-}
 
 
 
@@ -269,7 +259,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 	static uint8_t count = 0;
 	static uint8_t i = 0;
 	OS_CPU_SR cpu_sr;
-	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
+	OS_ENTER_CRITICAL(); /*Tell uC/OS-II that we are starting an ISR*/
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
 
@@ -318,6 +308,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 		case 4:
 			if (ch == 0x0d)
 			{
+
 			  //获取当前坐标
 				getPosition_t.angle = posture.ActVal[0];
 				getPosition_t.X 		= posture.ActVal[3];
@@ -368,6 +359,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 	OSIntExit();
 }
 
+
 float GetAngleZ(void)
 {
 	float angle = Position_t.angle + 90;
@@ -383,21 +375,31 @@ float GetPosy(void)
 	return Position_t.Y;
 }
 
+union four2one
+{
+	char s[4];
+	int32_t p;
+};
 
+void USART1_IRQHandler(void)
+{
+	int32_t motorSpeed;
+	uint16_t motorData;
+	int shoSp=0;
+  union four2one trans;
+	OS_CPU_SR cpu_sr;
+	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
+	OSIntNesting++;
+	OS_EXIT_CRITICAL();
 
-//void USART2_IRQHandler(void)
-//{
-//	OS_CPU_SR cpu_sr;
-//	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
-//	OSIntNesting++;
-//	OS_EXIT_CRITICAL();
+	if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
+	{		
+		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+		motorData=USART_ReceiveData(USART1);
 
-//	if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
-//	{
-//		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
-//	}
-//	OSIntExit();
-//}
+	}
+	OSIntExit();
+}
 
 //方案1 发三个区域的球数
 int ballN_L,ballN_M,ballN_R;
