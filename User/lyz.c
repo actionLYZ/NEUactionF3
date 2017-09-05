@@ -122,7 +122,7 @@ extern int carRun;
 =======================================================================================*/
 void GoGoGo(void)
 {
-	static int state = 1,shootTime=0;							//应该执行的状态
+	static int state = 4,shootTime=0;							//应该执行的状态
 	static int length = WIDTH/2,wide = WIDTH/2;		//长方形跑场参数
 	switch(state)
 	{
@@ -869,13 +869,13 @@ int ShootBall(void)
 			case 1:
 			{
 			  rev=60*sqrt(((horizonDis_W-1500)/2+900)/900);
-			  YawAngleCtr(90-tendAngle_W);
-			  ShootCtr(65);				
+			  YawAngleCtr(0);
+			  ShootCtr(20);				
 			}break;
 			case 2:
 			{
 			  rev=60*sqrt(((horizonDis_B-1500)/2+900)/900);
-			  YawAngleCtr(90-tendAngle_B);
+			  YawAngleCtr(0);
 			  ShootCtr(20);							
 			}break;
 			default:
@@ -884,7 +884,7 @@ int ShootBall(void)
 		if(noball>=500)
 		{
 			noball=0;
-			finish=1;
+		//	finish=1;
 		}
 		
 	  return finish;

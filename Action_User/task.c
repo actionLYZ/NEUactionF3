@@ -96,14 +96,14 @@ void ConfigTask(void)
 
 	//等待定位系统
 	//GPIO_SetBits(GPIOE,GPIO_Pin_7);
-	delay_s(12);
+	//delay_s(12);
 	
 	//配置电基速度
 	//VelCrl(CAN2, 1, 5552);
 	//VelCrl(CAN2, 2, -4096);
 
 //控制卡初始化 
-	BufferZizeInit(400);
+//	BufferZizeInit(400);
 }
 
 //看车是在跑，还是在矫正、射球

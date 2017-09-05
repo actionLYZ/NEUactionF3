@@ -50,7 +50,53 @@
 POSITION_T Position_t;			//定位系统
 
 POSITION_T getPosition_t;	//获得的定位
+extern int shootStart,ballColor;
+void CAN1_RX0_IRQHandler(void)
+{
+	uint32_t Id;
+	uint8_t re[1];
+	OS_CPU_SR cpu_sr;
 
+	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR */
+	OSIntNesting++;
+	OS_EXIT_CRITICAL();
+	//if(CAN_MessagePending(CAN1,CAN_FIFO0)!=0)
+	CAN_RxMsg(CAN1,&Id,re,1);
+		if(shootStart)
+		{
+			
+			{
+				if(Id==0x30)
+			  {
+				  if(re[0]==100)
+				  {
+				  	ballColor=1;
+				  }
+				  else if(re[0]==1)
+				  {
+				  	ballColor=2;
+				  }
+			  }
+			}
+
+		}
+		else
+		{
+			
+		}
+	
+	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
+	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
+	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
+	CAN_ClearFlag(CAN1, CAN_FLAG_LEC);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FMP0);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FF0);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FOV0);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FMP1);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FF1);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
+	OSIntExit();
+}
 extern int g_plan;								//跑场方案（顺逆时针）
 extern float angleError,xError,yError;
 
@@ -81,56 +127,7 @@ void CAN2_RX0_IRQHandler(void)
   * @param  None
   * @retval None
   */
-extern int shootStart,ballColor;
-void CAN1_RX0_IRQHandler(void)
-{
-	uint32_t Id;
-	uint8_t re[1];
-	OS_CPU_SR cpu_sr;
 
-	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR */
-	OSIntNesting++;
-	OS_EXIT_CRITICAL();
-	if(CAN_MessagePending(CAN1,CAN_FIFO0)!=0)
-	{
-		if(shootStart)
-		{
-			if(CAN_RxMsg(CAN1,&Id,re,1))
-			{
-				if(Id==0x30)
-			  {
-				  if(re[0]==100)
-				  {
-				  	ballColor=1;
-				  }
-				  else if(re[0]==1)
-				  {
-				  	ballColor=2;
-				  }
-			  }
-			}
-			else
-			{
-				ballColor=0;
-			}
-		}
-		else
-		{
-			CAN_RxMsg(CAN1,&Id,re,1);
-		}
-	}
-	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
-	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
-	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
-	CAN_ClearFlag(CAN1, CAN_FLAG_LEC);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FMP0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FF0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FOV0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FMP1);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FF1);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
-	OSIntExit();
-}
 
 /*************定时器2******start************/
 //每1ms调用一次
