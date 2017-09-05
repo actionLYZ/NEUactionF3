@@ -16,7 +16,9 @@
 #include "stm32f4xx_adc.h"
 #include "wan.h"
 #include "moveBase.h"
+#include "c0.h"
 #include "MotionCard.h"
+
 /*=====================================================信号量定义===================================================*/
 
 OS_EXT INT8U OSCPUUsage;
@@ -26,7 +28,7 @@ static OS_STK WalkTaskStk[Walk_TASK_STK_SIZE];
 
 /*=====================================================全局变量声明===================================================*/
 
-uint8_t g_camera = 0;					     //摄像头收到的数
+//uint8_t g_camera = 0;					     //摄像头收到的数
 int8_t g_cameraAng[50] = {0};        //存储摄像头接受到的角度
 uint8_t g_cameraDis[50] = {0};       //存储摄像头接受到的距离
 int8_t g_cameraFin = 0;              //摄像头接收到0xc9置1
@@ -43,6 +45,11 @@ int32_t g_shootFactV = 0;            //发射电机的实时转速
 
 void TwoWheelVelControl(float vel,float rotateVel);
 float TwoWheelAngleControl(float targetAng);
+
+int g_camera = 0;					//摄像头收到的数
+int sweepingScheme=0,blockTime=0;
+uint8_t jiguang1,jiguang2;
+
 
 void App_Task()
 {
@@ -115,6 +122,8 @@ void ConfigTask(void)
 	OSTaskSuspend(OS_PRIO_SELF);
 }
 
+//看车是在跑，还是在矫正、射球
+int carRun=1;
 /*=====================================================执行函数===================================================*/
 void WalkTask(void)
 {
@@ -129,19 +138,91 @@ void WalkTask(void)
 	delay_s(10);
 
 //	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
+	int ifEscape = 0,time=0;			        //是否执行逃逸函数
+
+	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
+//  jiguang1=Get_Adc_Average(RIGHT_LASER,30);
+//	jiguang2=Get_Adc_Average(LEFT_LASER,30);
+	//等待激光被触发
+	while(IfStart() == 0)	{};
+	GPIO_ResetBits(GPIOE,GPIO_Pin_7);			//关闭蜂鸣器
+	 g_plan = IfStart();
+
 	
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		ShootBall();
+		
+//	  if(jiguang1-Get_Adc_Average(RIGHT_LASER,30)>400)
+//	  {
+//      blockTime++;g_plan=1;
+//	  }
+//    else if(jiguang2-Get_Adc_Average(LEFT_LASER,30)>400)
+//	  {
+//		  blockTime++;g_plan=-1;
+//	  }
+//		if(g_plan)
+//		{
+//			if(fabs(jiguang1-Get_Adc_Average(RIGHT_LASER,30))<50||fabs(jiguang2-Get_Adc_Average(LEFT_LASER,30))<50)
+//			{
+//				fix me
+//			}
+//		}
+		
+		
+	//		StaightCLose(1000,0,0,500);
+
+		//GivenPoint(0,1500,1000);
+   // if(sweepingScheme)
+		{
+			if(ifEscape)
+		  {
+			  time++;
+			  if(time<100)
+			  {
+				  VelCrl(CAN2, 1, -8000);
+				  VelCrl(CAN2, 2, 8000);	
+			  }
+			  else 
+			  {
+          if(!In_Or_Out())
+				  {
+					  VelCrl(CAN2, 1, 4000);
+					  VelCrl(CAN2, 2, -10000);
+			    }
+ 		      else
+			    {
+					  VelCrl(CAN2, 1, 10000);
+					  VelCrl(CAN2, 2, -4000);      
+			    }	
+			  }
+			  if(time>200)
+			  {
+				  ifEscape=0;
+				  time=0;
+			  }
+		  }
+		  else    			
+		  {
+				
+			  GoGoGo();
+		  }
+		  if(IfStuck() == 1)
+		  {
+			  if(carRun)
+				  ifEscape = 1;
+			  else
+				  ifEscape = 0;
+		  }			
+		}			
 
 	}
 }
 
-
 void TwoWheelWalk(float x,float y,float vel)
 {
+	
 	
 	float angle = 0.0f;
 	float rotateVel = 0.0f;
@@ -175,5 +256,3 @@ float TwoWheelAngleControl(float targetAng)
 	anglePresent = GetAngleZ();
 	return (angleErr * 10.0f);
 }
-		 
-		

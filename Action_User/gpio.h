@@ -27,6 +27,7 @@ void BeepInit(void);
 void PhotoelectricityInit(void);
 void LimitSwitch(void);           //行程开关初始化
 void NumTypeInit(void);           //摄像头高低电平拉数据PE4 PE6初始化
+void CameraInit(void);
 
 
 #endif

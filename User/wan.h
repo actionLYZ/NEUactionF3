@@ -34,7 +34,7 @@ typedef union
 
 }shootPara_t;
 /*=====================================================宏定义区域==================================================*/
-
+#define PI 3.1415926
 //摄像头距离陀螺仪的距离(mm)
 #define CAMERATOGYRO     221.32 
 
@@ -179,10 +179,10 @@ POSXY_T ShootPointPos(void);
 int IfEscape(void);                                      
 
 //给投球电机发送速度（脉冲/s） 
-void SendUint8(int32_t pulse);                         
+//void SendUint8(int32_t pulse);                         
 
 //定点投球方案            
-int ShootBall(void);                                    
+int ShootBallW(void);                                    
 
 //发射航向角转换函数 由度转换为脉冲
 float YawTransform(float yawAngle);

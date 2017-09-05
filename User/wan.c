@@ -198,18 +198,18 @@ void CheckError(void)
                         angle        小球相对于摄像头的角度（°）
 函数返回值    ：	    aimAngle     小球相对于陀螺仪的角度(单位：度)
 =======================================================================================*/
-float AngCamera2Gyro(float distance,float angle)
-{
-	float ThirdSide=0,rad=0,aimAngle=0;
-	rad=ANGTORAD(180-angle);
-	
-	//余弦定理求第三边
-	ThirdSide=sqrt(CAMERATOGYRO*CAMERATOGYRO+distance*distance-2*distance*CAMERATOGYRO*cos(rad));
-	
-	//正弦定理求目标角度(弧度)
-	aimAngle=asin(distance*sin(rad)/ThirdSide);
-    return RADTOANG(aimAngle);
-}
+//float AngCamera2Gyro(float distance,float angle)
+//{
+//	float ThirdSide=0,rad=0,aimAngle=0;
+//	rad=ANGTORAD(180-angle);
+//	
+//	//余弦定理求第三边
+//	ThirdSide=sqrt(CAMERATOGYRO*CAMERATOGYRO+distance*distance-2*distance*CAMERATOGYRO*cos(rad));
+//	
+//	//正弦定理求目标角度(弧度)
+//	aimAngle=asin(distance*sin(rad)/ThirdSide);
+//    return RADTOANG(aimAngle);
+//}
 /*======================================================================================
 函数定义	  ：		将小球相对于摄像头的距离转换成相对于陀螺仪的距离
 函数参数	  ：		diatance     小球相对于摄像头的距离（mm）
@@ -1119,7 +1119,7 @@ void ShootCtr(float rps)
 
 函数返回值	    ：	        1 表明射球完成
 =======================================================================================*/
-int ShootBall(void)
+int ShootBallW(void)
 {
 	static uint16_t count = 0, noBall = 0;
 	static int32_t pulse = 0;

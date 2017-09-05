@@ -52,7 +52,7 @@
 //轮子宽度（单位：mm）
 #define WHEEL_WIDTH (40.0f)
 //两个轮子中心距离（单位：mm）
-#define WHEEL_TREAD (355.4f)
+#define WHEEL_TREAD (434.0f)
 
 
 /**

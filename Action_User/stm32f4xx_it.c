@@ -43,9 +43,14 @@
 /******************************************************************************/
 /*            Cortex-M4 Processor Exceptions Handlers                         */
 /******************************************************************************/
+//定位系统
+//定位系统
 
-extern POSITION_T Position_t;			//校正后定位
+
+extern POSITION_T Position_t;			//定位系统
+
 extern POSITION_T getPosition_t;	//获得的定位
+
 extern int g_plan;								//跑场方案（顺逆时针）
 extern int8_t whiteBall;          //白球信号
 extern int8_t blackBall;          //黑球信号
@@ -69,15 +74,15 @@ float GetPosy(void)
 	return Position_t.Y;
 }
 
+
 void CAN2_RX0_IRQHandler(void)
 {
-	
 	OS_CPU_SR cpu_sr;
 
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR          */
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
-  
+
 	CAN_ClearFlag(CAN2, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN2, CAN_FLAG_EPV);
 	CAN_ClearFlag(CAN2, CAN_FLAG_BOF);
@@ -91,6 +96,65 @@ void CAN2_RX0_IRQHandler(void)
 	OSIntExit();
 }
 
+#ifdef C0
+/**
+  * @brief  CAN2 receive FIFO0 interrupt request handler
+  * @note
+  * @param  None
+  * @retval None
+  */
+  extern int shootStart,ballColor;
+  void CAN1_RX0_IRQHandler(void)
+  {
+	OS_CPU_SR cpu_sr;
+	
+		OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR */
+		OSIntNesting++;
+		OS_EXIT_CRITICAL();
+	  uint32_t Id;
+	  uint8_t re[1];
+	if(CAN_MessagePending(CAN1,CAN_FIFO0)!=0)
+	{
+		if(shootStart)
+		{
+			if(CAN_RxMsg(CAN1,&Id,re,1))
+			{
+				if(Id==0x30)
+			  {
+				  if(re[0]==100)
+				  {
+				  	ballColor=1;
+				  }
+				  else if(re[0]==1)
+				  {
+				  	ballColor=2;
+				  }
+			  }
+			}
+			else
+			{
+				ballColor=0;
+			}
+		}
+		else
+		{
+			CAN_RxMsg(CAN1,&Id,re,1);
+		}
+	}
+	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
+	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
+	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
+	CAN_ClearFlag(CAN1, CAN_FLAG_LEC);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FMP0);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FF0);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FOV0);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FMP1);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FF1);
+	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
+	OSIntExit();
+}
+#else
+#ifdef WAN
 /**
   * @brief  CAN2 receive FIFO0 interrupt request handler
   * @note
@@ -141,7 +205,8 @@ void CAN1_RX0_IRQHandler(void)
 	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
 	OSIntExit();
 }
-
+#endif
+#endif
 /*************定时器2******start************/
 //每1ms调用一次
 
@@ -345,7 +410,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 	static uint8_t count = 0;
 	static uint8_t i = 0;
 	OS_CPU_SR cpu_sr;
-	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
+	OS_ENTER_CRITICAL(); /*Tell uC/OS-II that we are starting an ISR*/
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
 
@@ -405,7 +470,6 @@ void USART3_IRQHandler(void) //更新频率200Hz
 				if(Position_t.angle <= -180) 	Position_t.angle += 360;
 				
 				//旋转坐标系
-				
 				Position_t.X = getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y*sin(Angel2PI(angleError));
 				Position_t.Y = getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X*sin(Angel2PI(angleError));
 				
@@ -459,13 +523,25 @@ extern uint8_t g_cameraDis[50];
 extern int8_t g_cameraFin;
 extern int8_t g_cameraNum;
 extern uint8_t g_cameraPlan;
+//方案1 发三个区域的球数
+int ballN_L,ballN_M,ballN_R;
+//方案2 发球数最多的那个角度
+float bestAngle;
+//方案3 最近球的极坐标
+float nearestAngle,nearestDis;
+//方案4 所有球的角度和距离
+int8_t arr1[20];
+uint8_t arr2[20];
+int go,arr_number;
 void USART2_IRQHandler(void)
 {
-
+	uint8_t camera;
+	static uint8_t i=0,data=1,num=0,best=0,nearest=0;
 	OS_CPU_SR cpu_sr;
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
+#ifdef WAN
 
 	static bool AngOrDis=0,flag=0;
 	if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
@@ -566,8 +642,134 @@ void USART2_IRQHandler(void)
 	 }
 	 else
 	 {
+			USART_ClearITPendingBit(USART2, USART_IT_PE);
+			USART_ClearITPendingBit(USART2, USART_IT_TXE);
+			USART_ClearITPendingBit(USART2, USART_IT_TC);
+			USART_ClearITPendingBit(USART2, USART_IT_ORE_RX);
+			USART_ClearITPendingBit(USART2, USART_IT_IDLE);
+			USART_ClearITPendingBit(USART2, USART_IT_LBD);
+			USART_ClearITPendingBit(USART2, USART_IT_CTS);
+			USART_ClearITPendingBit(USART2, USART_IT_ERR);
+			USART_ClearITPendingBit(USART2, USART_IT_ORE_ER);
+			USART_ClearITPendingBit(USART2, USART_IT_NE);
+			USART_ClearITPendingBit(USART2, USART_IT_FE);
+			USART_ReceiveData(USART2);
 	 }
 	 
+#else
+#ifdef C0
+	if (USART_GetITStatus(USART2, USART_IT_RXNE) == SET)
+	{
+		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
+		camera = USART_ReceiveData(USART2);
+		//GPIO4=LOW,GPIO6=LOW 分三个区域 发三个方位的球数
+		if(camera==0xDC)
+		{
+			num=1;
+		}
+		switch(num)
+		{
+			case 1:
+			{
+				ballN_L=camera;
+				num=2;				
+			}break;
+			case 2:
+			{
+				ballN_M=camera;
+				num=3;
+			}break;
+			case 3:
+			{
+				ballN_R=camera;
+				num=0;
+				go=1;
+				if(ballN_L==0&&ballN_M==0&&ballN_R==0)
+				{
+					arr_number=0;
+				}
+				else 
+				{
+					arr_number=ballN_L+ballN_M+ballN_R;
+				}
+			}break;
+			default:
+			 break;
+		}
+		//GPIO4=LOW,GPIO6=HIGH 球最多的角度 发一个角度
+		if(camera==0xDA)
+		{
+			best=1;
+		}
+		if(best)
+		{
+			bestAngle=camera;
+			if(bestAngle==0)
+			{
+				arr_number=0;
+			}
+			else 
+			{
+				arr_number=1;
+			}
+			best=0;
+			go=1;
+		}
+		//GPIO4=HIGH,GPIO6=LOW 最近球的坐标 发一个角度 一个距离
+		if(camera==0xD8)
+		{
+			nearest=1;
+		}
+        switch(nearest)
+		{
+			case 1:
+			{
+				nearestAngle=camera;
+				if(nearestAngle==0xD8)
+				{
+					arr_number=0;
+					nearest=0;
+				}
+				else 
+				nearest=2;
+			}break;
+			case 2:
+			{
+				nearestDis=camera*10;
+				nearest=0;
+				go=1;
+			}break;
+			default:
+			 break;
+		}
+		//GPIO4=HIGH,GPIO6=HIGH 所有极坐标 发每个球的角度和坐标
+		if(camera==0xD5)
+		{
+			go=1;i=0;
+		}
+	    if(i==1)
+		{
+			switch (data)
+			{
+				case 1:
+				{
+					arr1[arr_number] = camera;
+					data=2;
+				}break;
+				case 2:
+				{
+					arr2[arr_number] = camera*10;
+					data=1;
+					arr_number++;
+				}break;
+				default:
+					break;
+			}
+		}
+		if(camera==0xD6)
+		{
+			i=1;arr_number=0;
+		}
 	}
 	else
 	{
@@ -584,9 +786,10 @@ void USART2_IRQHandler(void)
 		USART_ClearITPendingBit(USART2, USART_IT_FE);
 		USART_ReceiveData(USART2);
 	}
+	#endif
+  #endif
 	OSIntExit();
 }
-
 /**
   * @brief   This function handles NMI exception.
   * @param  None

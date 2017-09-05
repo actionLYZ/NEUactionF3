@@ -1,5 +1,9 @@
 #include <stdbool.h>
+
+
+
 /*=====================================================函数定义===================================================*/
+
 
 int 	IfStart(void);																										//通过激光判断是否开始
 float Piont2Straight(float aimx,float aimy,float angle);								//计算点到直线距离
@@ -10,11 +14,14 @@ bool 	IfStuck(void);																										//是否卡住不动，是返回tr
 bool 	IfStuck2(void);																										//是否靠住墙不动，当行程开关加入后删除此函数
 bool	RunRectangle(int length,int wide,float speed);										//长方形跑场
 void 	TurnAngle(float angel,int speed);																	//原地旋转指定角度
-void	CheckPosition(void);																							//坐标校正
-void	RunCamera(void);																									//利用摄像头跑场
-int	LaserCheck(void);																									      //激光矫正,矫正成功返回true,不成功返回false
+int	CheckPosition(void);																							  //坐标校正
+int	RunCamera(void);																									  //利用摄像头跑场
+int	LaserCheck(void);																									//激光矫正,矫正成功返回true,不成功返回false
 float Angel2PI(float angel);																						//将角度转换为PI
 void InputArr(char[],unsigned char[],int);								              //输出两个数组
+
+//诗玲加的
+int ShootBall(void);
 
 /*=====================================================宏定义区域===================================================*/
 #define STUCK_TIME		0.8						//判断卡住时长(s)
@@ -26,7 +33,6 @@ void InputArr(char[],unsigned char[],int);								              //输出两个�
 #define RIGHT_LASER		14						//右侧激光信道
 #define LEFT_LASER		15						//左侧激光信道
 #define SP2PULSE			10.865				//速度转换为脉冲值
-#define PI 						3.1415926
 #define LEFTSHELTER   -1            //左侧激光被挡
 #define RIGHTSHELTER  1             //右侧激光被挡
 #define SWITCHA0 		(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0)) //PA0 行程开关
