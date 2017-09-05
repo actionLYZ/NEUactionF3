@@ -105,7 +105,7 @@ void KeyInit(void)
 
 void LEDInit(void)
 {
-	GPIO_InitTypeDef  GPIO_InitStructure;
+
 	
 }
 
@@ -171,7 +171,7 @@ void LimitSwitch(void)
 }
 void PhotoelectricityInit(void)
 {
-	GPIO_InitTypeDef GPIO_InitStructure;
+	
 }
 void CameraInit(void)
 {

@@ -211,7 +211,7 @@ void GoGoGo(void)
 		{
 			carRun=0;
 			shootStart=1;
-			if(ShootBall())
+			if(ShootBallW())
 			{
 		    shootStart=0;
 				shootTime++;
@@ -322,7 +322,31 @@ bool FirstRound(float speed)
 	
 	return false;
 }
-
+/*======================================================================================
+函数定义		：			判断小车是否卡住不动，
+函数参数		：			无
+函数返回值	：			false 未卡住，true卡住了
+=======================================================================================*/
+bool IfStuck(void)
+{
+	static int count = 0;
+	static int lx = 0,ly = 0;	//记录上一次的坐标
+	if((int)Position_t.X == lx && (int)Position_t.Y == ly)
+	{
+		count++;
+		if(count >= 100 * STUCK_TIME)	//卡住了
+		{
+			count = 0;
+			return true;
+		}
+	}
+	else count = 0;
+	
+	//保存上一次坐标
+	lx = (int)Position_t.X;
+	ly = (int)Position_t.Y;
+	return false;
+}
 /*======================================================================================
 函数定义		：			判断小车是否靠墙不动，
 函数参数		：			无

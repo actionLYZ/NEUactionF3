@@ -562,7 +562,7 @@ int RunWithCamera2(void)
 	static float angleAdjust = 0,aimAngle = 0,distance = 0;
 	static uint8_t flag = 1,step = 0,posFlag = 1;
 	static float leftDisMax = 0, leftDisMin = 0, midDisMax = 0, midDisMin = 0, rightDisMax = 0, rightDisMin = 0, disMax = 0, disMin = 0;
-	
+	int success=1;
 	//拉高PE4，PE6的电平，接收所有球的极坐标
 	GPIO_SetBits(GPIOE,GPIO_Pin_4);
 	GPIO_SetBits(GPIOE,GPIO_Pin_6);
@@ -577,7 +577,7 @@ int RunWithCamera2(void)
 			//num.midNum=0，表明视野中没球，返回0
 			if(num.midNum == 0)
 			{
-				return 0;
+				success=0;
 			}
 			else
 			{
@@ -828,6 +828,7 @@ int RunWithCamera2(void)
 			}
 			break;
 	}
+	return success;
 }
 /*======================================================================================
 函数定义		：			第一圈(第二套方案，回字形中轴线不在X=0上)
@@ -1125,31 +1126,31 @@ int ShootBallW(void)
 	static int32_t pulse = 0;
 	static POSXY_T posShoot = {0,0};
 	static float distance = 0, aimAngle = 0, shootAngle = 0, V = 0, rps = 0;
-	
+	int success=0;
 	//计算投球点的坐标
 	posShoot.X = ShootPointPos().X;
 	posShoot.Y = ShootPointPos().Y;
 	count++;
 
 	// 没有球，g_ballSignal = 1
-//	if (g_ballSignal)
-//	{
-//		noBall++;
+	if (g_ballSignal)
+	{
+		noBall++;
 
-//		// 6s(两个送球周期)之内没有球，表明车内没球，射球完成，返回1
-//		if (noBall >= 600)
-//		{
-//			noBall = 0;
-//			return 1;
-//		}
-//	}
+		// 6s(两个送球周期)之内没有球，表明车内没球，射球完成，返回1
+		if (noBall >= 600)
+		{
+			noBall = 0;
+			success=1;
+		}
+	}
 
-//    // 表明g_ballSignal = 0, 进入了CCD的CAN中断，
-//	else
-//	{
-//		g_ballSignal = 1;
-//		noBall = 0;
-//	}
+  // 表明g_ballSignal = 0, 进入了CCD的CAN中断，
+	else
+	{
+		g_ballSignal = 1;
+		noBall = 0;
+	}
 
 	//1300ms的时间送弹推球
 	if(count <= 130)
@@ -1223,6 +1224,7 @@ int ShootBallW(void)
 	USART_OUT(UART5,(u8*)"shootV %d\r\n",g_shootV);
 	//控制发射航向角
 	YawAngleCtr(shootAngle);
+	return success;
 }
 /*======================================================================================
 函数定义		：			徐鹏学长任务
