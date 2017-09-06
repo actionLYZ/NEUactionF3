@@ -21,39 +21,40 @@
 
 /*=====================================================信号量定义===================================================*/
 
-OS_EXT INT8U OSCPUUsage;
-OS_EVENT *PeriodSem;
+OS_EXT INT8U  OSCPUUsage;
+OS_EVENT *    PeriodSem;
 static OS_STK App_ConfigStk[Config_TASK_START_STK_SIZE];
 static OS_STK WalkTaskStk[Walk_TASK_STK_SIZE];
 
 /*=====================================================全局变量声明===================================================*/
 
 //uint8_t g_camera = 0;					     //摄像头收到的数
-int8_t g_cameraAng[50] = {0};        //存储摄像头接受到的角度
-uint8_t g_cameraDis[50] = {0};       //存储摄像头接受到的距离
-int8_t g_cameraFin = 0;              //摄像头接收到0xc9置1
-int8_t g_cameraNum = 0;              //摄像头接收到的数据的个数
-POSITION_T Position_t;		         //矫正的定位
-POSITION_T getPosition_t;	         //获得的定位
-int g_plan = 1;						         //跑场方案（顺逆时针）
-int8_t whiteBall = 1;                //白球信号
-int8_t blackBall = 0;                //黑球信号
-uint8_t g_cameraPlan = 0;            //摄像头接球方案
-uint8_t g_ballSignal = 1;            //判断CCD是否看到球
-int32_t g_shootV = 0;                //串口接收到的速度
-int32_t g_shootFactV = 0;            //发射电机的实时转速
+int8_t      g_cameraAng[50] = { 0 };  //存储摄像头接受到的角度
+uint8_t     g_cameraDis[50] = { 0 };  //存储摄像头接受到的距离
+int8_t      g_cameraFin     = 0;      //摄像头接收到0xc9置1
+int8_t      g_cameraNum     = 0;      //摄像头接收到的数据的个数
+POSITION_T  Position_t;               //矫正的定位
+POSITION_T  getPosition_t;            //获得的定位
+int         g_plan        = 1;        //跑场方案（顺逆时针）
+int8_t      whiteBall     = 1;        //白球信号
+int8_t      blackBall     = 0;        //黑球信号
+uint8_t     g_cameraPlan  = 0;        //摄像头接球方案
+uint8_t     g_ballSignal  = 1;        //判断CCD是否看到球
+int32_t     g_shootV      = 0;        //串口接收到的速度
+int32_t     g_shootFactV  = 0;        //发射电机的实时转速
 
-void TwoWheelVelControl(float vel,float rotateVel);
+void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);
 
-int g_camera = 0;					//摄像头收到的数
-int sweepingScheme=0,blockTime=0;
-uint8_t jiguang1,jiguang2;
+int     g_camera = 0;     //摄像头收到的数
+int     sweepingScheme = 0, blockTime = 0;
+uint8_t jiguang1, jiguang2;
 
 
 void App_Task()
 {
 	CPU_INT08U os_err;
+
 	os_err = os_err; /*防止警告...*/
 
 	/*创建信号量*/
@@ -61,14 +62,14 @@ void App_Task()
 
 	/*创建任务*/
 	os_err = OSTaskCreate((void (*)(void *))ConfigTask, /*初始化任务*/
-						  (void *)0,
-						  (OS_STK *)&App_ConfigStk[Config_TASK_START_STK_SIZE - 1],
-						  (INT8U)Config_TASK_START_PRIO);
+	                      (void *)0,
+	                      (OS_STK *)&App_ConfigStk[Config_TASK_START_STK_SIZE - 1],
+	                      (INT8U)Config_TASK_START_PRIO);
 
 	os_err = OSTaskCreate((void (*)(void *))WalkTask,
-						  (void *)0,
-						  (OS_STK *)&WalkTaskStk[Walk_TASK_STK_SIZE - 1],
-						  (INT8U)Walk_TASK_PRIO);
+	                      (void *)0,
+	                      (OS_STK *)&WalkTaskStk[Walk_TASK_STK_SIZE - 1],
+	                      (INT8U)Walk_TASK_PRIO);
 }
 
 
@@ -76,46 +77,47 @@ void App_Task()
 void ConfigTask(void)
 {
 	CPU_INT08U os_err;
+
 	os_err = os_err;
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-	
+
 	//1ms定时器用于控制WalkTask周期
 	TIM_Init(TIM2, 99, 839, 0, 0);
-	AdcInit();				  //初始化adc端口
-	BeepInit();               //初始化蜂鸣器端口
-//	BEEP_Init();         	
-  LimitSwitch();            //行程开关初始化
-	NumTypeInit();            //摄像头高低电平拉数据PE4 PE6初始化
-  BufferZizeInit(400);      //控制卡初始化      
+	AdcInit();            //初始化adc端口
+	BeepInit();           //初始化蜂鸣器端口
+//	BEEP_Init();
+	LimitSwitch();        //行程开关初始化
+	NumTypeInit();        //摄像头高低电平拉数据PE4 PE6初始化
+	BufferZizeInit(400);  //控制卡初始化
 
 	//CAN初始化
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
-  CAN_Config(CAN2, 500, GPIOB, GPIO_Pin_5, GPIO_Pin_6);
-	
+	CAN_Config(CAN2, 500, GPIOB, GPIO_Pin_5, GPIO_Pin_6);
+
 	//射球转速
 	USART1_Init(115200);
-	
+
 	//树莓派
 	USART2_Init(115200);
-	
+
 	//坐标
 	USART3_Init(115200);
-	
+
 	//蓝牙串口
 	UART5_Init(115200);
 
 	//驱动器初始化
 	elmo_Init(CAN2);
-	elmo_Enable(CAN2,1);
-	elmo_Enable(CAN2,2);
-	
+	elmo_Enable(CAN2, 1);
+	elmo_Enable(CAN2, 2);
+
 	//配置速度环
 	Vel_cfg(CAN2, 1, 50000, 50000);
 	Vel_cfg(CAN2, 2, 50000, 50000);
 
 	//收球电机初始化
-	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000,50000);
-	
+	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000, 50000);
+
 	VelCrl(CAN2, 1, 0);
 	VelCrl(CAN2, 2, 0);
 
@@ -123,36 +125,40 @@ void ConfigTask(void)
 }
 
 //看车是在跑，还是在矫正、射球
-int carRun=1;
+int carRun = 1;
 /*=====================================================执行函数===================================================*/
 void WalkTask(void)
 {
 	CPU_INT08U os_err;
+
 	os_err = os_err;
-  //拉低PE4，拉高PE6的电平，接收球最多区域的角度
-	GPIO_ResetBits(GPIOE,GPIO_Pin_4);
-	GPIO_SetBits(GPIOE,GPIO_Pin_6);
-	g_cameraPlan=1;
+	//拉低PE4，拉高PE6的电平，接收球最多区域的角度
+	GPIO_ResetBits(GPIOE, GPIO_Pin_4);
+	GPIO_SetBits(GPIOE, GPIO_Pin_6);
+	g_cameraPlan = 1;
 	CollectBallVelCtr(40);
 	delay_s(10);
 
 //	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
-	int ifEscape = 0,time=0;			        //是否执行逃逸函数
+	int ifEscape = 0, time = 0;             //是否执行逃逸函数
 
-	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
+	GPIO_SetBits(GPIOE, GPIO_Pin_7);        //蜂鸣器响，示意可以开始跑
 //  jiguang1=Get_Adc_Average(RIGHT_LASER,30);
 //	jiguang2=Get_Adc_Average(LEFT_LASER,30);
 	//等待激光被触发
-	while(IfStart() == 0)	{};
-	GPIO_ResetBits(GPIOE,GPIO_Pin_7);			//关闭蜂鸣器
-	 g_plan = IfStart();
+	while (IfStart() == 0)
+	{
+	}
 
-	
+	GPIO_ResetBits(GPIOE, GPIO_Pin_7);     //关闭蜂鸣器
+	g_plan = IfStart();
+
+
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		
+
 //	  if(jiguang1-Get_Adc_Average(RIGHT_LASER,30)>400)
 //	  {
 //      blockTime++;g_plan=1;
@@ -168,69 +174,66 @@ void WalkTask(void)
 //				fix me
 //			}
 //		}
-		
-	//		StaightCLose(1000,0,0,500);
+
+		//		StaightCLose(1000,0,0,500);
 
 		//GivenPoint(0,1500,1000);
-   // if(sweepingScheme)
-	{
-			if(ifEscape)
-		  {
-			  time++;
-			  if(time<100)
-			  {
-				  VelCrl(CAN2, 1, -8000);
-				  VelCrl(CAN2, 2, 8000);	
-			  }
-			  else 
-			  {
-          if(!In_Or_Out())
-				  {
-					  VelCrl(CAN2, 1, 4000);
-					  VelCrl(CAN2, 2, -10000);
-			    }
- 		      else
-			    {
-					  VelCrl(CAN2, 1, 10000);
-					  VelCrl(CAN2, 2, -4000);      
-			    }	
-			  }
-			  if(time>200)
-			  {
-				  ifEscape=0;
-				  time=0;
-			  }
-		  }
-		  else    			
-		  {
-				
-			  GoGoGo();
-		  }
-		  if(IfStuck() == 1)
-		  {
-			  if(carRun)
-				  ifEscape = 1;
-			  else
-				  ifEscape = 0;
-		  }			
-		}			
-
+		// if(sweepingScheme)
+		{
+			if (ifEscape)
+			{
+				time++;
+				if (time < 100)
+				{
+					VelCrl(CAN2, 1, -8000);
+					VelCrl(CAN2, 2, 8000);
+				}
+				else
+				{
+					if (!In_Or_Out())
+					{
+						VelCrl(CAN2, 1, 4000);
+						VelCrl(CAN2, 2, -10000);
+					}
+					else
+					{
+						VelCrl(CAN2, 1, 10000);
+						VelCrl(CAN2, 2, -4000);
+					}
+				}
+				if (time > 200)
+				{
+					ifEscape  = 0;
+					time      = 0;
+				}
+			}
+			else
+			{
+				GoGoGo();
+			}
+			if (IfStuck() == 1)
+			{
+				if (carRun)
+					ifEscape = 1;
+				else
+					ifEscape = 0;
+			}
+		}
 	}
 }
 
-void TwoWheelWalk(float x,float y,float vel)
+void TwoWheelWalk(float x, float y, float vel)
 {
-	
-	
-	float angle = 0.0f;
+	float angle     = 0.0f;
 	float rotateVel = 0.0f;
+
 	//当前点到目标点的方向角度
-	angle = atan2(y - Position_t.Y,Position_t.X) * 180.0f / 3.1415926f;
-	
-	
+	angle = atan2(y - Position_t.Y, Position_t.X) * 180.0f / 3.1415926f;
+
+
 	rotateVel = TwoWheelAngleControl(angle);
-	
-	TwoWheelVelControl(vel,rotateVel);
+
+	TwoWheelVelControl(vel, rotateVel);
 //	MultiPinThroughPro(0,0,x,y,vel);
 }
 
@@ -238,19 +241,21 @@ void TwoWheelWalk(float x,float y,float vel)
 void TwoWheelVelControl(float vel, float rotateVel)
 {
 	rotateVel = rotateVel * 3.1415926f / 180.0f;
-	VelCrl(CAN2,1,SP2PULSE * (vel + rotateVel * WIDTH * 0.5f));
-	VelCrl(CAN2,2,-SP2PULSE * (vel - rotateVel * WIDTH * 0.5f));  
+	VelCrl(CAN2, 1, SP2PULSE * (vel + rotateVel * WIDTH * 0.5f));
+	VelCrl(CAN2, 2, -SP2PULSE * (vel - rotateVel * WIDTH * 0.5f));
 }
 
-float angleErr ; 
+float angleErr;
 float anglePresent;
 //角度闭环
 float TwoWheelAngleControl(float targetAng)
 {
 	angleErr = targetAng - GetAngleZ();
-	
-	if(angleErr > 180) angleErr = angleErr - 360;
-	if(angleErr < -180) angleErr = angleErr + 360;
+
+	if (angleErr > 180)
+		angleErr = angleErr - 360;
+	if (angleErr < -180)
+		angleErr = angleErr + 360;
 	anglePresent = GetAngleZ();
-	return (angleErr * 10.0f);
+	return angleErr * 10.0f;
 }
