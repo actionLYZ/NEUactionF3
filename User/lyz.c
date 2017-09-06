@@ -239,7 +239,7 @@ void GoGoGo(void)
 							GPIO_ResetBits(GPIOE,GPIO_Pin_6);
 						}
 						else
-                        {
+            {
 						}						
 					}break;
 					case 2:state=6;break;
@@ -807,7 +807,7 @@ void TurnAngle(float angel,int speed)
 =======================================================================================*/
 int	LaserCheck(void)
 {
-#ifdef WAN
+#ifdef wan
 	int laserGetRight=0,laserGetLeft=0;
 	laserGetRight = Get_Adc_Average(RIGHT_LASER,20);
 	laserGetLeft = Get_Adc_Average(LEFT_LASER,20);
@@ -859,7 +859,7 @@ int	LaserCheck(void)
 	    }
 	}
 #else
-#ifdef C0
+#ifdef c0
 	int laserGet,laserLong;
 	laserLong=Get_Adc_Average(RIGHT_LASER,20)+Get_Adc_Average(LEFT_LASER,20);
 	if(laserLong>4780&&laserLong<4820)
@@ -876,8 +876,8 @@ int	LaserCheck(void)
 		y1=getPosition_t.Y;
 		return false;
 	}		
-#endif /* C0 */
-#endif /* WAN */
+#endif /* c0 */
+#endif /* wan */
 }
  
 //角度变换函数
@@ -887,106 +887,3 @@ float Angel2PI(float angel)
 	res = PI*(angel) / 180;
 	return res;
 }
-
-
-/*======================================================================================
-函数定义	  ：    射球函数(shiling加的)
-函数参数	  ：    
-                  
-                           
-函数返回值  ：	  无
-=======================================================================================*/
-int ShootBall(void)
-{
-	  float horizonDis_W,horizonDis_B,shoot_PX,shoot_PY,tendAngle_W,tendAngle_B;
-	  static int tim=0,noball=0,rev;
-    int finish=0;
-	  tim++;	  
-	  if(tim<=150)
-		{  
-			PushBallReset();			
-		}
-		if(tim<300&&tim>150)
-		{
-			PushBall();
-		}
-		if(tim>=300)
-		{
-			tim=0;			
-		}
-	  if(fabs(Position_t.angle)<10)
-	  {
-		  shoot_PX =(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
-		  shoot_PY = POSYSTEM_TO_GUN;
-		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
-			tendAngle_W = atan2((BASKE_LOCATION_WY-shoot_PY),(BASKE_LOCATION_WX-shoot_PX));
-			tendAngle_W = RADTOANG(tendAngle_W);
-			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
-			tendAngle_B = atan2((BASKE_LOCATION_BY-shoot_PY),(BASKE_LOCATION_BX-shoot_PX));
-			tendAngle_B = RADTOANG(tendAngle_B);
-	  }
-		if(Position_t.angle>80&&Position_t.angle<100)
-		{
-			shoot_PX = 2400 - GUN_TO_BACK;
-			shoot_PY = (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2+2400;
-		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
-			tendAngle_W = atan2((shoot_PX-BASKE_LOCATION_WX),(BASKE_LOCATION_WY-shoot_PY));
-			tendAngle_W = RADTOANG(tendAngle_W);
-			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
-			tendAngle_B = atan2((shoot_PX-BASKE_LOCATION_BX),(BASKE_LOCATION_BY-shoot_PY));
-			tendAngle_B = RADTOANG(tendAngle_B);			
-		}
-	  if(fabs(Position_t.angle)>170)
-		{
-			shoot_PX = -(Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
-		  shoot_PY = 4800 - POSYSTEM_TO_BACK - GUN_TO_BACK;	
-		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
-			tendAngle_W = atan2((shoot_PY-BASKE_LOCATION_WY),(shoot_PX-BASKE_LOCATION_WX));
-			tendAngle_W = RADTOANG(tendAngle_W);
-			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
-			tendAngle_B = atan2((shoot_PY-BASKE_LOCATION_BY),(shoot_PX-BASKE_LOCATION_BX));
-			tendAngle_B = RADTOANG(tendAngle_B);      			
-		}
-	  if(Position_t.angle>-100&&Position_t.angle<-80)
-		{
-			shoot_PX = - 2400 + GUN_TO_BACK;
-			shoot_PY = 2400 - (Get_Adc_Average(LEFT_LASER,20)-Get_Adc_Average(RIGHT_LASER,20))/2;
-		  horizonDis_W = sqrt(PF(shoot_PX-BASKE_LOCATION_WX) + PF(shoot_PY-BASKE_LOCATION_WY));
-			tendAngle_W = atan2((BASKE_LOCATION_WX-shoot_PX),(shoot_PY-BASKE_LOCATION_WY));
-			tendAngle_W = RADTOANG(tendAngle_W);
-			horizonDis_B = sqrt(PF(shoot_PX-BASKE_LOCATION_BX) + PF(shoot_PY-BASKE_LOCATION_BY));
-			tendAngle_B = atan2((BASKE_LOCATION_BX-shoot_PX),(shoot_PY-BASKE_LOCATION_BY));
-			tendAngle_B = RADTOANG(tendAngle_B);
-		}
-		switch(ballColor)
-		{
-			case 0:
-			{
-			  noball++;
-			}break;
-			case 1:
-			{
-			  rev=60*sqrt(((horizonDis_W-1500)/2+900)/900);
-			  YawAngleCtr(90-tendAngle_W);
-			  ShootCtr(65);				
-			}break;
-			case 2:
-			{
-			  rev=60*sqrt(((horizonDis_B-1500)/2+900)/900);
-			  YawAngleCtr(90-tendAngle_B);
-			  ShootCtr(20);							
-			}break;
-			default:
-			 break;
-		}			
-		if(noball>=500)
-		{
-			noball=0;
-			finish=1;
-		}
-		
-	  return finish;
-}
-
-
-

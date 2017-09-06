@@ -129,7 +129,6 @@ void WalkTask(void)
 {
 	CPU_INT08U os_err;
 	os_err = os_err;
-	int count = 0,i = 0;
   //拉低PE4，拉高PE6的电平，接收球最多区域的角度
 	GPIO_ResetBits(GPIOE,GPIO_Pin_4);
 	GPIO_SetBits(GPIOE,GPIO_Pin_6);
@@ -170,12 +169,11 @@ void WalkTask(void)
 //			}
 //		}
 		
-		ShootBallW();
 	//		StaightCLose(1000,0,0,500);
 
 		//GivenPoint(0,1500,1000);
    // if(sweepingScheme)
-/*		{
+	{
 			if(ifEscape)
 		  {
 			  time++;
@@ -216,7 +214,7 @@ void WalkTask(void)
 				  ifEscape = 0;
 		  }			
 		}			
-*/
+
 	}
 }
 

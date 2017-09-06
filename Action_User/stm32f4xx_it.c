@@ -58,7 +58,7 @@ extern float angleError,xError,yError;
 extern uint8_t g_ballSignal;
 extern int32_t g_shootV;     
 extern int32_t g_shootFactV; 
-int shootStart,ballColor=1;
+int shootStart=0,ballColor=1;
 
 float GetAngleZ(void)
 {
@@ -115,7 +115,7 @@ void CAN2_RX0_IRQHandler(void)
 	  uint32_t Id;
 	  uint8_t re[8];
 	  CAN_RxMsg(CAN1,&Id,re,1);
-		//if(shootStart)
+		if(shootStart)
 		{
 				if(Id==0x30)
 			  {
@@ -129,10 +129,7 @@ void CAN2_RX0_IRQHandler(void)
 				  }
 			  }
 		}
-	//	else
-		{
-			
-		}
+
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
 	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);

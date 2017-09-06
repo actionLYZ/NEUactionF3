@@ -20,9 +20,6 @@ int	LaserCheck(void);																									//激光矫正,矫正成功返回t
 float Angel2PI(float angel);																						//将角度转换为PI
 void InputArr(char[],unsigned char[],int);								              //输出两个数组
 
-//诗玲加的
-int ShootBall(void);
-
 /*=====================================================宏定义区域===================================================*/
 #define STUCK_TIME		0.8						//判断卡住时长(s)
 #define FIRST_SPEED 	1000 					//第一圈速度
@@ -37,7 +34,7 @@ int ShootBall(void);
 #define RIGHTSHELTER  1             //右侧激光被挡
 #define SWITCHA0 		(GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0)) //PA0 行程开关
 #define SWITCHC0 		(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_0)) //PC0 行程开关
-#define WAN
+#define wan
 /*=====================================================结构体定义===================================================*/
 
 

@@ -579,17 +579,19 @@ void First_Scan(void)
 =======================================================================================*/
 int In_Or_Out(void)
 {   
+	 int finish=0;
    //将正方形区域分成内外两部分
    if(Position_t.X>-1200&&Position_t.X<1200&&Position_t.Y>1200&&Position_t.Y<3600)
    { 
-	    if(g_plan==-1) return 1;
-	    if(g_plan==1)  return 0;			  
+	    if(g_plan==-1) finish= 1;
+	    if(g_plan==1)  finish= 0;			  
    }
    else 
    {
-	    if(g_plan==-1) return 0;
-	    if(g_plan==1)  return 1;	
+	    if(g_plan==-1) finish= 0;
+	    if(g_plan==1)  finish= 1;	
    } 
+	 return finish;
 }
 
 /*======================================================================================

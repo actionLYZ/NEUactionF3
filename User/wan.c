@@ -189,7 +189,7 @@ void CheckError(void)
 		case 5:
 
 			// 投球
-			ShootBall();
+			ShootBallW();
 		break;
 	}
 }
@@ -562,7 +562,7 @@ int RunWithCamera2(void)
 	static POSITION_T startPoint = {0,0};
 	static float angleAdjust = 0,aimAngle = 0,distance = 0;
 	static uint8_t flag = 1,step = 0,posFlag = 1;
-	static float leftDisMax = 0, leftDisMin = 0, midDisMax = 0, midDisMin = 0, rightDisMax = 0, rightDisMin = 0, disMax = 0, disMin = 0;
+	static float leftDisMax = 0, midDisMax = 0, rightDisMax = 0, disMax = 0, disMin = 0;
 	int success=1;
 	//拉高PE4，PE6的电平，接收所有球的极坐标
 	GPIO_SetBits(GPIOE,GPIO_Pin_4);
@@ -596,7 +596,7 @@ int RunWithCamera2(void)
 		{
 			disMax = DisBall2Gyro(Max(rightDis, num.rightNum), 12.5);
 		    disMin = DisBall2Gyro(Min(rightDis, num.rightNum), 12.5);
-			
+			disMin=disMin;//fix me
 			//右边球最多，角度调整为-10
 			angleAdjust = -10;
 			aimAngle = AvoidOverAngle(GetAng() + angleAdjust);
@@ -1125,7 +1125,6 @@ extern int ballColor;
 int ShootBallW(void)
 {
 	static uint16_t count = 0, noBall = 0;
-	static int32_t pulse = 0;
 	static POSXY_T posShoot = {0,0};
 	static float distance = 0, aimAngle = 0, shootAngle = 0, V = 0, rps = 0;
 	int success=0;
@@ -1213,7 +1212,8 @@ int ShootBallW(void)
 	{
 		V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));	
 	}
-	rps = 2 * V / (PI * 66) + 17;
+	rps = 0.01434 * V - 6.086;
+
 
 	// 表明射球蓝牙没有收到主控发送的数据
 	if (fabs(rps + g_shootV / 4096) > 5)

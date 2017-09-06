@@ -395,6 +395,7 @@ int BspSegment(int num, Pose_t* points, KeyPointInf_t* keyPoint)
 	{
 		if (i == num - 1)
 			beforeLength = length;
+		beforeLength =beforeLength;
 		for (float u = 0.01f; u <= 1; u += 0.01f)
 		{
 			float b0 = 1.0f / 6 * (1 - u) * (1 - u) * (1 - u);
@@ -423,7 +424,7 @@ int BspSegment(int num, Pose_t* points, KeyPointInf_t* keyPoint)
 //	keyPoint = (Act3WheelPose *)malloc(sizeof(ActLine2)* number);
 	int resultNum = number + 1;
 	
-	float sumLen = length;
+//	float sumLen = length;
 	Len = 0;
 	length = 0;
 	
