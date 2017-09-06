@@ -58,6 +58,7 @@ extern float angleError,xError,yError;
 extern uint8_t g_ballSignal;
 extern int32_t g_shootV;     
 extern int32_t g_shootFactV; 
+int shootStart,ballColor=1;
 
 float GetAngleZ(void)
 {
@@ -103,7 +104,7 @@ void CAN2_RX0_IRQHandler(void)
   * @param  None
   * @retval None
   */
-  extern int shootStart,ballColor;
+  
   void CAN1_RX0_IRQHandler(void)
   {
 	OS_CPU_SR cpu_sr;
@@ -112,13 +113,10 @@ void CAN2_RX0_IRQHandler(void)
 		OSIntNesting++;
 		OS_EXIT_CRITICAL();
 	  uint32_t Id;
-	  uint8_t re[1];
-	if(CAN_MessagePending(CAN1,CAN_FIFO0)!=0)
-	{
-		if(shootStart)
+	  uint8_t re[8];
+	  CAN_RxMsg(CAN1,&Id,re,1);
+		//if(shootStart)
 		{
-			if(CAN_RxMsg(CAN1,&Id,re,1))
-			{
 				if(Id==0x30)
 			  {
 				  if(re[0]==100)
@@ -130,17 +128,11 @@ void CAN2_RX0_IRQHandler(void)
 				  	ballColor=2;
 				  }
 			  }
-			}
-			else
-			{
-				ballColor=0;
-			}
 		}
-		else
+	//	else
 		{
-			CAN_RxMsg(CAN1,&Id,re,1);
+			
 		}
-	}
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
 	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
@@ -640,6 +632,7 @@ void USART2_IRQHandler(void)
 			 g_cameraNum=0;
 		 }
 	 }
+ }
 	 else
 	 {
 			USART_ClearITPendingBit(USART2, USART_IT_PE);

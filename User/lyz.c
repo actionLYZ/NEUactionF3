@@ -22,8 +22,8 @@ extern POSITION_T Position_t;			//校正后定位
 extern POSITION_T getPosition_t;	//获得的定位
 extern int g_plan,g_camera,bestSum;
 float angleError = 0,xError = 0,yError = 0;
-int cameraScheme=0,shootStart,ballColor=1;
-
+int cameraScheme=0;
+extern int shootStart,ballColor;
 
 
 /*================================================函数定义区==============================================*/
@@ -289,7 +289,7 @@ bool FirstRound(float speed)
 			//右边，目标角度0度
 			case 1:
 			{
-				StaightCLose((255 + WIDTH/2 + 100),0,0,speed);
+				StaightCLose((275 + WIDTH/2 + 100),0,0,speed);
 				if(Position_t.Y >= 3100 + WIDTH/2 - FIR_ADV)
 					state = 2;
 			}break;
@@ -305,7 +305,7 @@ bool FirstRound(float speed)
 			//左边，目标角度180度
 			case 3:
 			{
-				StaightCLose((-255 - WIDTH/2 - 150),0,180,FIRST_SPEED);
+				StaightCLose((-275 - WIDTH/2 - 150),0,180,FIRST_SPEED);
 				if(Position_t.Y <= 1700 - WIDTH/2 + FIR_ADV - 500)
 					state = 4;
 			}break;
@@ -433,7 +433,7 @@ int x1,x2,y1,y2;
 =======================================================================================*/
 int CheckPosition(void)
 {
-	static int state = 1;
+	static int state = 2;
 	static int tempx = 0,tempy = 0;
 	int keepgo=0;
 	switch(state)
@@ -463,8 +463,10 @@ int CheckPosition(void)
 		//后退靠墙
 		case 3:
 		{
+			StaightCLose(tempx,tempy,0,-800);
 			//两个行程开关触发,则进入下一次状态进行激光矫正 
-			if(SWITCHA0==0&&SWITCHC0==0)								
+			//if(SWITCHA0==0&&SWITCHC0==0)
+      if(IfStuck2())			
 			{
 				state = 4;
 			}

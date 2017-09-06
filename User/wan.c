@@ -5,6 +5,7 @@
 #include "usart.h"
 #include "moveBase.h"
 #include "stm32f4xx_gpio.h"
+#include "stm32f4xx_it.h"
 
 /*==============================================全局变量声明区============================================*/
 
@@ -1120,6 +1121,7 @@ void ShootCtr(float rps)
 
 函数返回值	    ：	        1 表明射球完成
 =======================================================================================*/
+extern int ballColor;
 int ShootBallW(void)
 {
 	static uint16_t count = 0, noBall = 0;
@@ -1133,7 +1135,8 @@ int ShootBallW(void)
 	count++;
 
 	// 没有球，g_ballSignal = 1
-	if (g_ballSignal)
+	//if (g_ballSignal)
+	if(!ballColor)
 	{
 		noBall++;
 
@@ -1148,27 +1151,26 @@ int ShootBallW(void)
   // 表明g_ballSignal = 0, 进入了CCD的CAN中断，
 	else
 	{
-		g_ballSignal = 1;
 		noBall = 0;
 	}
 
 	//1300ms的时间送弹推球
-	if(count <= 130)
+	if(count <= 200)
 	{
 		PushBall();
 	}
 	
 	//1300ms的时间送弹推球收回
-	if(count > 130 && count <= 260)
+	if(count > 200 && count <= 400)
 	{
-		if(count == 260)
+		if(count == 400)
 		{
 			count = 0;
 		}
 		PushBallReset();
 	}
 	//球是白球
-	if(whiteBall)
+	if(ballColor==1)
 	{
 		distance = sqrt((posShoot.X - WHITEX) * (posShoot.X - WHITEX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
 		
@@ -1184,8 +1186,9 @@ int ShootBallW(void)
 	}
 	
 	//球是黑球
-	if(blackBall)
+	if(ballColor==2)
 	{
+		USART_OUT(UART5,(u8*)" %d\r\n",ballColor);
 		distance=sqrt((posShoot.X - BLACKX) * (posShoot.X - BLACKX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
 		
 		//将角度转换成陀螺仪角度坐标系里的角度值
@@ -1221,28 +1224,9 @@ int ShootBallW(void)
 	// 否则表明射球蓝牙收到了主控发送的数据，以后不需再发送
 	else
 	{}
-	USART_OUT(UART5,(u8*)"shootV %d\r\n",g_shootV);
+
 	//控制发射航向角
 	YawAngleCtr(shootAngle);
 	return success;
 }
-/*======================================================================================
-函数定义		：			徐鹏学长任务
-函数参数		：		  
-函数返回值	    ：	    
-=======================================================================================*/
-void DingDian(float X, float Y, float V)
-{
-	if(Position_t.Y < 1000)
-	{
-		static float aimAngle = 0;
-		aimAngle = atan2(Position_t.Y - Y,Position_t.X - X) - 90;
-		aimAngle = AvoidOverAngle(aimAngle);
-		angClose(V, aimAngle, 100);
-	}
-	if(Position_t.Y > 1000)
-	{
-		VelCrl(CAN2, 1, 5000);
-	  VelCrl(CAN2, 2, 5000);
-	}
-}
+

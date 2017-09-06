@@ -170,12 +170,12 @@ void WalkTask(void)
 //			}
 //		}
 		
-		
+		ShootBallW();
 	//		StaightCLose(1000,0,0,500);
 
 		//GivenPoint(0,1500,1000);
    // if(sweepingScheme)
-		{
+/*		{
 			if(ifEscape)
 		  {
 			  time++;
@@ -216,7 +216,7 @@ void WalkTask(void)
 				  ifEscape = 0;
 		  }			
 		}			
-
+*/
 	}
 }
 
