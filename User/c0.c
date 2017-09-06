@@ -616,22 +616,22 @@ void New_Route(int down, int right, int up, int left)
 	{
 	case 1:
 	{
-		ClLine(0, -240 + down * 480, -90, 800);
+		ClLine(0, -240 + down * 480, -90, 1000);
 	} break;
 
 	case 2:
 	{
-		ClLine(240 + right * 480, 0, 0, 800);
+		ClLine(240 + right * 480, 0, 0, 1000);
 	} break;
 
 	case 3:
 	{
-		ClLine(0, 3120 + up * 480, 90, 800);
+		ClLine(0, 3120 + up * 480, 90, 1000);
 	} break;
 
 	case 4:
 	{
-		ClLine(-2640 + left * 480, 0, 180, 800);
+		ClLine(-2640 + left * 480, 0, 180, 1000);
 	} break;
 
 	default:
@@ -1006,8 +1006,8 @@ void GivenPoint(float pointX, float pointY, float givenSpeed)
 
    函数返回值  ：	  无
    =======================================================================================*/
-float bestTraX[20], bestTraY[20], bestTraAngle[20];
-int   bestSum;
+float bestTraX[20], bestTraY[20];
+int   bestSum=20;
 void PathPlan(float camX, float camY)
 {
 	static float  TraceX[20], TraceY[20], bestAng;

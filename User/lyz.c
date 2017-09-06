@@ -209,7 +209,7 @@ void GoGoGo(void)
 					GPIO_SetBits(GPIOE, GPIO_Pin_4);
 					GPIO_SetBits(GPIOE, GPIO_Pin_6);
 				}
-				else if (cameraScheme == 1)
+				else if (cameraScheme == 2)
 				{
 					cameraScheme = 3;
 					GPIO_SetBits(GPIOE, GPIO_Pin_4);
@@ -468,7 +468,7 @@ int CheckPosition(void)
 		if (LaserCheck())
 		{
 			keepgo  = 1;
-			state   = 1;
+			state   = 2;
 			tempx   = 0, tempy = 0;
 		}
 		//		state = 5;	//矫正成功，开始第二阶段跑场
@@ -524,7 +524,7 @@ int CheckPosition(void)
 			xError  = 2400 - POSYSTEM_TO_BACK - x2 * cos(ANGTORAD(angleError)) - y2 * sin(ANGTORAD(angleError));
 			yError  = -y1 *cos(ANGTORAD(angleError)) + x1 * sin(ANGTORAD(angleError));
 			keepgo  = 1;
-			state   = 1;
+			state   = 2;
 			tempx   = 0, tempy = 0;
 		}
 	} break;
@@ -550,12 +550,14 @@ extern int    go, arr_number;
    函数返回值	：			1:               已完成一次摄像头扫场
                     0:               还未完成
    =======================================================================================*/
-extern float bestTraX[20], bestTraY[20], bestTraAngle[20];
+extern float bestTraX[20], bestTraY[20];
+Pose_t bestTra[20] = {0};
+
 int RunCamera(void)
 {
 	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1;
 	static float  cameraX, cameraY;
-	int           finish = 0;
+	int           finish = 0, circulate;
 	POSITION_T    basePoint;
 
 	//到边界要拐弯了
@@ -625,7 +627,7 @@ int RunCamera(void)
 
 		case 1:
 		{
-			StaightCLose(cameraX, cameraY, ballAngle, 800);
+			StaightCLose(cameraX, cameraY, ballAngle, 1000);
 		} break;
 
 		default:
@@ -662,11 +664,12 @@ int RunCamera(void)
 			{
 				haveBall = 1;
 				PathPlan(cameraX, cameraY);
-				//fix me
-				//InputPoints2RingBuffer();
-				//CaculatePath();
-				//PathFollowing(1);
-				//Pose_t bestTra[bestSum];
+				ClearRingBuffer();
+				for(circulate=0;circulate<bestSum;circulate++)
+				{
+					bestTra[circulate].point.x = bestTraX[circulate];
+					bestTra[circulate].point.y = bestTraY[circulate];
+				}	    
 			}
 		}
 		switch (haveBall)
@@ -681,6 +684,9 @@ int RunCamera(void)
 
 		case 1:
 		{
+				InputPoints2RingBuffer(bestTra,bestSum);
+				CaculatePath();
+				PathFollowing(1);		
 		} break;
 
 		default:
@@ -720,7 +726,7 @@ int RunCamera(void)
 
 		case 1:
 		{
-			StaightCLose(cameraX, cameraY, ballAngle, 800);
+			StaightCLose(cameraX, cameraY, ballAngle, 1000);
 		} break;
 
 		default:
@@ -787,8 +793,10 @@ int LaserCheck(void)
 
 	//如果激光被挡，返回 0
 	if (laserGetRight + laserGetLeft < 4700)
-	{
-		return 0;
+	{	
+		x1  = getPosition_t.X;
+		y1  = getPosition_t.Y;
+		return 0;		
 	}
 
 	//没有被挡，返回
