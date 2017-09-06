@@ -117,6 +117,7 @@ void ConfigTask(void)
 
 	//收球电机初始化
 	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000, 50000);
+	CollectBallVelCtr(40);
 
 	VelCrl(CAN2, 1, 0);
 	VelCrl(CAN2, 2, 0);
@@ -176,7 +177,6 @@ void WalkTask(void)
 //		}
 
 		//		StaightCLose(1000,0,0,500);
-
 		//GivenPoint(0,1500,1000);
 		// if(sweepingScheme)
 		{

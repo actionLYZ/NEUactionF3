@@ -1125,13 +1125,13 @@ int ShootBallW(void)
 	}
 
 	//1300ms的时间送弹推球
-	if (count <= 200)
+	if (count <= 150)
 		PushBall();
 
 	//1300ms的时间送弹推球收回
-	if (count > 200 && count <= 400)
+	if (count > 150 && count <= 300)
 	{
-		if (count == 400)
+		if (count == 300)
 			count = 0;
 		PushBallReset();
 	}
@@ -1173,7 +1173,7 @@ int ShootBallW(void)
 	if (distance <= 345)
 		V = 0;
 	else
-		V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
+		V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));	
 	rps = 0.01434 * V - 6.086;
 
 
