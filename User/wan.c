@@ -1192,3 +1192,93 @@ int ShootBallW(void)
 	YawAngleCtr(shootAngle);
 	return success;
 }
+/*======================================================================================
+   函数定义		：			圆形跑场
+   函数参数		：		  V                跑场速度
+                      R                跑场第一圈的半径
+                      circleNum        预定的跑场圈数
+                      status           扩大还是缩小扫场
+
+   函数返回值	：	    扫完预定的圈数返回1
+ =======================================================================================*/
+int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
+{
+  float disError = 0, disOutput = 0, aimAng = 0, angError = 0, angOutput = 0, V1 = 0, V2 = 0;
+	uint8_t success = 0;
+	static uint8_t Flag = 0, circle = 0;
+	static uint16_t acceSpeed = 0;
+	
+	// 先缓慢加速(用时2*V/1000秒)
+	if(acceSpeed < V)
+	{
+		acceSpeed += 5;
+		V1 = 4096 * acceSpeed * (R + WHEEL_TREAD / 2) / (WHEEL_DIAMETER * PI * R);
+		V2 = 4096 * acceSpeed * (R - WHEEL_TREAD / 2) / (WHEEL_DIAMETER * PI * R);	
+	}
+	else
+	{
+		V1 = 4096 * V * (R + WHEEL_TREAD / 2) / (106.8 * PI * R);
+		V2 = 4096 * V * (R - WHEEL_TREAD / 2) / (106.8 * PI * R);	
+	}
+	//让小车走一圈半径减小一次
+	if(-500 < Position_t.X && Position_t.X < 500 && Position_t.Y < 2400)
+	{
+		Flag++;
+	}
+	else
+	{
+		Flag = 0;
+	}
+	if(Flag == 1)
+	{
+		//记录扫场的圈数
+		circle++;
+		
+		//status=1,扩大扫场
+		if(status == 1)
+		{
+		  R += 200;
+		}
+		
+		//否则,缩小扫场
+		else
+		{
+			R -= 200;
+		}
+		
+		//达到预定圈数,success置1,acceSpeed置0
+		if(circle == circleNum)
+		{
+			success = 1;
+			acceSpeed = 0;
+		}
+	}
+	
+  //陀螺仪到圆心的距离
+	disError = sqrt((Position_t.X - 0) * (Position_t.X - 0) + (Position_t.Y - 2335.35) * (Position_t.Y - 2335.35)) - R;
+	
+	//距离P调节系数为5
+	disOutput = disError*10;
+
+	//目标角度与小车位置到圆心的角度相同
+	aimAng = atan2(Position_t.Y - 2335.35,Position_t.X - 0) * 180.0 / PI;
+	
+	//防止第二象限被撞后出现原地大角度调节到目标角度的现象
+	if(aimAng < 180 && aimAng > 0 && Position_t.angle < -90 && Position_t.angle > -180)
+	{
+		Position_t.angle += 360;
+	}
+	
+	//防止第三象限别撞后出现原地大角度调节到目标角度的现象
+	if(aimAng < 0 && aimAng > -180 && Position_t.angle < 180 && Position_t.angle > 90)
+	{
+		Position_t.angle -= 360;
+	}
+	angError = aimAng - Position_t.angle;
+	
+	//角度P调节系数
+	angOutput = angError * 180;
+	VelCrl(CAN2, 1,V1+disOutput+angOutput);
+	VelCrl(CAN2, 2,-V2+disOutput+angOutput);
+	return success;
+}

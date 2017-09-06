@@ -42,7 +42,7 @@ uint8_t     g_cameraPlan  = 0;        //摄像头接球方案
 uint8_t     g_ballSignal  = 1;        //判断CCD是否看到球
 int32_t     g_shootV      = 0;        //串口接收到的速度
 int32_t     g_shootFactV  = 0;        //发射电机的实时转速
-
+int32_t     g_collectSpeed = 0;       //收球电机的实时转速(脉冲每秒)
 void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);
 
@@ -158,7 +158,7 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-
+    ReadActualVel(CAN1, COLLECT_MOTOR_ID);
 //	  if(jiguang1-Get_Adc_Average(RIGHT_LASER,30)>400)
 //	  {
 //      blockTime++;g_plan=1;

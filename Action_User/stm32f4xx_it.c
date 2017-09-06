@@ -58,6 +58,7 @@ extern float      angleError, xError, yError;
 extern uint8_t    g_ballSignal;
 extern int32_t    g_shootV;
 extern int32_t    g_shootFactV;
+extern int32_t     g_collectSpeed;
 int               shootStart = 0, ballColor = 1;
 
 float GetAngleZ(void)
@@ -108,6 +109,11 @@ void CAN2_RX0_IRQHandler(void)
  */
 void CAN1_RX0_IRQHandler(void)
 {
+	union
+	{
+		uint8_t buf[8];
+		int32_t data32[2];
+	}msg;
 	OS_CPU_SR cpu_sr;
 
 	OS_ENTER_CRITICAL();   /* Tell uC/OS-II that we are starting an ISR */
@@ -126,7 +132,17 @@ void CAN1_RX0_IRQHandler(void)
 				ballColor = 2;
 		}
 	}
-
+	if(Id== (0x280 + COLLECT_MOTOR_ID))
+	{
+		if(msg.data32[0] == 0x00005856)
+		{
+				g_collectSpeed = msg.data32[1];
+		}
+		else if(msg.data32[0] == 0x00005850)
+		{
+				g_collectSpeed = msg.data32[1];
+		}
+	}
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
 	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
@@ -150,7 +166,6 @@ void CAN1_RX0_IRQHandler(void)
 void CAN1_RX0_IRQHandler(void)
 {
 	static uint32_t StdId         = 0;
-	static uint8_t  i             = 1;
 	static uint8_t  CAN1Buffer[8] = { 0 };
 
 	// g_ballSignal置0，表明球来了
@@ -160,7 +175,7 @@ void CAN1_RX0_IRQHandler(void)
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR */
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
-	CAN_RxMsg(CAN1, &StdId, CAN1Buffer, &i);
+	CAN_RxMsg(CAN1, &StdId, CAN1Buffer, 1);
 	if (CAN_MessagePending(CAN1, CAN_FIFO0) != 0)
 	{
 		//分球的ID 0x30
@@ -448,7 +463,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 			if (ch == 0x0d)
 			{
 				//获取当前坐标
-				getPosition_t.angle = posture.ActVal[0];
+				getPosition_t.angle = -posture.ActVal[0];
 				getPosition_t.X     = posture.ActVal[3];
 				getPosition_t.Y     = posture.ActVal[4];
 

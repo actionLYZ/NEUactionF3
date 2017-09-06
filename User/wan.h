@@ -33,6 +33,9 @@ typedef union
 	uint8_t velUint8[4];
 }shootPara_t;
 /*=====================================================宏定义区域==================================================*/
+//收球电机ID号
+#define COLLECT_MOTOR_ID 8
+
 #define PI              3.1415926
 //摄像头距离陀螺仪的距离(mm)
 #define CAMERATOGYRO    221.32
@@ -109,6 +112,11 @@ typedef union
 //宏定义右轮电机ID
 #define RIGHT_MOTOR_WHEEL_ID    (1)
 
+//扩大画圆扫场状态
+#define EXPAND                  (1)
+
+//缩小画圆扫场状态
+#define REDUCE                  (-1)
 /*=====================================================函数定义===================================================*/
 
 //将摄像头发完数据瞬间的角度发送出去
@@ -207,5 +215,5 @@ int32_t shootVelTrans(float roundPerS);
 //发射电机速度控制函数 单位：转每秒
 void ShootCtr(float rps);
 
-// 徐鹏学长任务
-void DingDian(float X, float Y, float V);
+// 圆形跑场函数
+int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status);
