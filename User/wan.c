@@ -1183,27 +1183,27 @@ int ShootBallW(void)
 		YawAngleCtr(shootAngle);
 	}
 	
+	count++;
 	//1300ms的时间送弹推球	
-	if (count == 200)
+	if (count <= 200)
 	{
     PushBall();		
-	}
-	//count++;
-	if (youqiu)
-	{
-		count++;				
-		USART_OUT(UART5, (u8 *)" %d %d %d %d %d %d\r\n",(int)rps,(int)shootAngle,ballColor,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
-	}
+	}	
+//	if (youqiu)
+//	{
+//		count++;				
+//		USART_OUT(UART5, (u8 *)" %d %d %d %d %d %d\r\n",(int)rps,(int)shootAngle,ballColor,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+//	}
 	//1300ms的时间送弹推球收回
-	if (count >= 300)
+	if (count > 200)
 	{
 		PushBallReset();
 		youqiu=0;		
+		
+	}
+	if(count>=400)
+	{
 		count=0;
 	}
-//	if(count>=400)
-//	{
-//		
-//	}
 	return success;
 }
