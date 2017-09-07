@@ -1167,8 +1167,7 @@ int ShootBallW(void)
 
 	// 表明射球蓝牙没有收到主控发送的数据
 	if (fabs(rps + g_shootV / 4096) > 5)
-	{
-		YawAngleCtr(shootAngle); 
+	{		 
 		ShootCtr(rps);
 	}
 	// 否则表明射球蓝牙收到了主控发送的数据，以后不需再发送
@@ -1178,10 +1177,10 @@ int ShootBallW(void)
 
 	//控制发射航向角
 	flag++;
-	flag = flag % 2;
+	flag = flag % 4;
 	if(flag == 1)
 	{
-		
+		YawAngleCtr(shootAngle);
 	}
 	
 	//1300ms的时间送弹推球	
@@ -1189,6 +1188,7 @@ int ShootBallW(void)
 	{
     PushBall();		
 	}
+	//count++;
 	if (youqiu)
 	{
 		count++;				
@@ -1197,10 +1197,13 @@ int ShootBallW(void)
 	//1300ms的时间送弹推球收回
 	if (count >= 300)
 	{
-		count=0;
-		youqiu=0;
 		PushBallReset();
+		youqiu=0;		
+		count=0;
 	}
-	
+//	if(count>=400)
+//	{
+//		
+//	}
 	return success;
 }

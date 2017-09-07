@@ -152,7 +152,7 @@ void CAN2_RX0_IRQHandler(void)
 void CAN1_RX0_IRQHandler(void)
 {
 	static uint32_t StdId         = 0;
-	static uint8_t  i             = 1;
+	static uint8_t  iii             = 1;
 	static uint8_t  CAN1Buffer[8] = { 0 };
 
 	// g_ballSignal置0，表明球来了
@@ -162,7 +162,7 @@ void CAN1_RX0_IRQHandler(void)
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR */
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
-	CAN_RxMsg(CAN1, &StdId, CAN1Buffer, &i);
+	CAN_RxMsg(CAN1, &StdId, CAN1Buffer, &iii);
 	//if (CAN_MessagePending(CAN1, CAN_FIFO0) != 0)
 	{
 		//分球的ID 0x30
