@@ -51,7 +51,7 @@ void DebugMon_Handler(void);
 float GetAngleZ(void);
 float GetPosx(void);
 float GetPosy(void);
-#define  C0
+#define C0
 #ifdef __cplusplus
 }
 #endif

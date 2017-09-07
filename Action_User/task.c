@@ -137,15 +137,15 @@ void WalkTask(void)
 	GPIO_ResetBits(GPIOE, GPIO_Pin_4);
 	GPIO_SetBits(GPIOE, GPIO_Pin_6);
 	g_cameraPlan = 1;
-	CollectBallVelCtr(40);
 	delay_s(10);
 
 //	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
 	int ifEscape = 0, time = 0;             //是否执行逃逸函数
 
 	GPIO_SetBits(GPIOE, GPIO_Pin_7);        //蜂鸣器响，示意可以开始跑
-//  jiguang1=Get_Adc_Average(RIGHT_LASER,30);
-//	jiguang2=Get_Adc_Average(LEFT_LASER,30);
+  jiguang1=Get_Adc_Average(RIGHT_LASER,30);
+	jiguang2=Get_Adc_Average(LEFT_LASER,30);
+	// USART_OUT(UART5, (u8 *)" %d %d\r\n",jiguang1,jiguang2);
 	//等待激光被触发
 	while (IfStart() == 0)
 	{
@@ -175,12 +175,12 @@ void WalkTask(void)
 //				fix me
 //			}
 //		}
-
+    ShootBallW();
 		//		StaightCLose(1000,0,0,500);
 		//GivenPoint(0,1500,1000);
 		// if(sweepingScheme)
 		{
-			if (ifEscape)
+	/*		if (ifEscape)
 			{
 				time++;
 				if (time < 100)
@@ -217,7 +217,7 @@ void WalkTask(void)
 					ifEscape = 1;
 				else
 					ifEscape = 0;
-			}
+			}*/
 		}
 	}
 }

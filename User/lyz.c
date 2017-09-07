@@ -474,6 +474,7 @@ int CheckPosition(void)
 		//		state = 5;	//矫正成功，开始第二阶段跑场
 		else
 		{
+			
 			state = 6;    //矫正失败，继续矫正
 		}
 	} break;
@@ -843,7 +844,7 @@ int LaserCheck(void)
 #ifdef c0
 	int laserGet, laserLong;
 	laserLong = Get_Adc_Average(RIGHT_LASER, 20) + Get_Adc_Average(LEFT_LASER, 20);
-	if (laserLong > 4780 && laserLong < 4820)
+	if (laserLong > 4700 && laserLong < 4900)
 	{
 		angleError  = angleError + Position_t.angle;  //纠正角度坐标
 		yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) + getPosition_t.X * sin(Angel2PI(angleError)));
@@ -855,6 +856,7 @@ int LaserCheck(void)
 	{
 		x1  = getPosition_t.X;
 		y1  = getPosition_t.Y;
+		USART_OUT(UART5, (u8 *)" jiguangjiaozhengshibai  %d \r\n",laserLong);
 		return false;
 	}
 #endif  /* c0 */

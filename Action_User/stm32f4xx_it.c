@@ -58,7 +58,7 @@ extern float      angleError, xError, yError;
 extern uint8_t    g_ballSignal;
 extern int32_t    g_shootV;
 extern int32_t    g_shootFactV;
-int               shootStart = 0, ballColor = 1;
+int               shootStart = 0, ballColor = 0,youqiu=0;
 
 float GetAngleZ(void)
 {
@@ -99,48 +99,50 @@ void CAN2_RX0_IRQHandler(void)
 	OSIntExit();
 }
 
-#ifdef C0
 /**
  * @brief  CAN2 receive FIFO0 interrupt request handler
  * @note
  * @param  None
  * @retval None
  */
-void CAN1_RX0_IRQHandler(void)
-{
-	OS_CPU_SR cpu_sr;
 
-	OS_ENTER_CRITICAL();   /* Tell uC/OS-II that we are starting an ISR */
-	OSIntNesting++;
-	OS_EXIT_CRITICAL();
-	uint32_t  Id;
-	uint8_t   re[8];
-	CAN_RxMsg(CAN1, &Id, re, 1);
-	if (shootStart)
-	{
-		if (Id == 0x30)
-		{
-			if (re[0] == 100)
-				ballColor = 1;
-			else if (re[0] == 1)
-				ballColor = 2;
-		}
-	}
+//#ifdef C0
+//void CAN1_RX0_IRQHandler(void)
+//{
+//	OS_CPU_SR cpu_sr;
 
-	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
-	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
-	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
-	CAN_ClearFlag(CAN1, CAN_FLAG_LEC);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FMP0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FF0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FOV0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FMP1);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FF1);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
-	OSIntExit();
-}
-#else
-#ifdef WAN
+//	OS_ENTER_CRITICAL();   /* Tell uC/OS-II that we are starting an ISR */
+//	OSIntNesting++;
+//	OS_EXIT_CRITICAL();
+//	uint32_t  Id;
+//	uint8_t   re[8];
+//	CAN_RxMsg(CAN1, &Id, re, 1);
+//	//if (shootStart)
+//	{
+//		youqiu=1;
+//		if (Id == 0x30)
+//		{
+//			if (re[0] == 100)
+//				ballColor = 1;
+//			else if (re[0] == 1)
+//				ballColor = 2;
+//		}
+//	}
+//  //USART_OUT(UART5, (u8 *)" %d %d\r\n",youqiu,ballColor);
+//	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
+//	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
+//	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
+//	CAN_ClearFlag(CAN1, CAN_FLAG_LEC);
+//	CAN_ClearFlag(CAN1, CAN_FLAG_FMP0);
+//	CAN_ClearFlag(CAN1, CAN_FLAG_FF0);
+//	CAN_ClearFlag(CAN1, CAN_FLAG_FOV0);
+//	CAN_ClearFlag(CAN1, CAN_FLAG_FMP1);
+//	CAN_ClearFlag(CAN1, CAN_FLAG_FF1);
+//	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
+//	OSIntExit();
+//}
+//#else
+//#ifdef WAN
 /**
  * @brief  CAN2 receive FIFO0 interrupt request handler
  * @note
@@ -161,11 +163,12 @@ void CAN1_RX0_IRQHandler(void)
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
 	CAN_RxMsg(CAN1, &StdId, CAN1Buffer, &i);
-	if (CAN_MessagePending(CAN1, CAN_FIFO0) != 0)
+	//if (CAN_MessagePending(CAN1, CAN_FIFO0) != 0)
 	{
 		//分球的ID 0x30
 		if (StdId == 0x30)
 		{
+			youqiu=1;
 			if (CAN1Buffer[0] == 100)
 			{
 				//白球信号来临
@@ -192,8 +195,8 @@ void CAN1_RX0_IRQHandler(void)
 	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
 	OSIntExit();
 }
-#endif
-#endif
+//#endif
+//#endif
 /*************定时器2******start************/
 //每1ms调用一次
 
@@ -351,6 +354,7 @@ void USART1_IRQHandler(void)
 			{
 				//发射台蓝牙返回的射球机实时转速
 				g_shootFactV = V.vel32;
+				//USART_OUT(UART5,(u8*)"V%d\r\n",(int)(-g_shootFactV/4096));
 			}
 			else
 			{

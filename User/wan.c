@@ -1091,10 +1091,10 @@ void ShootCtr(float rps)
 
    函数返回值	    ：	        1 表明射球完成
    =======================================================================================*/
-extern int ballColor;
+extern int ballColor,youqiu;
 int ShootBallW(void)
 {
-	static uint16_t count = 0, noBall = 0;
+	static uint16_t count = 0, noBall = 0, flag = 0;
 	static POSXY_T  posShoot = { 0, 0 };
 	static float    distance = 0, aimAngle = 0, shootAngle = 0, V = 0, rps = 0;
 	int             success = 0;
@@ -1102,11 +1102,11 @@ int ShootBallW(void)
 	//计算投球点的坐标
 	posShoot.X  = ShootPointPos().X;
 	posShoot.Y  = ShootPointPos().Y;
-	count++;
+
 
 	// 没有球，g_ballSignal = 1
 	//if (g_ballSignal)
-	if (!ballColor)
+	if (!youqiu)
 	{
 		noBall++;
 
@@ -1114,29 +1114,18 @@ int ShootBallW(void)
 		if (noBall >= 600)
 		{
 			noBall  = 0;
-			success = 1;
+			//success = 1;
 		}
 	}
-
 	// 表明g_ballSignal = 0, 进入了CCD的CAN中断，
 	else
 	{
 		noBall = 0;
 	}
 
-	//1300ms的时间送弹推球
-	if (count <= 150)
-		PushBall();
 
-	//1300ms的时间送弹推球收回
-	if (count > 150 && count <= 300)
-	{
-		if (count == 300)
-			count = 0;
-		PushBallReset();
-	}
 	//球是白球
-	if (ballColor == 1)
+	if (whiteBall)
 	{
 		distance = sqrt((posShoot.X - WHITEX) * (posShoot.X - WHITEX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
 
@@ -1152,9 +1141,8 @@ int ShootBallW(void)
 	}
 
 	//球是黑球
-	if (ballColor == 2)
+	if (blackBall)
 	{
-		USART_OUT(UART5, (u8 *)" %d\r\n", ballColor);
 		distance = sqrt((posShoot.X - BLACKX) * (posShoot.X - BLACKX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
 
 		//将角度转换成陀螺仪角度坐标系里的角度值
@@ -1174,21 +1162,45 @@ int ShootBallW(void)
 		V = 0;
 	else
 		V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));	
-	rps = 0.01434 * V - 6.086;
+	rps = 0.01434 * V - 7;
 
 
 	// 表明射球蓝牙没有收到主控发送的数据
 	if (fabs(rps + g_shootV / 4096) > 5)
 	{
+		YawAngleCtr(shootAngle); 
 		ShootCtr(rps);
 	}
-
 	// 否则表明射球蓝牙收到了主控发送的数据，以后不需再发送
 	else
 	{
 	}
 
 	//控制发射航向角
-	YawAngleCtr(shootAngle);
+	flag++;
+	flag = flag % 2;
+	if(flag == 1)
+	{
+		
+	}
+	
+	//1300ms的时间送弹推球	
+	if (count == 200)
+	{
+    PushBall();		
+	}
+	if (youqiu)
+	{
+		count++;				
+		USART_OUT(UART5, (u8 *)" %d %d %d %d %d %d\r\n",(int)rps,(int)shootAngle,ballColor,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+	}
+	//1300ms的时间送弹推球收回
+	if (count >= 300)
+	{
+		count=0;
+		youqiu=0;
+		PushBallReset();
+	}
+	
 	return success;
 }
