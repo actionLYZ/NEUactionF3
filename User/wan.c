@@ -1143,7 +1143,7 @@ int ShootBallW(void)
 		shootAngle += 2;
 	}
 	
-	// 没球,2.4s内来回拨动一次
+	// 没球,4s内来回拨动一次
 	else if (ballColor == NO)
 	{
 		noBall++;
@@ -1156,7 +1156,7 @@ int ShootBallW(void)
 			PushBallReset();
 		}
 		
-		// 2.4s noBall依然没有清零，则认为车内没球
+		// 4s noBall依然没有清零，则认为车内没球
 		if(noBall >= 400)
 		{
 			noBall = 0;
@@ -1176,7 +1176,7 @@ int ShootBallW(void)
 	USART_OUT(UART5,(u8*)"X%d\tY%d\tang%d\r\n",(int)posShoot.X,(int)posShoot.Y,(int)Position_t.angle);
 	
 	// 表明射球蓝牙没有收到主控发送的数据
-	if (fabs(rps + g_shootV / 4096) > 5)
+	if (fabs(rps + g_shootV / 4096) > 0.5)
 	{
 		ShootCtr(rps);
 	}
