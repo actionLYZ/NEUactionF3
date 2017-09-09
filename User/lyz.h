@@ -32,7 +32,6 @@ void InputArr(char[], unsigned char[], int);                          //输出�
 #define SP2PULSE        10.865                                      //速度转换为脉冲值
 #define LEFTSHELTER     -1                                          //左侧激光被挡
 #define RIGHTSHELTER    1                                           //右侧激光被挡
-#define SWITCHA0        (GPIO_ReadInputDataBit(GPIOA, GPIO_Pin_0))  //PA0 行程开关
+#define SWITCHC2        (GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_2))  //PA0 行程开关
 #define SWITCHC0        (GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_0))  //PC0 行程开关
-#define wan
 /*=====================================================结构体定义===================================================*/

@@ -41,13 +41,11 @@ int IfStart(void)
 	if (Get_Adc_Average(RIGHT_LASER, 30) < 1000)     //右侧激光触发
 	{
 		return 1;
-		g_plan=1;
 	}
 		
 	else if (Get_Adc_Average(LEFT_LASER, 30) < 1000) //左侧激光触发
 	{
 		return -1;
-		g_plan=-1;
 	}
 		
 	else
@@ -79,7 +77,6 @@ float Piont2Straight(float aimx, float aimy, float angle)
 		if (angle > 0 && angle < 180)
 			dis = -dis;
 	}
-
 	return dis;
 }
 
@@ -425,7 +422,7 @@ bool  RunRectangle(int length, int wide, float speed)
 	}
 	return false;
 }
-int x1, x2, y1, y2;
+int x1 = 0, x2 = 0, y1 = 0, y2 = 0;
 /*======================================================================================
    函数定义		：			坐标校正
    函数参数		：			无
@@ -800,11 +797,12 @@ void TurnAngle(float angel, int speed)
    =======================================================================================*/
 int LaserCheck(void)
 {
-#ifdef wan
 	int laserGetRight = 0, laserGetLeft = 0;
+	GPIO_SetBits(GPIOE,GPIO_Pin_7);
 	laserGetRight = Get_Adc_Average(RIGHT_LASER, 20);
 	laserGetLeft  = Get_Adc_Average(LEFT_LASER, 20);
-
+  USART_OUT(UART5,(u8*)"laser%d\r\n",(int)(laserGetRight + laserGetLeft ));
+	GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	//如果激光被挡，返回 0
 	if (laserGetRight + laserGetLeft < 4700)
 	{	
@@ -854,28 +852,8 @@ int LaserCheck(void)
 			return 1;
 		}
 	}
-#else
-#ifdef c0
-	int laserGet, laserLong;
-	laserLong = Get_Adc_Average(RIGHT_LASER, 20) + Get_Adc_Average(LEFT_LASER, 20);
-	if (laserLong > 4700 && laserLong < 4900)
-	{
-		angleError  = angleError + Position_t.angle;  //纠正角度坐标
-		yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) + getPosition_t.X * sin(Angel2PI(angleError)));
-		laserGet    = (Get_Adc_Average(LEFT_LASER, 20) - Get_Adc_Average(RIGHT_LASER, 20)) / 2;
-		xError      = (getPosition_t.X * cos(Angel2PI(angleError)) - getPosition_t.Y * sin(Angel2PI(angleError))) - laserGet;//纠正X坐标
-		return true;
-	}
-	else
-	{
-		x1  = getPosition_t.X;
-		y1  = getPosition_t.Y;
-		USART_OUT(UART5, (u8 *)" jiguangjiaozhengshibai  %d \r\n",laserLong);
-		return false;
-	}
-#endif  /* c0 */
-#endif  /* wan */
 }
+	
 
 //角度变换函数
 float Angel2PI(float angel)

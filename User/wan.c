@@ -6,7 +6,7 @@
 #include "moveBase.h"
 #include "stm32f4xx_gpio.h"
 #include "stm32f4xx_it.h"
-
+#include "c0.h"
 /*==============================================全局变量声明区============================================*/
 
 extern POSITION_T Position_t;
@@ -30,6 +30,8 @@ extern uint8_t    g_cameraPlan;   //摄像头接球方案
 extern uint8_t    g_ballSignal;
 extern int32_t    g_shootV;       //串口接收到的速度
 extern int32_t    g_shootFactV;   //发射电机的实时转速
+extern int32_t    g_shootAngle;   //返回的航向角的真实角度(脉冲)
+extern int        ballColor;
 /*======================================================================================
    函数定义	  ：		Send Get函数
    函数参数	  ：
@@ -158,7 +160,7 @@ void CheckError(void)
 		angClose(-1000, angle, 100);
 
 		//行程开关触发
-		if (SWITCHA0 == 1 && SWITCHC0 == 1)
+		if (SWITCHC2 == 1 && SWITCHC0 == 1)
 			step = 4;
 		break;
 
@@ -1087,47 +1089,32 @@ void ShootCtr(float rps)
 }
 /*======================================================================================
    函数定义		：			定点投球方案
-   函数参数		：		    无
+   函数参数		：		    
 
-   函数返回值	    ：	        1 表明射球完成
+   函数返回值	：	        1 表明射球完成
    =======================================================================================*/
 extern int ballColor,youqiu;
 extern int ballSpeed,need;
 int ShootBallW(void)
 {
 	static uint16_t count = 0, noBall = 0, flag = 0;
-	static POSXY_T  posShoot = { 0, 0 };
-	static float    distance = 0, aimAngle = 0, shootAngle = 0, V = 0, rps = 0;
-	int             success = 0;
+  POSXY_T  posShoot = { 0, 0 };
+  float    aimAngle = 0,  rps = 0;
+	int      success = 0;
+	static float  shootAngle = 0,V = 0,distance = 0;
+	
+	//问询航向电机角度和收球电机速度
+  	ReadActualPos(CAN1, GUN_YAW_ID);
+	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
 
 	//计算投球点的坐标
 	posShoot.X  = ShootPointPos().X;
 	posShoot.Y  = ShootPointPos().Y;
-
-
-	// 没有球，g_ballSignal = 1
-	//if (g_ballSignal)
-	if (!youqiu)
-	{
-		noBall++;
-
-		// 6s(两个送球周期)之内没有球，表明车内没球，射球完成，返回1
-		if (noBall >= 1000)
-		{
-			noBall  = 0;
-			//success = 1;
-		}
-	}
-	// 表明g_ballSignal = 0, 进入了CCD的CAN中断，
-	else
+  
+	//球是白球
+	if (ballColor == WHITE)
 	{
 		noBall = 0;
-	}
-
-
-	//球是白球
-	if (whiteBall)
-	{
 		distance = sqrt((posShoot.X - WHITEX) * (posShoot.X - WHITEX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
 
 		//将角度装换成陀螺仪角度坐标系里的角度值
@@ -1143,8 +1130,9 @@ int ShootBallW(void)
 	}
 
 	//球是黑球
-	if (blackBall)
+	else if (ballColor == BLACK)
 	{
+		noBall = 0;
 		distance = sqrt((posShoot.X - BLACKX) * (posShoot.X - BLACKX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
 
 		//将角度转换成陀螺仪角度坐标系里的角度值
@@ -1153,20 +1141,39 @@ int ShootBallW(void)
 		aimAngle  = AvoidOverAngle(aimAngle);
 
 		//计算枪应该转的角度(顺时针+，逆时针-)
-		shootAngle = AvoidOverAngle(Position_t.angle - aimAngle);
+    shootAngle = AvoidOverAngle(Position_t.angle - aimAngle);
 		shootAngle += 2;
 	}
-
+	
+	// 没球,4s内来回拨动一次
+	else if (ballColor == NO)
+	{
+		noBall++;
+		if(noBall == 1)
+		{
+			PushBall();
+		}
+		if(noBall == 201)
+		{
+			PushBallReset();
+		}
+		
+		// 4s noBall依然没有清零，则认为车内没球
+		if(noBall >= 400)
+		{
+			noBall = 0;
+			success = 0;
+		}
+	}
+	
 	//球出射速度(mm/s)与投球点距离篮筐的距离的关系
 	//V=sqrt(0.5*G*distance*distance/(cos(ANGTORAD(51))*cos(ANGTORAD(51)))*(tan(ANGTORAD(51))*distance-424.6));
-
 	// distance的取值范围
-	if (distance <= 345)
-		V = 0;
-	else
-		V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));	
+	V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
+	rps = 2 * V / (PI * 66) + 16.5;
+	USART_OUT(UART5, (u8*)"%d\tF%d\t%d\tF%d\t%d\t",(int)(ballColor),(int)(g_shootAngle*90/4096),(int)shootAngle,(int)(g_shootFactV/4096),(int)rps);
+	USART_OUT(UART5,(u8*)"X%d\tY%d\tang%d\r\n",(int)posShoot.X,(int)posShoot.Y,(int)Position_t.angle);
 	
-	rps =2 * V / (PI * 66) + 16.5;
 	
   if(need)
 	{
@@ -1178,50 +1185,121 @@ int ShootBallW(void)
 	{
 		ShootCtr(rps);
 	}
-	// 否则表明射球蓝牙收到了主控发送的数据，以后不需再发送
-	else
-	{
-	}
-
-	//控制发射航向角
+	
+	//控制发射航向角(30ms发一次)
 	flag++;
-	flag = flag % 4;
+	flag = flag % 3;
 	if(flag == 1)
 	{
 		YawAngleCtr(shootAngle);
 	}
-	/*
-	count++;
-	//1300ms的时间送弹推球
-	if (count <= 100)
-	{
-    PushBall();
-	}
-	if (count > 100)
-	{
-		PushBallReset();
-	}
-	if(count>=200)
-	{
-		count=0;
-	}
-	*/
-	if (youqiu)
+	
+  //枪的角度和转速到位,推球
+ 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1 && fabs(rps + g_shootFactV / 4096) < 1 && ballColor)
 	{
 		count++;
-		USART_OUT(UART5, (u8 *)" %d %d %d %d %d %d\r\n",(int)rps,(int)shootAngle,ballColor,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+		if(count == 1)
+		{
+			PushBall();
+		}
+		if(count == 150)
+		{
+			PushBallReset();
+		}
+		if(count >= 300)
+		{
+			count = 0;
+		}
 	}
-	if (count == 250)
+	return success;
+}
+/*======================================================================================
+   函数定义		：			圆形跑场
+   函数参数		：		  V                跑场速度
+                      R                跑场第一圈的半径
+                      circleNum        预定的跑场圈数
+                      status           扩大还是缩小扫场
+
+   函数返回值	：	    扫完预定的圈数返回1
+ =======================================================================================*/
+int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
+{
+  float disError = 0, disOutput = 0, aimAng = 0, angError = 0, angOutput = 0, V1 = 0, V2 = 0;
+	uint8_t success = 0;
+	static uint8_t Flag = 0, circle = 0;
+	static uint16_t acceSpeed = 0;
+	
+	// 先缓慢加速(用时2*V/1000秒)
+	if(acceSpeed < V)
 	{
-    PushBall();youqiu=0;
+		acceSpeed += 5;
+		V1 = 4096 * acceSpeed * (R + WHEEL_TREAD / 2) / (WHEEL_DIAMETER * PI * R);
+		V2 = 4096 * acceSpeed * (R - WHEEL_TREAD / 2) / (WHEEL_DIAMETER * PI * R);	
 	}
-	//1300ms的时间送弹推球收回
-	if (count >= 500)
+	else
 	{
-		PushBallReset();
-		youqiu=0;
-		count=0;
+		V1 = 4096 * V * (R + WHEEL_TREAD / 2) / (106.8 * PI * R);
+		V2 = 4096 * V * (R - WHEEL_TREAD / 2) / (106.8 * PI * R);	
+	}
+	//让小车走一圈半径减小一次
+	if(-500 < Position_t.X && Position_t.X < 500 && Position_t.Y < 2400)
+	{
+		Flag++;
+	}
+	else
+	{
+		Flag = 0;
+	}
+	if(Flag == 1)
+	{
+		//记录扫场的圈数
+		circle++;
+		
+		//status=1,扩大扫场
+		if(status == 1)
+		{
+		  R += 200;
+		}
+		
+		//否则,缩小扫场
+		else
+		{
+			R -= 200;
+		}
+		
+		//达到预定圈数,success置1,acceSpeed置0
+		if(circle == circleNum)
+		{
+			success = 1;
+			acceSpeed = 0;
+		}
 	}
 	
+  //陀螺仪到圆心的距离
+	disError = sqrt((Position_t.X - 0) * (Position_t.X - 0) + (Position_t.Y - 2335.35) * (Position_t.Y - 2335.35)) - R;
+	
+	//距离P调节系数为5
+	disOutput = disError*10;
+
+	//目标角度与小车位置到圆心的角度相同
+	aimAng = atan2(Position_t.Y - 2335.35,Position_t.X - 0) * 180.0 / PI;
+	
+	//防止第二象限被撞后出现原地大角度调节到目标角度的现象
+	if(aimAng < 180 && aimAng > 0 && Position_t.angle < -90 && Position_t.angle > -180)
+	{
+		Position_t.angle += 360;
+	}
+	
+	//防止第三象限别撞后出现原地大角度调节到目标角度的现象
+	if(aimAng < 0 && aimAng > -180 && Position_t.angle < 180 && Position_t.angle > 90)
+	{
+		Position_t.angle -= 360;
+	}
+	angError = aimAng - Position_t.angle;
+	
+	//角度P调节系数
+	angOutput = angError * 180;
+	VelCrl(CAN2, 1,V1+disOutput+angOutput);
+	VelCrl(CAN2, 2,-V2+disOutput+angOutput);
 	return success;
 }

@@ -33,7 +33,11 @@ typedef union
 	uint8_t velUint8[4];
 }shootPara_t;
 /*=====================================================宏定义区域==================================================*/
+//收球电机ID号
+#define COLLECT_MOTOR_ID 8
+
 #define PI              3.1415926
+
 //摄像头距离陀螺仪的距离(mm)
 #define CAMERATOGYRO    221.32
 
@@ -53,7 +57,7 @@ typedef union
 #define DISRIGHTGYRO            492.598
 
 //投射点到陀螺仪的距离
-#define DISSHOOTTOGYRO          92.47
+#define DISSHOOTTOGYRO          97.2
 
 //PE4 摄像头拉数据
 #define READPE4                 (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_4))
@@ -79,36 +83,17 @@ typedef union
 //将球出射速度转换成投球器的脉冲
 #define VTOPULSE                12.358
 
-//宏定义电机转一圈的脉冲数
-#define COUNT_PER_ROUND         (4096.0f)
 
-//宏定义每度对应脉冲数
-#define COUNT_PER_DEGREE        (COUNT_PER_ROUND / 360.0f)
+//扩大画圆扫场状态
+#define EXPAND                  (1)
 
-//宏定义航向角减速比
-#define YAW_REDUCTION_RATIO     (4.0f)
+//缩小画圆扫场状态
+#define REDUCE                  (-1)
 
-//宏定义发射机构航向电机ID
-#define GUN_YAW_ID              (7)
-
-//宏定义送弹电机ID
-#define PUSH_BALL_ID            (6)
-
-//宏定义送弹机构送弹时电机位置
-#define PUSH_POSITION           (4000)
-
-//宏定义送弹机构收回时电机位置
-#define PUSH_RESET_POSITION     (5)
-
-//宏定义收球电机ID
-#define COLLECT_BALL_ID         (8)
-
-//宏定义左轮电机ID
-#define LEFT_MOTOR_WHEEL_ID     (2)
-
-//宏定义右轮电机ID
-#define RIGHT_MOTOR_WHEEL_ID    (1)
-
+// 黑球白球
+#define WHITE                   (1)
+#define BLACK                   (2)
+#define NO                      (0)
 /*=====================================================函数定义===================================================*/
 
 //将摄像头发完数据瞬间的角度发送出去
@@ -207,5 +192,5 @@ int32_t shootVelTrans(float roundPerS);
 //发射电机速度控制函数 单位：转每秒
 void ShootCtr(float rps);
 
-// 徐鹏学长任务
-void DingDian(float X, float Y, float V);
+// 圆形跑场函数
+int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status);

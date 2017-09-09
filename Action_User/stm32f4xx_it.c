@@ -40,6 +40,7 @@
 #include "elmo.h"
 #include "lyz.h"
 #include "wan.h"
+#include "c0.h"
 /******************************************************************************/
 /*            Cortex-M4 Processor Exceptions Handlers                         */
 /******************************************************************************/
@@ -58,6 +59,8 @@ extern float      angleError, xError, yError;
 extern uint8_t    g_ballSignal;
 extern int32_t    g_shootV;
 extern int32_t    g_shootFactV;
+extern int32_t     g_collectSpeed;
+extern int32_t     g_shootAngle;
 int               shootStart = 0, ballColor = 0,youqiu=0;
 
 float GetAngleZ(void)
@@ -105,82 +108,43 @@ void CAN2_RX0_IRQHandler(void)
  * @param  None
  * @retval None
  */
-
-//#ifdef C0
-//void CAN1_RX0_IRQHandler(void)
-//{
-//	OS_CPU_SR cpu_sr;
-
-//	OS_ENTER_CRITICAL();   /* Tell uC/OS-II that we are starting an ISR */
-//	OSIntNesting++;
-//	OS_EXIT_CRITICAL();
-//	uint32_t  Id;
-//	uint8_t   re[8];
-//	CAN_RxMsg(CAN1, &Id, re, 1);
-//	//if (shootStart)
-//	{
-//		youqiu=1;
-//		if (Id == 0x30)
-//		{
-//			if (re[0] == 100)
-//				ballColor = 1;
-//			else if (re[0] == 1)
-//				ballColor = 2;
-//		}
-//	}
-//  //USART_OUT(UART5, (u8 *)" %d %d\r\n",youqiu,ballColor);
-//	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
-//	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
-//	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
-//	CAN_ClearFlag(CAN1, CAN_FLAG_LEC);
-//	CAN_ClearFlag(CAN1, CAN_FLAG_FMP0);
-//	CAN_ClearFlag(CAN1, CAN_FLAG_FF0);
-//	CAN_ClearFlag(CAN1, CAN_FLAG_FOV0);
-//	CAN_ClearFlag(CAN1, CAN_FLAG_FMP1);
-//	CAN_ClearFlag(CAN1, CAN_FLAG_FF1);
-//	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
-//	OSIntExit();
-//}
-//#else
-//#ifdef WAN
-/**
- * @brief  CAN2 receive FIFO0 interrupt request handler
- * @note
- * @param  None
- * @retval None
- */
 void CAN1_RX0_IRQHandler(void)
 {
-	static uint32_t StdId         = 0;
-	static uint8_t  iii             = 1;
-	static uint8_t  CAN1Buffer[8] = { 0 };
-
-	// g_ballSignal置0，表明球来了
-	g_ballSignal = 0;
+	union
+	{
+		uint8_t buf[8];
+		int32_t data32[2];
+	}msg;
 	OS_CPU_SR cpu_sr;
 
-	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR */
+	OS_ENTER_CRITICAL();   /* Tell uC/OS-II that we are starting an ISR */
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
-	CAN_RxMsg(CAN1, &StdId, CAN1Buffer, &iii);
-	//if (CAN_MessagePending(CAN1, CAN_FIFO0) != 0)
+	uint32_t  Id;
+//	uint8_t   re[8];
+	CAN_RxMsg(CAN1, &Id, msg.buf, 8);
+	if (Id == 0x30)
 	{
-		//分球的ID 0x30
-		if (StdId == 0x30)
+		if (msg.buf[0] == 100)
+			ballColor = 1;
+		else if (msg.buf[0] == 1)
+			ballColor = 2;
+		else if(msg.buf[0] == 0)
+      ballColor = 0;
+	}
+	
+	else if(Id== (0x280 + GUN_YAW_ID))
+	{
+		//接收电机转速(脉冲每秒)
+		if(msg.data32[0] == 0x00005856)
 		{
-			youqiu=1;
-			if (CAN1Buffer[0] == 100)
-			{
-				//白球信号来临
-				whiteBall = 1;
-				blackBall = 0;
-			}
-			if (CAN1Buffer[0] == 1)
-			{
-				//黑球信号来临
-				blackBall = 1;
-				whiteBall = 0;
-			}
+				g_collectSpeed = msg.data32[1];
+		}
+		
+		//接收航向角(脉冲)
+		else if(msg.data32[0] == 0x00005850)
+		{
+				g_shootAngle = msg.data32[1];
 		}
 	}
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
@@ -195,8 +159,6 @@ void CAN1_RX0_IRQHandler(void)
 	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
 	OSIntExit();
 }
-//#endif
-//#endif
 /*************定时器2******start************/
 //每1ms调用一次
 
@@ -474,6 +436,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 				//计算,角度与x坐标镜像对称
 				Position_t.angle  *= g_plan;
 				Position_t.X      *= g_plan;
+
 				if (Position_t.angle == -180)
 					Position_t.angle = 180;
 			}
