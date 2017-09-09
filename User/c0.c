@@ -616,22 +616,22 @@ void New_Route(int down, int right, int up, int left)
 	{
 	case 1:
 	{
-		ClLine(0, -240 + down * 480, -90, 800);
+		ClLine(0, -240 + down * 480, -90, 1000);
 	} break;
 
 	case 2:
 	{
-		ClLine(240 + right * 480, 0, 0, 800);
+		ClLine(240 + right * 480, 0, 0, 1000);
 	} break;
 
 	case 3:
 	{
-		ClLine(0, 3120 + up * 480, 90, 800);
+		ClLine(0, 3120 + up * 480, 90, 1000);
 	} break;
 
 	case 4:
 	{
-		ClLine(-2640 + left * 480, 0, 180, 800);
+		ClLine(-2640 + left * 480, 0, 180, 1000);
 	} break;
 
 	default:
@@ -893,74 +893,6 @@ float P2P(float a1, float a2, float b1, float b2)
 	return dist;
 }
 
-
-/*=====================================================函数定义（孟yu'hao学长的函数）===================================================*/
-//发射航向角转换函数 由度转换为脉冲
-//float YawTransform(float yawAngle)
-//{
-//	return (yawAngle * YAW_REDUCTION_RATIO * COUNT_PER_DEGREE);
-//}
-
-////发射航向角控制函数 单位：度（枪顺时针转为正，逆时针为负）
-//void YawAngleCtr(float yawAngle)
-//{
-
-//	PosCrl(CAN1, GUN_YAW_ID, POS_ABS, YawTransform(yawAngle));
-//}
-
-
-////送弹推球函数
-//void PushBall(void)
-//{
-//	PosCrl(CAN1, PUSH_BALL_ID, POS_ABS, PUSH_POSITION);
-//}
-
-////送弹推球收回函数
-//void PushBallReset(void)
-//{
-//	PosCrl(CAN1, PUSH_BALL_ID, POS_ABS, PUSH_RESET_POSITION);
-//}
-
-
-////收球电机速度转换函数 由转每秒转换为脉冲
-//float CollectBallVelTrans(float round)
-//{
-//	return round * COUNT_PER_ROUND;
-//}
-
-////收球电机速度控制函数 单位：转每秒
-//void CollectBallVelCtr(float round)
-//{
-//	VelCrl(CAN1,COLLECT_BALL_ID,CollectBallVelTrans(round));
-//}
-////收球电机需要初始化：	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000,50000);
-
-
-
-////发射电机速度转换函数 由转每秒转换为脉冲
-//int32_t shootVelTrans(float roundPerS)
-//{
-//	return (int32_t)-roundPerS * COUNT_PER_ROUND;
-//}
-
-////发射电机速度控制函数 单位：转每秒
-//void ShootCtr(float rps)
-//{
-//    shootPara_t shootPara;
-//
-//	shootPara.velInt32 = shootVelTrans(rps);
-
-//    //起始位
-//    USART_SendData(USART1, 'A');
-//    //通过串口1发数
-//    USART_SendData(USART1, shootPara.velUint8[0]);
-//    USART_SendData(USART1, shootPara.velUint8[1]);
-//    USART_SendData(USART1, shootPara.velUint8[2]);
-//    USART_SendData(USART1, shootPara.velUint8[3]);
-//    //终止位
-//    USART_SendData(USART1, 'J');
-//}
-
 /*======================================================================================
    函数定义	  ：    走定点
    函数参数	  ：
@@ -1006,8 +938,8 @@ void GivenPoint(float pointX, float pointY, float givenSpeed)
 
    函数返回值  ：	  无
    =======================================================================================*/
-float bestTraX[20], bestTraY[20], bestTraAngle[20];
-int   bestSum;
+float bestTraX[20], bestTraY[20];
+int   bestSum=20;
 void PathPlan(float camX, float camY)
 {
 	static float  TraceX[20], TraceY[20], bestAng;

@@ -118,6 +118,7 @@ void ConfigTask(void)
 
 	//收球电机初始化
 	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000, 50000);
+	CollectBallVelCtr(40);
 
 	VelCrl(CAN2, 1, 0);
 	VelCrl(CAN2, 2, 0);
@@ -133,27 +134,13 @@ void WalkTask(void)
 	CPU_INT08U os_err;
 
 	os_err = os_err;
-	//拉低PE4，拉高PE6的电平，接收球最多区域的角度
-	GPIO_ResetBits(GPIOE, GPIO_Pin_4);
-	GPIO_SetBits(GPIOE, GPIO_Pin_6);
+//	//拉低PE4，拉高PE6的电平，接收球最多区域的角度
+//	GPIO_ResetBits(GPIOE, GPIO_Pin_4);
+//	GPIO_SetBits(GPIOE, GPIO_Pin_6);
 	g_cameraPlan = 1;
 	delay_s(10);
 	CollectBallVelCtr(40);
   uint8_t ifEscape = 0, time = 0;
-//GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
-//	GPIO_SetBits(GPIOE, GPIO_Pin_7);        //蜂鸣器响，示意可以开始跑
-	
-	
-	
-//	OSSemSet(PeriodSem, 0, &os_err);
-//	while (1)
-//	{
-//		OSSemPend(PeriodSem, 0, &os_err);
-
-//	  jiguang1=Get_Adc_Average(RIGHT_LASER,20);
-//		jiguang2=Get_Adc_Average(LEFT_LASER,20);
-//		USART_OUT(UART5,(u8*)"p%d\t%d\r\n",jiguang1,jiguang2);
-//	}
 	
 	
 	//等待激光被触发
@@ -167,68 +154,44 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-//		ShootBallW();
-//		USART_OUT(UART5,(u8*)"TX%d\tY%d\tANG%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
-//    ShootBallW();
-//	  if(jiguang1-Get_Adc_Average(RIGHT_LASER,30)>400)
-//	  {
-//      blockTime++;g_plan=1;
-//	  }
-//    else if(jiguang2-Get_Adc_Average(LEFT_LASER,30)>400)
-//	  {
-//		  blockTime++;g_plan=-1;
-//	  }
-//		if(g_plan)
-//		{
-//			if(fabs(jiguang1-Get_Adc_Average(RIGHT_LASER,30))<50||fabs(jiguang2-Get_Adc_Average(LEFT_LASER,30))<50)
-//			{
-//				fix me
-//			}
-//		}
 
-//		//		StaightCLose(1000,0,0,500);
-
-//		//GivenPoint(0,1500,1000);
-//		// if(sweepingScheme)
+		if (ifEscape)
 		{
-			if (ifEscape)
+			time++;
+			if (time < 100)
 			{
-				time++;
-				if (time < 100)
-				{
-					VelCrl(CAN2, 1, -8000);
-					VelCrl(CAN2, 2, 8000);
-				}
-				else
-				{
-					if (!In_Or_Out())
-					{
-						VelCrl(CAN2, 1, 4000);
-						VelCrl(CAN2, 2, -10000);
-					}
-					else
-					{
-						VelCrl(CAN2, 1, 10000);
-						VelCrl(CAN2, 2, -4000);
-					}
-				}
-				if (time > 200)
-				{
-					ifEscape  = 0;
-					time      = 0;
-				}
+				VelCrl(CAN2, 1, -8000);
+				VelCrl(CAN2, 2, 8000);
 			}
 			else
 			{
-				GoGoGo();
-			}
-			if (IfStuck() == 1)
-			{
-				if (carRun)
-					ifEscape = 1;
+				if (!In_Or_Out())
+				{
+					VelCrl(CAN2, 1, 4000);
+					VelCrl(CAN2, 2, -10000);
+				}
 				else
-					ifEscape = 0;
+				{
+					VelCrl(CAN2, 1, 10000);
+					VelCrl(CAN2, 2, -4000);
+				}
 			}
+			if (time > 200)
+			{
+				ifEscape  = 0;
+				time      = 0;
+			}
+		}
+		else
+		{
+			GoGoGo();
+		}
+		if (IfStuck() == 1)
+		{
+			if (carRun)
+				ifEscape = 1;
+			else
+				ifEscape = 0;
 		}
 	}
 }

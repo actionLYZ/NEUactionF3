@@ -28,8 +28,6 @@
 #define GUN_HEIGHT              (175.4f)
 
 #define BALL_WEIGHT             (0.046f) //高尔夫球的重量（单位：kg）
-//#define ANGTORAD(x) ((x) / 180.0f * PI)//角度值转为弧度制
-//#define RADTOANG(x) ((x) / PI * 180.0f)//弧度制转为角度值
 #define PF(a)    ((a) * (a))
 
 //宏定义电机转一圈的脉冲数
@@ -62,24 +60,9 @@
 //宏定义右轮电机ID
 #define RIGHT_MOTOR_WHEEL_ID    (1)
 
-//串口发送电机命令联合体定义
-
-
-
-
-
-////万典学长的宏定义
-//#define CAMERATOGYRO     221.32          //摄像头距离陀螺仪的距离
-//#define ADJUSTDIS        50              //左右区域和中间区域的偏差距离调节量，根据实际情况更改(mm)
 
 /*=====================================================结构体定义===================================================*/
 //********************************************************************************************************************
-//typedef struct
-//{
-//	int leftNum;
-//	int midNum;
-//	int rightNum;
-//}BALLNUM_T;
 
 typedef struct
 {
@@ -131,18 +114,8 @@ float MostSector(void);
 float P2P(float a1, float a2, float b1, float b2);
 void SendUint8(void);
 
-//float YawTransform(float yawAngle);
-//void YawAngleCtr(float yawAngle);
-//void PushBall(void);
-//void PushBallReset(void);
-//float CollectBallVelTrans(float round);
-//void CollectBallVelCtr(float round);
-//int32_t shootVelTrans(float roundPerS);
-//void ShootCtr(float rps);
 
 void GivenPoint(float pointX, float pointY, float givenSpeed);
 void PathPlan(float camX, float camY);
 
 /*=====================================================函数定义（万典学长的函数）===================================================*/
-//float AngCamera2Gyro(float distance,float angle);
-//float AvoidOverAngle(float angle);

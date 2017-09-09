@@ -61,7 +61,7 @@ extern int32_t    g_shootV;
 extern int32_t    g_shootFactV;
 extern int32_t     g_collectSpeed;
 extern int32_t     g_shootAngle;
-int               shootStart = 0, ballColor = 1;
+int               shootStart = 0, ballColor = 0,youqiu=0;
 
 float GetAngleZ(void)
 {
@@ -102,7 +102,6 @@ void CAN2_RX0_IRQHandler(void)
 	OSIntExit();
 }
 
-#ifdef C0
 /**
  * @brief  CAN2 receive FIFO0 interrupt request handler
  * @note
@@ -160,60 +159,6 @@ void CAN1_RX0_IRQHandler(void)
 	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
 	OSIntExit();
 }
-#else
-#ifdef WAN
-/**
- * @brief  CAN2 receive FIFO0 interrupt request handler
- * @note
- * @param  None
- * @retval None
- */
-void CAN1_RX0_IRQHandler(void)
-{
-	static uint32_t StdId         = 0;
-	static uint8_t  CAN1Buffer[8] = { 0 };
-
-	// g_ballSignal置0，表明球来了
-	g_ballSignal = 0;
-	OS_CPU_SR cpu_sr;
-
-	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR */
-	OSIntNesting++;
-	OS_EXIT_CRITICAL();
-	CAN_RxMsg(CAN1, &StdId, CAN1Buffer, 1);
-	if (CAN_MessagePending(CAN1, CAN_FIFO0) != 0)
-	{
-		//分球的ID 0x30
-		if (StdId == 0x30)
-		{
-			if (CAN1Buffer[0] == 100)
-			{
-				//白球信号来临
-				whiteBall = 1;
-				blackBall = 0;
-			}
-			if (CAN1Buffer[0] == 1)
-			{
-				//黑球信号来临
-				blackBall = 1;
-				whiteBall = 0;
-			}
-		}
-	}
-	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
-	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
-	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
-	CAN_ClearFlag(CAN1, CAN_FLAG_LEC);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FMP0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FF0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FOV0);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FMP1);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FF1);
-	CAN_ClearFlag(CAN1, CAN_FLAG_FOV1);
-	OSIntExit();
-}
-#endif
-#endif
 /*************定时器2******start************/
 //每1ms调用一次
 
@@ -371,6 +316,7 @@ void USART1_IRQHandler(void)
 			{
 				//发射台蓝牙返回的射球机实时转速
 				g_shootFactV = V.vel32;
+				//USART_OUT(UART5,(u8*)"V%d\r\n",(int)(-g_shootFactV/4096));
 			}
 			else
 			{
@@ -702,7 +648,7 @@ void USART2_IRQHandler(void)
 		default:
 			break;
 		}
-		//GPIO4=LOW,GPIO6=HIGH 球最多的角度 发一个角度
+		//GPIO4=HIGH,GPIO6=LOW 球最多的角度 发一个角度
 		if (camera == 0xDA)
 			best = 1;
 		if (best)
@@ -715,7 +661,7 @@ void USART2_IRQHandler(void)
 			best  = 0;
 			go    = 1;
 		}
-		//GPIO4=HIGH,GPIO6=LOW 最近球的坐标 发一个角度 一个距离
+		//GPIO4=LOW,GPIO6=HIGH 最近球的坐标 发一个角度 一个距离
 		if (camera == 0xD8)
 			nearest = 1;
 		switch (nearest)
@@ -745,7 +691,7 @@ void USART2_IRQHandler(void)
 			break;
 		}
 		//GPIO4=HIGH,GPIO6=HIGH 所有极坐标 发每个球的角度和坐标
-		if (camera == 0xD5)
+		if (camera == 0xC5)
 		{
 			go = 1; i = 0;
 		}
@@ -770,7 +716,7 @@ void USART2_IRQHandler(void)
 				break;
 			}
 		}
-		if (camera == 0xD6)
+		if (camera == 0xC6)
 		{
 			i = 1; arr_number = 0;
 		}
@@ -793,6 +739,27 @@ void USART2_IRQHandler(void)
 #endif
 #endif
 	OSIntExit();
+}
+int ballSpeed=0,need=0;
+void UART5_IRQHandler(void)
+{
+	if(USART_GetITStatus(UART5, USART_IT_RXNE)==SET)   
+	{
+		USART_ClearITPendingBit( UART5,USART_IT_RXNE);	
+	  uint8_t data = 0;
+		USART_ClearITPendingBit( UART5,USART_IT_RXNE);
+		data=USART_ReceiveData(UART5);	
+		if(data=='n')
+		{
+			need=1;
+		}
+		if(need)
+		{
+			ballSpeed=data;
+			need=0;
+		}
+	}
+	 
 }
 /**
  * @brief   This function handles NMI exception.

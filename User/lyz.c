@@ -38,13 +38,16 @@ extern int        shootStart, ballColor;
    =======================================================================================*/
 int IfStart(void)
 {
-	uint16_t left = 0, right = 0;
-	right = Get_Adc(RIGHT_LASER);
-	left = Get_Adc(LEFT_LASER);
-	if (right < 500)     //右侧激光触发
+	if (Get_Adc_Average(RIGHT_LASER, 30) < 1000)     //右侧激光触发
+	{
 		return 1;
-	else if (left < 500) //左侧激光触发
+	}
+		
+	else if (Get_Adc_Average(LEFT_LASER, 30) < 1000) //左侧激光触发
+	{
 		return -1;
+	}
+		
 	else
 		return 0;
 }
@@ -185,11 +188,10 @@ void GoGoGo(void)
 		if (CheckPosition())
 		{
 			state = 4;
-			
-			//矫正成功后，让轮子停止转动
 			VelCrl(CAN2, 1, 0);
 			VelCrl(CAN2, 2, 0);
 		}
+			
 	} break;
 
 	case 4:
@@ -208,8 +210,8 @@ void GoGoGo(void)
 				if (cameraScheme == 0)
 				{
 					cameraScheme = 1;
-					GPIO_ResetBits(GPIOE, GPIO_Pin_4);
-					GPIO_SetBits(GPIOE, GPIO_Pin_6);
+					GPIO_SetBits(GPIOE, GPIO_Pin_4);
+					GPIO_ResetBits(GPIOE, GPIO_Pin_6);
 				}
 				else if (cameraScheme == 1)
 				{
@@ -217,11 +219,11 @@ void GoGoGo(void)
 					GPIO_SetBits(GPIOE, GPIO_Pin_4);
 					GPIO_SetBits(GPIOE, GPIO_Pin_6);
 				}
-				else if (cameraScheme == 1)
+				else if (cameraScheme == 2)
 				{
 					cameraScheme = 3;
-					GPIO_SetBits(GPIOE, GPIO_Pin_4);
-					GPIO_ResetBits(GPIOE, GPIO_Pin_6);
+					GPIO_ResetBits(GPIOE, GPIO_Pin_4);
+					GPIO_SetBits(GPIOE, GPIO_Pin_6);
 				}
 				else
 				{
@@ -476,12 +478,13 @@ int CheckPosition(void)
 		if (LaserCheck())
 		{
 			keepgo  = 1;
-			state   = 1;
+			state   = 2;
 			tempx   = 0, tempy = 0;
 		}
 		//		state = 5;	//矫正成功，开始第二阶段跑场
 		else
 		{
+			
 			state = 6;    //矫正失败，继续矫正
 		}
 	} break;
@@ -532,7 +535,7 @@ int CheckPosition(void)
 			xError  = 2400 - POSYSTEM_TO_BACK - x2 * cos(ANGTORAD(angleError)) - y2 * sin(ANGTORAD(angleError));
 			yError  = -y1 *cos(ANGTORAD(angleError)) + x1 * sin(ANGTORAD(angleError));
 			keepgo  = 1;
-			state   = 1;
+			state   = 2;
 			tempx   = 0, tempy = 0;
 		}
 	} break;
@@ -558,12 +561,14 @@ extern int    go, arr_number;
    函数返回值	：			1:               已完成一次摄像头扫场
                     0:               还未完成
    =======================================================================================*/
-extern float bestTraX[20], bestTraY[20], bestTraAngle[20];
+extern float bestTraX[20], bestTraY[20];
+Pose_t bestTra[20] = {0};
+
 int RunCamera(void)
 {
 	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1;
 	static float  cameraX, cameraY;
-	int           finish = 0;
+	int           finish = 0, circulate;
 	POSITION_T    basePoint;
 
 	//到边界要拐弯了
@@ -633,7 +638,7 @@ int RunCamera(void)
 
 		case 1:
 		{
-			StaightCLose(cameraX, cameraY, ballAngle, 800);
+			StaightCLose(cameraX, cameraY, ballAngle, 1000);
 		} break;
 
 		default:
@@ -670,11 +675,12 @@ int RunCamera(void)
 			{
 				haveBall = 1;
 				PathPlan(cameraX, cameraY);
-				//fix me
-				//InputPoints2RingBuffer();
-				//CaculatePath();
-				//PathFollowing(1);
-				//Pose_t bestTra[bestSum];
+				ClearRingBuffer();
+				for(circulate=0;circulate<bestSum;circulate++)
+				{
+					bestTra[circulate].point.x = bestTraX[circulate];
+					bestTra[circulate].point.y = bestTraY[circulate];
+				}	    
 			}
 		}
 		switch (haveBall)
@@ -689,6 +695,9 @@ int RunCamera(void)
 
 		case 1:
 		{
+				InputPoints2RingBuffer(bestTra,bestSum);
+				CaculatePath();
+				PathFollowing(1);		
 		} break;
 
 		default:
@@ -728,7 +737,7 @@ int RunCamera(void)
 
 		case 1:
 		{
-			StaightCLose(cameraX, cameraY, ballAngle, 800);
+			StaightCLose(cameraX, cameraY, ballAngle, 1000);
 		} break;
 
 		default:
@@ -788,7 +797,6 @@ void TurnAngle(float angel, int speed)
    =======================================================================================*/
 int LaserCheck(void)
 {
-#ifdef wan
 	int laserGetRight = 0, laserGetLeft = 0;
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
 	laserGetRight = Get_Adc_Average(RIGHT_LASER, 20);
@@ -796,16 +804,17 @@ int LaserCheck(void)
   USART_OUT(UART5,(u8*)"laser%d\r\n",(int)(laserGetRight + laserGetLeft ));
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	//如果激光被挡，返回 0
-//	if (laserGetRight + laserGetLeft < 4700)
-//	{
-//		x1  = getPosition_t.X;
-//		y1  = getPosition_t.Y;		
-//		return 0;
-//	}
+	if (laserGetRight + laserGetLeft < 4700)
+	{	
+		x1  = getPosition_t.X;
+		y1  = getPosition_t.Y;
+		
+		return 0;		
+	}
 
-//	//没有被挡，返回
-//	else
-//	{
+	//没有被挡，返回
+	else
+	{
 		//靠的墙是Y=0
 		if (Position_t.angle < 45 && Position_t.angle > -45)
 		{
@@ -842,28 +851,9 @@ int LaserCheck(void)
 			yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetRight - 64.65);
 			return 1;
 		}
-//	}
-#else
-#ifdef c0
-	int laserGet, laserLong;
-	laserLong = Get_Adc_Average(RIGHT_LASER, 20) + Get_Adc_Average(LEFT_LASER, 20);
-	if (laserLong > 4780 && laserLong < 4820)
-	{
-		angleError  = angleError + Position_t.angle;  //纠正角度坐标
-		yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) + getPosition_t.X * sin(Angel2PI(angleError)));
-		laserGet    = (Get_Adc_Average(LEFT_LASER, 20) - Get_Adc_Average(RIGHT_LASER, 20)) / 2;
-		xError      = (getPosition_t.X * cos(Angel2PI(angleError)) - getPosition_t.Y * sin(Angel2PI(angleError))) - laserGet;//纠正X坐标
-		return true;
 	}
-	else
-	{
-		x1  = getPosition_t.X;
-		y1  = getPosition_t.Y;
-		return false;
-	}
-#endif  /* c0 */
-#endif  /* wan */
 }
+	
 
 //角度变换函数
 float Angel2PI(float angel)
