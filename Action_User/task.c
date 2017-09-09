@@ -43,12 +43,13 @@ uint8_t     g_ballSignal  = 1;        //判断CCD是否看到球
 int32_t     g_shootV      = 0;        //串口接收到的速度
 int32_t     g_shootFactV  = 0;        //发射电机的实时转速
 int32_t     g_collectSpeed = 0;       //收球电机的实时转速(脉冲每秒)
+int32_t     g_shootAngle = 0;
 void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);
 
 int     g_camera = 0;     //摄像头收到的数
 int     sweepingScheme = 0, blockTime = 0;
-uint8_t jiguang1, jiguang2;
+int jiguang1, jiguang2;
 
 
 void App_Task()
@@ -136,29 +137,39 @@ void WalkTask(void)
 	GPIO_ResetBits(GPIOE, GPIO_Pin_4);
 	GPIO_SetBits(GPIOE, GPIO_Pin_6);
 	g_cameraPlan = 1;
-	CollectBallVelCtr(40);
 	delay_s(10);
+	CollectBallVelCtr(40);
+  uint8_t ifEscape = 0, time = 0;
+//GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
+//	GPIO_SetBits(GPIOE, GPIO_Pin_7);        //蜂鸣器响，示意可以开始跑
+	
+	
+	
+//	OSSemSet(PeriodSem, 0, &os_err);
+//	while (1)
+//	{
+//		OSSemPend(PeriodSem, 0, &os_err);
 
-//	GPIO_SetBits(GPIOE,GPIO_Pin_7);				//蜂鸣器响，示意可以开始跑
-	int ifEscape = 0, time = 0;             //是否执行逃逸函数
-
-	GPIO_SetBits(GPIOE, GPIO_Pin_7);        //蜂鸣器响，示意可以开始跑
-//  jiguang1=Get_Adc_Average(RIGHT_LASER,30);
-//	jiguang2=Get_Adc_Average(LEFT_LASER,30);
+//	  jiguang1=Get_Adc_Average(RIGHT_LASER,20);
+//		jiguang2=Get_Adc_Average(LEFT_LASER,20);
+//		USART_OUT(UART5,(u8*)"p%d\t%d\r\n",jiguang1,jiguang2);
+//	}
+	
+	
 	//等待激光被触发
-	while (IfStart() == 0)
-	{
-	}
-
+	do{
+		g_plan = IfStart();
+	}while(g_plan == 0);
+	USART_OUT(UART5,(u8*)"p%d\r\n",g_plan);
 	GPIO_ResetBits(GPIOE, GPIO_Pin_7);     //关闭蜂鸣器
-	g_plan = IfStart();
-
 
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-    ReadActualVel(CAN1, COLLECT_MOTOR_ID);
+//		ShootBallW();
+//		USART_OUT(UART5,(u8*)"TX%d\tY%d\tANG%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+//    ShootBallW();
 //	  if(jiguang1-Get_Adc_Average(RIGHT_LASER,30)>400)
 //	  {
 //      blockTime++;g_plan=1;
@@ -175,10 +186,10 @@ void WalkTask(void)
 //			}
 //		}
 
-		//		StaightCLose(1000,0,0,500);
+//		//		StaightCLose(1000,0,0,500);
 
-		//GivenPoint(0,1500,1000);
-		// if(sweepingScheme)
+//		//GivenPoint(0,1500,1000);
+//		// if(sweepingScheme)
 		{
 			if (ifEscape)
 			{

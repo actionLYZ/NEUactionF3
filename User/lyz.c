@@ -38,9 +38,12 @@ extern int        shootStart, ballColor;
    =======================================================================================*/
 int IfStart(void)
 {
-	if (Get_Adc_Average(RIGHT_LASER, 30) < 500)     //右侧激光触发
+	uint16_t left = 0, right = 0;
+	right = Get_Adc(RIGHT_LASER);
+	left = Get_Adc(LEFT_LASER);
+	if (right < 500)     //右侧激光触发
 		return 1;
-	else if (Get_Adc_Average(LEFT_LASER, 30) < 500) //左侧激光触发
+	else if (left < 500) //左侧激光触发
 		return -1;
 	else
 		return 0;
@@ -71,7 +74,6 @@ float Piont2Straight(float aimx, float aimy, float angle)
 		if (angle > 0 && angle < 180)
 			dis = -dis;
 	}
-
 	return dis;
 }
 
@@ -181,7 +183,13 @@ void GoGoGo(void)
 	{
 		carRun = 0;
 		if (CheckPosition())
+		{
 			state = 4;
+			
+			//矫正成功后，让轮子停止转动
+			VelCrl(CAN2, 1, 0);
+			VelCrl(CAN2, 2, 0);
+		}
 	} break;
 
 	case 4:
@@ -412,7 +420,7 @@ bool  RunRectangle(int length, int wide, float speed)
 	}
 	return false;
 }
-int x1, x2, y1, y2;
+int x1 = 0, x2 = 0, y1 = 0, y2 = 0;
 /*======================================================================================
    函数定义		：			坐标校正
    函数参数		：			无
@@ -782,18 +790,22 @@ int LaserCheck(void)
 {
 #ifdef wan
 	int laserGetRight = 0, laserGetLeft = 0;
+	GPIO_SetBits(GPIOE,GPIO_Pin_7);
 	laserGetRight = Get_Adc_Average(RIGHT_LASER, 20);
 	laserGetLeft  = Get_Adc_Average(LEFT_LASER, 20);
-
+  USART_OUT(UART5,(u8*)"laser%d\r\n",(int)(laserGetRight + laserGetLeft ));
+	GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	//如果激光被挡，返回 0
-	if (laserGetRight + laserGetLeft < 4700)
-	{
-		return 0;
-	}
+//	if (laserGetRight + laserGetLeft < 4700)
+//	{
+//		x1  = getPosition_t.X;
+//		y1  = getPosition_t.Y;		
+//		return 0;
+//	}
 
-	//没有被挡，返回
-	else
-	{
+//	//没有被挡，返回
+//	else
+//	{
 		//靠的墙是Y=0
 		if (Position_t.angle < 45 && Position_t.angle > -45)
 		{
@@ -830,7 +842,7 @@ int LaserCheck(void)
 			yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetRight - 64.65);
 			return 1;
 		}
-	}
+//	}
 #else
 #ifdef c0
 	int laserGet, laserLong;
