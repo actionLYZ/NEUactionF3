@@ -1093,6 +1093,8 @@ void ShootCtr(float rps)
 
    函数返回值	：	        1 表明射球完成
    =======================================================================================*/
+extern int ballColor,youqiu;
+extern int ballSpeed,need;
 int ShootBallW(void)
 {
 	static uint16_t count = 0, noBall = 0, flag = 0;
@@ -1102,7 +1104,7 @@ int ShootBallW(void)
 	static float  shootAngle = 0,V = 0,distance = 0;
 	
 	//问询航向电机角度和收球电机速度
-  ReadActualPos(CAN1, GUN_YAW_ID);
+  	ReadActualPos(CAN1, GUN_YAW_ID);
 	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
 
 	//计算投球点的坐标
@@ -1167,14 +1169,17 @@ int ShootBallW(void)
 	//球出射速度(mm/s)与投球点距离篮筐的距离的关系
 	//V=sqrt(0.5*G*distance*distance/(cos(ANGTORAD(51))*cos(ANGTORAD(51)))*(tan(ANGTORAD(51))*distance-424.6));
 	// distance的取值范围
-//	if (distance <= 345)
-//		V = 0;
-//	else
 	V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 	rps = 2 * V / (PI * 66) + 16.5;
 	USART_OUT(UART5, (u8*)"%d\tF%d\t%d\tF%d\t%d\t",(int)(ballColor),(int)(g_shootAngle*90/4096),(int)shootAngle,(int)(g_shootFactV/4096),(int)rps);
 	USART_OUT(UART5,(u8*)"X%d\tY%d\tang%d\r\n",(int)posShoot.X,(int)posShoot.Y,(int)Position_t.angle);
 	
+	
+  if(need)
+	{
+		rps=ballSpeed;
+	}
+   // rps=distance/sqrt(5.539*distance-1904.73);
 	// 表明射球蓝牙没有收到主控发送的数据
 	if (fabs(rps + g_shootV / 4096) > 0.5)
 	{
