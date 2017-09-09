@@ -530,6 +530,7 @@ int CheckPosition(void)
 		if (IfStuck2())
 		//if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_0)==0&&GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0)==0)
 		{
+			angleError = Position_t.angle - 90;
 			x2      = getPosition_t.X;
 			y2      = getPosition_t.Y;
 			xError  = 2400 - POSYSTEM_TO_BACK - x2 * cos(ANGTORAD(angleError)) - y2 * sin(ANGTORAD(angleError));
@@ -824,7 +825,7 @@ int LaserCheck(void)
 			return 1;
 		}
 
-		//靠X=1400的墙
+		//靠X=2400的墙
 		else if (Position_t.angle < 135 && Position_t.angle > 45)
 		{
 			angleError  += Position_t.angle - 90;

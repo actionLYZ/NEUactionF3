@@ -61,6 +61,7 @@ extern int32_t    g_shootV;
 extern int32_t    g_shootFactV;
 extern int32_t     g_collectSpeed;
 extern int32_t     g_shootAngle;
+extern int32_t     btV;
 int               shootStart = 0, ballColor = 0,youqiu=0;
 
 float GetAngleZ(void)
@@ -740,26 +741,58 @@ void USART2_IRQHandler(void)
 #endif
 	OSIntExit();
 }
-int ballSpeed=0,need=0;
+
 void UART5_IRQHandler(void)
 {
-	if(USART_GetITStatus(UART5, USART_IT_RXNE)==SET)   
+	static uint8_t ch = 0, buf[2] = {0};
+	static uint8_t count = 0, i = 0;
+  OS_CPU_SR cpu_sr;
+
+	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
+	OSIntNesting++;
+	OS_EXIT_CRITICAL();
+	if (USART_GetITStatus(UART5, USART_IT_RXNE) == SET)
 	{
-		USART_ClearITPendingBit( UART5,USART_IT_RXNE);	
-	  uint8_t data = 0;
-		USART_ClearITPendingBit( UART5,USART_IT_RXNE);
-		data=USART_ReceiveData(UART5);	
-		if(data=='n')
+		USART_ClearITPendingBit(UART5, USART_IT_RXNE);
+		ch = USART_ReceiveData(UART5);
+		switch(count)
 		{
-			need=1;
-		}
-		if(need)
-		{
-			ballSpeed=data;
-			need=0;
+			case 0:
+				if(ch == 'A')
+					count++;
+				else
+					count = 0;
+				break;
+			case 1:
+				buf[i] = ch - '0';
+			  i++;
+				if(i >= 2)
+				{
+					btV = 10 * buf[0] + buf[1];
+					i = 0;
+					count = 0;
+				}
+				break;
+			default:
+				break;
 		}
 	}
-	 
+	else
+	{
+		USART_ClearITPendingBit(UART5, USART_IT_PE);
+		USART_ClearITPendingBit(UART5, USART_IT_TXE);
+		USART_ClearITPendingBit(UART5, USART_IT_TC);
+		USART_ClearITPendingBit(UART5, USART_IT_ORE_RX);
+		USART_ClearITPendingBit(UART5, USART_IT_IDLE);
+		USART_ClearITPendingBit(UART5, USART_IT_LBD);
+		USART_ClearITPendingBit(UART5, USART_IT_CTS);
+		USART_ClearITPendingBit(UART5, USART_IT_ERR);
+		USART_ClearITPendingBit(UART5, USART_IT_ORE_ER);
+		USART_ClearITPendingBit(UART5, USART_IT_NE);
+		USART_ClearITPendingBit(UART5, USART_IT_FE);
+		USART_ReceiveData(UART5);
+	}
+	OSIntExit();
 }
 /**
  * @brief   This function handles NMI exception.

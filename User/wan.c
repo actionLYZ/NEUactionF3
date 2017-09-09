@@ -32,6 +32,7 @@ extern int32_t    g_shootV;       //串口接收到的速度
 extern int32_t    g_shootFactV;   //发射电机的实时转速
 extern int32_t    g_shootAngle;   //返回的航向角的真实角度(脉冲)
 extern int        ballColor;
+extern int32_t     btV;
 /*======================================================================================
    函数定义	  ：		Send Get函数
    函数参数	  ：
@@ -1104,7 +1105,7 @@ int ShootBallW(void)
 	static float  shootAngle = 0,V = 0,distance = 0;
 	
 	//问询航向电机角度和收球电机速度
-  	ReadActualPos(CAN1, GUN_YAW_ID);
+  ReadActualPos(CAN1, GUN_YAW_ID);
 	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
 
 	//计算投球点的坐标
@@ -1171,21 +1172,14 @@ int ShootBallW(void)
 	// distance的取值范围
 	V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 	rps = 2 * V / (PI * 66) + 16.5;
-	USART_OUT(UART5, (u8*)"%d\tF%d\t%d\tF%d\t%d\t",(int)(ballColor),(int)(g_shootAngle*90/4096),(int)shootAngle,(int)(g_shootFactV/4096),(int)rps);
-	USART_OUT(UART5,(u8*)"X%d\tY%d\tang%d\r\n",(int)posShoot.X,(int)posShoot.Y,(int)Position_t.angle);
 	
-	
-  if(need)
-	{
-		rps=ballSpeed;
-	}
    // rps=distance/sqrt(5.539*distance-1904.73);
 	// 表明射球蓝牙没有收到主控发送的数据
-	if (fabs(rps + g_shootV / 4096) > 0.5)
-	{
-		ShootCtr(rps);
-	}
-	
+//	if (fabs(rps + g_shootV / 4096) > 0.5)
+//	{
+		ShootCtr(btV);
+//  }
+	USART_OUT(UART5,(u8*)"f%d\r\n",(int)g_shootFactV/4096);
 	//控制发射航向角(30ms发一次)
 	flag++;
 	flag = flag % 3;
@@ -1195,18 +1189,18 @@ int ShootBallW(void)
 	}
 	
   //枪的角度和转速到位,推球
- 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1 && fabs(rps + g_shootFactV / 4096) < 1 && ballColor)
+ 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.5 && fabs(rps + g_shootFactV / 4096) < 4.0 && ballColor)
 	{
 		count++;
 		if(count == 1)
 		{
 			PushBall();
 		}
-		if(count == 150)
+		if(count == 120)
 		{
 			PushBallReset();
 		}
-		if(count >= 300)
+		if(count >= 240)
 		{
 			count = 0;
 		}
