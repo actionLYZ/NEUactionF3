@@ -1092,6 +1092,7 @@ void ShootCtr(float rps)
    函数返回值	    ：	        1 表明射球完成
    =======================================================================================*/
 extern int ballColor,youqiu;
+extern int ballSpeed,need;
 int ShootBallW(void)
 {
 	static uint16_t count = 0, noBall = 0, flag = 0;
@@ -1111,7 +1112,7 @@ int ShootBallW(void)
 		noBall++;
 
 		// 6s(两个送球周期)之内没有球，表明车内没球，射球完成，返回1
-		if (noBall >= 600)
+		if (noBall >= 1000)
 		{
 			noBall  = 0;
 			//success = 1;
@@ -1138,6 +1139,7 @@ int ShootBallW(void)
 
 		//计算枪应该转的角度(顺时针+，逆时针-)
 		shootAngle = AvoidOverAngle(Position_t.angle - aimAngle);
+		shootAngle += 2;
 	}
 
 	//球是黑球
@@ -1152,6 +1154,7 @@ int ShootBallW(void)
 
 		//计算枪应该转的角度(顺时针+，逆时针-)
 		shootAngle = AvoidOverAngle(Position_t.angle - aimAngle);
+		shootAngle += 2;
 	}
 
 	//球出射速度(mm/s)与投球点距离篮筐的距离的关系
@@ -1162,12 +1165,17 @@ int ShootBallW(void)
 		V = 0;
 	else
 		V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));	
-	rps = 0.01434 * V - 7;
-
-
+	
+	rps =2 * V / (PI * 66) + 16.5;
+	
+  if(need)
+	{
+		rps=ballSpeed;
+	}
+   // rps=distance/sqrt(5.539*distance-1904.73);
 	// 表明射球蓝牙没有收到主控发送的数据
-	if (fabs(rps + g_shootV / 4096) > 5)
-	{		 
+	if (fabs(rps + g_shootV / 4096) > 0.5)
+	{
 		ShootCtr(rps);
 	}
 	// 否则表明射球蓝牙收到了主控发送的数据，以后不需再发送
@@ -1184,11 +1192,11 @@ int ShootBallW(void)
 	}
 	/*
 	count++;
-	//1300ms的时间送弹推球	
+	//1300ms的时间送弹推球
 	if (count <= 100)
 	{
-    PushBall();		
-	}	
+    PushBall();
+	}
 	if (count > 100)
 	{
 		PushBallReset();
@@ -1203,15 +1211,15 @@ int ShootBallW(void)
 		count++;
 		USART_OUT(UART5, (u8 *)" %d %d %d %d %d %d\r\n",(int)rps,(int)shootAngle,ballColor,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 	}
-	if (count == 200)
+	if (count == 250)
 	{
-    PushBall();
+    PushBall();youqiu=0;
 	}
 	//1300ms的时间送弹推球收回
-	if (count >= 300)
+	if (count >= 500)
 	{
 		PushBallReset();
-		youqiu=0;		
+		youqiu=0;
 		count=0;
 	}
 	

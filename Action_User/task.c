@@ -48,7 +48,7 @@ float TwoWheelAngleControl(float targetAng);
 
 int     g_camera = 0;     //摄像头收到的数
 int     sweepingScheme = 0, blockTime = 0;
-uint8_t jiguang1, jiguang2;
+int jiguang1, jiguang2;
 
 
 void App_Task()
@@ -133,9 +133,9 @@ void WalkTask(void)
 	CPU_INT08U os_err;
 
 	os_err = os_err;
-	//拉低PE4，拉高PE6的电平，接收球最多区域的角度
-	GPIO_ResetBits(GPIOE, GPIO_Pin_4);
-	GPIO_SetBits(GPIOE, GPIO_Pin_6);
+//	//拉低PE4，拉高PE6的电平，接收球最多区域的角度
+//	GPIO_ResetBits(GPIOE, GPIO_Pin_4);
+//	GPIO_SetBits(GPIOE, GPIO_Pin_6);
 	g_cameraPlan = 1;
 	delay_s(10);
 
@@ -143,23 +143,19 @@ void WalkTask(void)
 	int ifEscape = 0, time = 0;             //是否执行逃逸函数
 
 	GPIO_SetBits(GPIOE, GPIO_Pin_7);        //蜂鸣器响，示意可以开始跑
-  jiguang1=Get_Adc_Average(RIGHT_LASER,30);
-	jiguang2=Get_Adc_Average(LEFT_LASER,30);
-	// USART_OUT(UART5, (u8 *)" %d %d\r\n",jiguang1,jiguang2);
+//  jiguang1=Get_Adc_Average(RIGHT_LASER,30);
+//	jiguang2=Get_Adc_Average(LEFT_LASER,30);
+	//USART_OUT(UART5, (u8 *)" %d %d\r\n",jiguang1,jiguang2);
 	//等待激光被触发
 	while (IfStart() == 0)
 	{
+		
 	}
-
-	GPIO_ResetBits(GPIOE, GPIO_Pin_7);     //关闭蜂鸣器
-	g_plan = IfStart();
-
-
+	GPIO_ResetBits(GPIOE, GPIO_Pin_7);     //关闭蜂鸣器	
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-
 //	  if(jiguang1-Get_Adc_Average(RIGHT_LASER,30)>400)
 //	  {
 //      blockTime++;g_plan=1;
@@ -176,7 +172,7 @@ void WalkTask(void)
 //			}
 //		}
     //ShootBallW();
-		//		StaightCLose(1000,0,0,500);
+		//StaightCLose(1000,0,0,500);
 		//GivenPoint(0,1500,1000);
 		// if(sweepingScheme)
 		{

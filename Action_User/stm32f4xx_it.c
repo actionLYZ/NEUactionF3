@@ -685,7 +685,7 @@ void USART2_IRQHandler(void)
 		default:
 			break;
 		}
-		//GPIO4=LOW,GPIO6=HIGH 球最多的角度 发一个角度
+		//GPIO4=HIGH,GPIO6=LOW 球最多的角度 发一个角度
 		if (camera == 0xDA)
 			best = 1;
 		if (best)
@@ -698,7 +698,7 @@ void USART2_IRQHandler(void)
 			best  = 0;
 			go    = 1;
 		}
-		//GPIO4=HIGH,GPIO6=LOW 最近球的坐标 发一个角度 一个距离
+		//GPIO4=LOW,GPIO6=HIGH 最近球的坐标 发一个角度 一个距离
 		if (camera == 0xD8)
 			nearest = 1;
 		switch (nearest)
@@ -728,7 +728,7 @@ void USART2_IRQHandler(void)
 			break;
 		}
 		//GPIO4=HIGH,GPIO6=HIGH 所有极坐标 发每个球的角度和坐标
-		if (camera == 0xD5)
+		if (camera == 0xC5)
 		{
 			go = 1; i = 0;
 		}
@@ -753,7 +753,7 @@ void USART2_IRQHandler(void)
 				break;
 			}
 		}
-		if (camera == 0xD6)
+		if (camera == 0xC6)
 		{
 			i = 1; arr_number = 0;
 		}
@@ -776,6 +776,27 @@ void USART2_IRQHandler(void)
 #endif
 #endif
 	OSIntExit();
+}
+int ballSpeed=0,need=0;
+void UART5_IRQHandler(void)
+{
+	if(USART_GetITStatus(UART5, USART_IT_RXNE)==SET)   
+	{
+		USART_ClearITPendingBit( UART5,USART_IT_RXNE);	
+	  uint8_t data = 0;
+		USART_ClearITPendingBit( UART5,USART_IT_RXNE);
+		data=USART_ReceiveData(UART5);	
+		if(data=='n')
+		{
+			need=1;
+		}
+		if(need)
+		{
+			ballSpeed=data;
+			need=0;
+		}
+	}
+	 
 }
 /**
  * @brief   This function handles NMI exception.

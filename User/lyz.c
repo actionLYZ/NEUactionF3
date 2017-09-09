@@ -38,10 +38,18 @@ extern int        shootStart, ballColor;
    =======================================================================================*/
 int IfStart(void)
 {
-	if (Get_Adc_Average(RIGHT_LASER, 30) < 500)     //右侧激光触发
+	if (Get_Adc_Average(RIGHT_LASER, 30) < 1000)     //右侧激光触发
+	{
 		return 1;
-	else if (Get_Adc_Average(LEFT_LASER, 30) < 500) //左侧激光触发
+		g_plan=1;
+	}
+		
+	else if (Get_Adc_Average(LEFT_LASER, 30) < 1000) //左侧激光触发
+	{
 		return -1;
+		g_plan=-1;
+	}
+		
 	else
 		return 0;
 }
@@ -181,7 +189,12 @@ void GoGoGo(void)
 	{
 		carRun = 0;
 		if (CheckPosition())
+		{
 			state = 4;
+			VelCrl(CAN2, 1, 0);
+			VelCrl(CAN2, 2, 0);
+		}
+			
 	} break;
 
 	case 4:
@@ -200,8 +213,8 @@ void GoGoGo(void)
 				if (cameraScheme == 0)
 				{
 					cameraScheme = 1;
-					GPIO_ResetBits(GPIOE, GPIO_Pin_4);
-					GPIO_SetBits(GPIOE, GPIO_Pin_6);
+					GPIO_SetBits(GPIOE, GPIO_Pin_4);
+					GPIO_ResetBits(GPIOE, GPIO_Pin_6);
 				}
 				else if (cameraScheme == 1)
 				{
@@ -212,8 +225,8 @@ void GoGoGo(void)
 				else if (cameraScheme == 2)
 				{
 					cameraScheme = 3;
-					GPIO_SetBits(GPIOE, GPIO_Pin_4);
-					GPIO_ResetBits(GPIOE, GPIO_Pin_6);
+					GPIO_ResetBits(GPIOE, GPIO_Pin_4);
+					GPIO_SetBits(GPIOE, GPIO_Pin_6);
 				}
 				else
 				{
@@ -797,6 +810,7 @@ int LaserCheck(void)
 	{	
 		x1  = getPosition_t.X;
 		y1  = getPosition_t.Y;
+		
 		return 0;		
 	}
 
