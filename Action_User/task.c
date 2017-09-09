@@ -50,7 +50,7 @@ float TwoWheelAngleControl(float targetAng);
 int     g_camera = 0;     //摄像头收到的数
 int     sweepingScheme = 0, blockTime = 0;
 int jiguang1, jiguang2;
-
+extern int32_t g_gather;
 
 void App_Task()
 {
@@ -118,7 +118,7 @@ void ConfigTask(void)
 
 	//收球电机初始化
 	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000, 50000);
-	CollectBallVelCtr(40);
+	//CollectBallVelCtr(40);
 
 	VelCrl(CAN2, 1, 0);
 	VelCrl(CAN2, 2, 0);
@@ -127,7 +127,7 @@ void ConfigTask(void)
 }
 
 //看车是在跑，还是在矫正、射球
-int carRun = 1;
+int carRun = 1,ballNumber=0,ballN=0;
 /*=====================================================执行函数===================================================*/
 void WalkTask(void)
 {
@@ -154,7 +154,39 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
+		GPIO_SetBits(GPIOE, GPIO_Pin_4);
+		GPIO_ResetBits(GPIOE, GPIO_Pin_6);
+		//RunCamera();
+		ReadActualVel(CAN1, COLLECT_BALL_ID);
+		if(g_gather<=15800)
+		{
+			ballN=1;
+		}
+		if(g_gather<=15600)
+		{
+			ballN=2;
+		}
+		if(g_gather<=15000)
+		{
+			ballN=3;
+		}
+		if(g_gather<=13600)
+		{
+			ballN=4;
+		}
+		if(g_gather<=13300)
+		{
+			ballN=5;
+		}
+		if(g_gather>=16100&&g_gather<=16700&&ballN)
+		{
+			ballNumber +=ballN;
+		}
+		
+	  USART_OUT(UART5,(u8*)"%d\r\n",ballNumber);	
 
+
+   /*
 		if (ifEscape)
 		{
 			time++;
@@ -193,6 +225,7 @@ void WalkTask(void)
 			else
 				ifEscape = 0;
 		}
+		*/
 	}
 }
 

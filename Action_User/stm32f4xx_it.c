@@ -62,6 +62,7 @@ extern int32_t    g_shootFactV;
 extern int32_t     g_collectSpeed;
 extern int32_t     g_shootAngle;
 int               shootStart = 0, ballColor = 0,youqiu=0;
+int32_t g_gather;
 
 float GetAngleZ(void)
 {
@@ -145,6 +146,13 @@ void CAN1_RX0_IRQHandler(void)
 		else if(msg.data32[0] == 0x00005850)
 		{
 				g_shootAngle = msg.data32[1];
+		}
+	}
+	else if(Id== (0x280 + COLLECT_BALL_ID))
+	{
+		if(msg.data32[0] == 0x00005856)
+		{
+				g_gather = msg.data32[1];
 		}
 	}
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
@@ -748,16 +756,17 @@ void UART5_IRQHandler(void)
 		USART_ClearITPendingBit( UART5,USART_IT_RXNE);	
 	  uint8_t data = 0;
 		USART_ClearITPendingBit( UART5,USART_IT_RXNE);
-		data=USART_ReceiveData(UART5);	
-		if(data=='n')
-		{
-			need=1;
-		}
+		data=USART_ReceiveData(UART5);
 		if(need)
 		{
 			ballSpeed=data;
 			need=0;
 		}
+		if(data=='n')
+		{
+			need=1;
+		}
+
 	}
 	 
 }

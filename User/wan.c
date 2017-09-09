@@ -1172,7 +1172,7 @@ int ShootBallW(void)
 	V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 	rps = 2 * V / (PI * 66) + 16.5;
 	USART_OUT(UART5, (u8*)"%d\tF%d\t%d\tF%d\t%d\t",(int)(ballColor),(int)(g_shootAngle*90/4096),(int)shootAngle,(int)(g_shootFactV/4096),(int)rps);
-	USART_OUT(UART5,(u8*)"X%d\tY%d\tang%d\r\n",(int)posShoot.X,(int)posShoot.Y,(int)Position_t.angle);
+	USART_OUT(UART5,(u8*)"X%d\tY%d\tang%d\t%d\r\n",(int)posShoot.X,(int)posShoot.Y,(int)Position_t.angle,(int)distance);
 	
 	
   if(need)
