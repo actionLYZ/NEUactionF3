@@ -40,6 +40,7 @@
 #include "elmo.h"
 #include "lyz.h"
 #include "wan.h"
+#include "c0.h"
 /******************************************************************************/
 /*            Cortex-M4 Processor Exceptions Handlers                         */
 /******************************************************************************/
@@ -59,6 +60,7 @@ extern uint8_t    g_ballSignal;
 extern int32_t    g_shootV;
 extern int32_t    g_shootFactV;
 extern int32_t     g_collectSpeed;
+extern int32_t     g_shootAngle;
 int               shootStart = 0, ballColor = 1;
 
 float GetAngleZ(void)
@@ -120,27 +122,30 @@ void CAN1_RX0_IRQHandler(void)
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
 	uint32_t  Id;
-	uint8_t   re[8];
-	CAN_RxMsg(CAN1, &Id, re, 1);
-	if (shootStart)
+//	uint8_t   re[8];
+	CAN_RxMsg(CAN1, &Id, msg.buf, 8);
+	if (Id == 0x30)
 	{
-		if (Id == 0x30)
-		{
-			if (re[0] == 100)
-				ballColor = 1;
-			else if (re[0] == 1)
-				ballColor = 2;
-		}
+		if (msg.buf[0] == 100)
+			ballColor = 1;
+		else if (msg.buf[0] == 1)
+			ballColor = 2;
+		else if(msg.buf[0] == 0)
+      ballColor = 0;
 	}
-	if(Id== (0x280 + COLLECT_MOTOR_ID))
+	
+	else if(Id== (0x280 + GUN_YAW_ID))
 	{
+		//接收电机转速(脉冲每秒)
 		if(msg.data32[0] == 0x00005856)
 		{
 				g_collectSpeed = msg.data32[1];
 		}
+		
+		//接收航向角(脉冲)
 		else if(msg.data32[0] == 0x00005850)
 		{
-				g_collectSpeed = msg.data32[1];
+				g_shootAngle = msg.data32[1];
 		}
 	}
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
@@ -485,6 +490,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 				//计算,角度与x坐标镜像对称
 				Position_t.angle  *= g_plan;
 				Position_t.X      *= g_plan;
+
 				if (Position_t.angle == -180)
 					Position_t.angle = 180;
 			}
