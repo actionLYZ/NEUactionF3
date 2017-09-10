@@ -166,17 +166,18 @@ void GoGoGo(void)
 	//向外扩散扫场
 	case 2:
 	{
-		if (RunRectangle(length, wide, RUN_SPEED))
-		{
-			//逐渐增加长方形跑场参数
-			length  += SPREAD_DIS;
-			wide    += SPREAD_DIS;
-			if (length >= 1700 - WIDTH / 2 - 100)
-				length = 1700 - WIDTH / 2 - 100;
-			if (wide >= 2125 - WIDTH / 2 - 100)
-				wide = 2125 - WIDTH / 2 - 100;
-		}
-		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
+//		if (RunRectangle(length, wide, RUN_SPEED))
+//		{
+//			//逐渐增加长方形跑场参数
+//			length  += SPREAD_DIS;
+//			wide    += SPREAD_DIS;
+//			if (length >= 1700 - WIDTH / 2 - 100)
+//				length = 1700 - WIDTH / 2 - 100;
+//			if (wide >= 2125 - WIDTH / 2 - 100)
+//				wide = 2125 - WIDTH / 2 - 100;
+//		}
+//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
+		if(sweepYuan(2000, 1000, 4, 1))
 			state = 3;
 	}
 	break;

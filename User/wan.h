@@ -57,7 +57,7 @@ typedef union
 #define DISRIGHTGYRO            492.598
 
 //投射点到陀螺仪的距离
-#define DISSHOOTTOGYRO          97.2
+#define DISSHOOTTOGYRO          50.0
 
 //PE4 摄像头拉数据
 #define READPE4                 (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_4))

@@ -44,7 +44,9 @@ int32_t     g_shootV      = 0;        //串口接收到的速度
 int32_t     g_shootFactV  = 0;        //发射电机的实时转速
 int32_t     g_collectSpeed = 0;       //收球电机的实时转速(脉冲每秒)
 int32_t     g_shootAngle = 0;
-int32_t     btV = 0;
+int32_t     btV = 0;                  //蓝牙控制发射台转速
+int32_t     zuoLun = 0;
+int32_t     youLun = 0;
 void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);
 
@@ -113,9 +115,6 @@ void ConfigTask(void)
 	elmo_Enable(CAN2, 1);
 	elmo_Enable(CAN2, 2);
 
-	//配置速度环
-	Vel_cfg(CAN2, 1, 50000, 50000);
-	Vel_cfg(CAN2, 2, 50000, 50000);
 
 	//收球电机初始化
 	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000, 50000);
@@ -134,14 +133,13 @@ void WalkTask(void)
 	CPU_INT08U os_err;
 
 	os_err = os_err;
+	int ifEscape = 0, time = 0;
 //	//拉低PE4，拉高PE6的电平，接收球最多区域的角度
 //	GPIO_ResetBits(GPIOE, GPIO_Pin_4);
 //	GPIO_SetBits(GPIOE, GPIO_Pin_6);
 	g_cameraPlan = 1;
-	delay_s(2);
-	CollectBallVelCtr(4);
-  uint8_t ifEscape = 0, time = 0;
-	
+	delay_s(10);
+	CollectBallVelCtr(40);
 	
 	//等待激光被触发
 	do{
@@ -154,45 +152,44 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-    ShootBallW();
-//		if (ifEscape)
-//		{
-//			time++;
-//			if (time < 100)
-//			{
-//				VelCrl(CAN2, 1, -8000);
-//				VelCrl(CAN2, 2, 8000);
-//			}
-//			else
-//			{
-//				if (!In_Or_Out())
-//				{
-//					VelCrl(CAN2, 1, 4000);
-//					VelCrl(CAN2, 2, -10000);
-//				}
-//				else
-//				{
-//					VelCrl(CAN2, 1, 10000);
-//					VelCrl(CAN2, 2, -4000);
-//				}
-//			}
-//			if (time > 200)
-//			{
-//				ifEscape  = 0;
-//				time      = 0;
-//			}
-//		}
-//		else
-//		{
-//			GoGoGo();
-//		}
-//		if (IfStuck() == 1)
-//		{
-//			if (carRun)
-//				ifEscape = 1;
-//			else
-//				ifEscape = 0;
-//		}
+		if (ifEscape)
+		{
+			time++;
+			if (time < 100)
+			{
+				VelCrl(CAN2, 1, -8000);
+				VelCrl(CAN2, 2, 8000);
+			}
+			else
+			{
+				if (!In_Or_Out())
+				{
+					VelCrl(CAN2, 1, 4000);
+					VelCrl(CAN2, 2, -10000);
+				}
+				else
+				{
+					VelCrl(CAN2, 1, 10000);
+					VelCrl(CAN2, 2, -4000);
+				}
+			}
+			if (time > 200)
+			{
+				ifEscape  = 0;
+				time      = 0;
+			}
+		}
+		else
+		{
+			GoGoGo();
+		}
+		if (IfStuck() == 1)
+		{
+			if (carRun)
+				ifEscape = 1;
+			else
+				ifEscape = 0;
+		}
 	}
 }
 

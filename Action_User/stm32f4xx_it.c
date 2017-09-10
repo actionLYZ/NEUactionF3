@@ -62,6 +62,9 @@ extern int32_t    g_shootFactV;
 extern int32_t     g_collectSpeed;
 extern int32_t     g_shootAngle;
 extern int32_t     btV;
+extern int32_t     btAngle;
+extern int32_t     zuoLun ;
+extern int32_t     youLun ;
 int               shootStart = 0, ballColor = 0,youqiu=0;
 
 float GetAngleZ(void)
@@ -84,11 +87,25 @@ float GetPosy(void)
 
 void CAN2_RX0_IRQHandler(void)
 {
+	union
+	{
+		uint8_t buf[8];
+		int32_t data32[2];
+	}msg1;
+	uint32_t  Id;
 	OS_CPU_SR cpu_sr;
 
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR          */
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
+  CAN_RxMsg(CAN2, &Id, msg1.buf, 8);
+  if(Id== (0x280 + RIGHT_MOTOR_WHEEL_ID))
+	{
+		if(msg1.data32[0] == 0x00005856)
+		{
+				youLun = msg1.data32[1];
+		}
+	}
 
 	CAN_ClearFlag(CAN2, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN2, CAN_FLAG_EPV);
@@ -148,6 +165,14 @@ void CAN1_RX0_IRQHandler(void)
 				g_shootAngle = msg.data32[1];
 		}
 	}
+//	else if(Id== (0x280 + LEFT_MOTOR_WHEEL_ID))
+//	{
+//		if(msg.data32[0] == 0x00005856)
+//		{
+//				zuoLun = msg.data32[1];
+//		}
+//	}
+
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
 	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
@@ -758,8 +783,14 @@ void UART5_IRQHandler(void)
 		switch(count)
 		{
 			case 0:
-				if(ch == 'A')
+				
+			  //速度起始位 
+				if(ch == 'V')
 					count++;
+				
+				//角度起始位
+				else if(ch == 'A')
+					count = 2;
 				else
 					count = 0;
 				break;
