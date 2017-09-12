@@ -177,7 +177,7 @@ void GoGoGo(void)
 //				wide = 2125 - WIDTH / 2 - 100;
 //		}
 //		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-		if(sweepYuan(2000, 1000, 4, 1))
+		if(sweepYuan(2600, 1000, 4, 1))
 			state = 3;
 	}
 	break;
@@ -201,6 +201,7 @@ void GoGoGo(void)
 		shootStart  = 1;
 		if (ShootBallW())
 		{
+			state = 5;
 			shootStart = 0;
 			shootTime++;
 			switch (shootTime)
@@ -243,9 +244,13 @@ void GoGoGo(void)
 
 	case 5:
 	{
-		carRun = 1;
-		if (RunCamera())
+		if(RunWithCamera1(2))
+		{
 			state = 3;
+		}
+//		carRun = 1;
+//		if (RunCamera())
+//			state = 3;
 	} break;
 
 	case 6:

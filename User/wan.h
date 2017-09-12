@@ -93,6 +93,9 @@ typedef union
 //用摄像头找球时的转弯的速度
 #define TURNSPEED               (1000)
 
+//利用摄像头扫场转弯时允许的角度误差
+#define ANGLEADJUST             (10)
+
 // 黑球白球
 #define WHITE                   (1)
 #define BLACK                   (2)
@@ -145,7 +148,7 @@ void CollecMostBall(void);
 void CollecMostBall1(void);
 
 //利用摄像头收集球最多的区域的小球,基本走形回字
-void RunWithCamera1(void);
+int RunWithCamera1(uint8_t circleNum);
 
 //第二套摄像头方案(前进后退，吃完视野中的所有球)
 int RunWithCamera2(void);

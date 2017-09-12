@@ -139,7 +139,7 @@ void WalkTask(void)
 	GPIO_ResetBits(GPIOE, GPIO_Pin_6);
 	g_cameraPlan = 2;
 	delay_s(10);
-	CollectBallVelCtr(40);
+	CollectBallVelCtr(45);
 	
 	//等待激光被触发
 	do{
@@ -152,48 +152,47 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-//		ReadActualVel(CAN2, RIGHT_MOTOR_WHEEL_ID);
-//		ReadActualVel(CAN2, LEFT_MOTOR_WHEEL_ID);
+
 //		USART_OUT(UART5,(u8*)"%d\r\n",Position_t.angle);
-		RunWithCamera1();
-//		if (ifEscape)
-//		{
-//			time++;
-//			if (time < 100)
-//			{
-//				VelCrl(CAN2, 1, -8000);
-//				VelCrl(CAN2, 2, 8000);
-//			}
-//			else
-//			{
-//				if (!In_Or_Out())
-//				{
-//					VelCrl(CAN2, 1, 4000);
-//					VelCrl(CAN2, 2, -10000);
-//				}
-//				else
-//				{
-//					VelCrl(CAN2, 1, 10000);
-//					VelCrl(CAN2, 2, -4000);
-//				}
-//			}
-//			if (time > 200)
-//			{
-//				ifEscape  = 0;
-//				time      = 0;
-//			}
-//		}
-//		else
-//		{
-//			GoGoGo();
-//		}
-//		if (IfStuck() == 1)
-//		{
-//			if (carRun)
-//				ifEscape = 1;
-//			else
-//				ifEscape = 0;
-//		}
+//		RunWithCamera1();
+		if (ifEscape)
+		{
+			time++;
+			if (time < 100)
+			{
+				VelCrl(CAN2, 1, -8000);
+				VelCrl(CAN2, 2, 8000);
+			}
+			else
+			{
+				if (!In_Or_Out())
+				{
+					VelCrl(CAN2, 1, 4000);
+					VelCrl(CAN2, 2, -10000);
+				}
+				else
+				{
+					VelCrl(CAN2, 1, 10000);
+					VelCrl(CAN2, 2, -4000);
+				}
+			}
+			if (time > 200)
+			{
+				ifEscape  = 0;
+				time      = 0;
+			}
+		}
+		else
+		{
+			GoGoGo();
+		}
+		if (IfStuck() == 1)
+		{
+			if (carRun)
+				ifEscape = 1;
+			else
+				ifEscape = 0;
+		}
 	}
 }
 
