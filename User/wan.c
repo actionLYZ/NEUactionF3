@@ -460,17 +460,17 @@ void CollecMostBall(void)
    =======================================================================================*/
 void CollecMostBall1(void)
 {
-	float aimAngle = 0, nowAngle = 0;
+	static float aimAngle = 0;
 
 	//拉低PE4，拉高PE6的电平，接收球最多区域的角度
-	GPIO_ResetBits(GPIOE, GPIO_Pin_4);
-	GPIO_SetBits(GPIOE, GPIO_Pin_6);
-	g_cameraPlan  = 1;
-	nowAngle      = GetAng();
-	aimAngle      = nowAngle + g_cameraAng[0];
+	GPIO_SetBits(GPIOE, GPIO_Pin_4);
+	GPIO_ResetBits(GPIOE, GPIO_Pin_6);
+	g_cameraPlan  = 2;
+	aimAngle      = Position_t.angle + g_cameraAng[0];
 	aimAngle      = AvoidOverAngle(aimAngle);
-	angClose(500, aimAngle, 100);
-}
+	USART_OUT(UART5,(u8*)"a%d\r\n",(int)g_cameraAng[0]);
+	angClose(1000, aimAngle, 120);
+} 
 /*======================================================================================
    函数定义		：			利用摄像头收集球最多的区域的小球,基本走形回字形
    函数参数		：			无
@@ -478,65 +478,61 @@ void CollecMostBall1(void)
    =======================================================================================*/
 void RunWithCamera1(void)
 {
-	int         i       = 0;
+	static int  i       = 0;
 	static int  circle  = 0;
-
-	//拉高PE4，PE6的电平，接收所有球的极坐标
-	GPIO_SetBits(GPIOE, GPIO_Pin_4);
-	GPIO_SetBits(GPIOE, GPIO_Pin_6);
-	g_cameraPlan = 3;
 	switch (i)
 	{
-	//起步先转弯到-90°，然后i++;进入下一个状态
-	case 0:
-		angClose(500, -90, 100);
-		if (fabs(Position_t.angle + 90) < 5)
-			i++;
-		break;
+		//起步先转弯到-90°，然后i++;进入下一个状态
+		case 0:
+			angClose(TURNSPEED, -90, 100);
+			if (fabs(Position_t.angle + 90) < 5)
+				i++;
+			break;
 
-	//在-90°的角度上收集球，当Position_t.X>1800时，转弯，然后下一个角度收集球。以后的步骤类同
-	case 1:
-		CollecMostBall();
-		if (Position_t.X > (1800 - circle * SPREAD_DIS))
-		{
-			angClose(500, 0, 100);
+		//在-90°的角度上收集球，当Position_t.X>1600时，转弯，然后下一个角度收集球。以后的步骤类同
+		case 1:
+			CollecMostBall1();
+			if (Position_t.X > (1600 - circle * CAMERA_DIS))
+				i++;
+			break;
+		case 2:
+			angClose(TURNSPEED, 0, 100);
 			if (fabs(Position_t.angle) < 5)
 				i++;
-		}
-		break;
-
-	case 2:
-		CollecMostBall();
-		if (Position_t.Y > (3800 - circle * SPREAD_DIS))
-		{
-			angClose(500, 90, 100);
+			break;
+		case 3:
+			CollecMostBall1();
+			if (Position_t.Y > (3900 - circle * CAMERA_DIS))
+				i++;
+			break;
+		case 4:
+			angClose(TURNSPEED, 90, 100);
 			if (fabs(Position_t.angle - 90) < 5)
 				i++;
-		}
-		break;
-
-	case 3:
-		CollecMostBall();
-		if (Position_t.X < -(1800 - circle * SPREAD_DIS))
-		{
-			angClose(500, 180, 100);
+			break;
+		case 5:
+			CollecMostBall1();
+			if (Position_t.X < -(1600 - circle * CAMERA_DIS))
+				i++;
+			break;
+		case 6:
+			angClose(TURNSPEED, 180, 100);
 			if (fabs(Position_t.angle - 180) < 5)
 				i++;
-		}
-		break;
-
-	case 4:
-		CollecMostBall();
-		if (Position_t.Y < (600 + circle * SPREAD_DIS))
-		{
-			angClose(500, -90, 100);
+			break;
+		case 7:
+			CollecMostBall1();
+			if (Position_t.Y < (800 + circle * CAMERA_DIS))
+				i++;
+			break;
+		case 8:
+			angClose(TURNSPEED, -90, 100);
 			if (fabs(Position_t.angle - 90) < 5)
 			{
 				i = 1;
 				circle++;
 			}
-		}
-		break;
+			break;
 	}
 }
 /*======================================================================================
@@ -1104,18 +1100,7 @@ int ShootBallW(void)
   POSXY_T  posShoot = { 0, 0 };
   float    aimAngle = 0,  rps = 0, x = 0;
 	int      success = 0;
-	static float  shootAngle = 0, V = 0, distance = 0, iu = 0;
-	iu ++;
-	if(iu<600)
-	{
-		ballColor = 1;
-	}
-	if(600<iu&&iu<1200)
-	{
-		ballColor = 2;
-		if(ballColor == 1199)
-			iu=0;
-	}
+	static float  shootAngle = 0, distance = 0;
 	//问询航向电机角度和收球电机速度
   ReadActualPos(CAN1, GUN_YAW_ID);
 	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
@@ -1174,10 +1159,28 @@ int ShootBallW(void)
 	if(fabs(Position_t.angle) < 20)
 	{
 		shootAngle = AvoidOverAngle(0 - aimAngle) + 2;
+		x = (Get_Adc_Average(LEFT_LASER, 10) - Get_Adc_Average(RIGHT_LASER, 10)) / 2;
+		if(ballColor == WHITE)
+		{
+			rps = (0.009218 * x * x + 2.082 * x + 263200) / 4096;
+		}
+		else
+		{
+			rps = (0.009218 * x * x - 2.082 * x + 263200) / 4096;
+		}
 	}
 	else if(70 < Position_t.angle && Position_t.angle < 110)
 	{
 		shootAngle = AvoidOverAngle(90 - aimAngle) + 2;
+		x = (4800 - Get_Adc_Average(LEFT_LASER, 10) - Get_Adc_Average(RIGHT_LASER, 10)) / 2 + Get_Adc_Average(LEFT_LASER, 10);
+		if(ballColor == WHITE)
+		{
+			rps = 0.000001608 * x * x - 0.008508 * x + 79.62;
+		}
+    else
+		{
+			rps = 0.0000026 * x * x - 0.01317 * x + 80.27;
+		}
 	}
 	else if(160 < Position_t.angle && Position_t.angle < -160)
 	{
@@ -1195,8 +1198,7 @@ int ShootBallW(void)
 	
 // rps=distance/sqrt(5.539*distance-1904.73);
 // 表明射球蓝牙没有收到主控发送的数据
-	x= (Get_Adc_Average(LEFT_LASER, 10) - Get_Adc_Average(RIGHT_LASER, 10)) / 2;
-	rps = (0.009218 * x * x + 2.082 * x + 263200) / 4096;
+
 	if (fabs(rps + g_shootV / 4096) > 0.1)
 	{
 		  ShootCtr(rps);

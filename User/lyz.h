@@ -27,6 +27,7 @@ void InputArr(char[], unsigned char[], int);                          //输出�
 #define FIR_ADV         700                                         //first_advance:第一圈提前量
 #define ADV_TUEN        1200                                        //提前变向距离
 #define SPREAD_DIS      400                                         //扩散距离（每圈边长增大距离）
+#define CAMERA_DIS      500                                         //摄像头找球时扩散距离
 #define RIGHT_LASER     14                                          //右侧激光信道
 #define LEFT_LASER      15                                          //左侧激光信道
 #define SP2PULSE        10.865                                      //速度转换为脉冲值

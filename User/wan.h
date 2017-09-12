@@ -90,6 +90,9 @@ typedef union
 //缩小画圆扫场状态
 #define REDUCE                  (-1)
 
+//用摄像头找球时的转弯的速度
+#define TURNSPEED               (1000)
+
 // 黑球白球
 #define WHITE                   (1)
 #define BLACK                   (2)

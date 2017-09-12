@@ -106,7 +106,14 @@ void CAN2_RX0_IRQHandler(void)
 				youLun = msg1.data32[1];
 		}
 	}
-
+	
+  if(Id== (0x280 + LEFT_MOTOR_WHEEL_ID))
+	{
+		if(msg1.data32[0] == 0x00005856)
+		{
+				zuoLun = msg1.data32[1];
+		}
+	}
 	CAN_ClearFlag(CAN2, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN2, CAN_FLAG_EPV);
 	CAN_ClearFlag(CAN2, CAN_FLAG_BOF);
@@ -518,8 +525,8 @@ uint8_t         arr2[20];
 int             go, arr_number;
 void USART2_IRQHandler(void)
 {
-	uint8_t         camera;
-	static uint8_t  i = 0, data = 1, num = 0, best = 0, nearest = 0;
+//	uint8_t         camera;
+//	static uint8_t  i = 0, data = 1, num = 0, best = 0, nearest = 0;
 	OS_CPU_SR       cpu_sr;
 
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
@@ -534,6 +541,7 @@ void USART2_IRQHandler(void)
 		g_camera = USART_ReceiveData(USART2);
 
 		//E4,E6全为高电平，发送的是所有球的极坐标
+
 		if (g_cameraPlan == 3)
 		{
 			//接收到终止位，表明接收数据停止
@@ -570,7 +578,7 @@ void USART2_IRQHandler(void)
 		}
 
 		//最近球的极坐标
-		else if (g_cameraPlan == 2)
+		else if (g_cameraPlan == 1)
 		{
 			if (flag)
 			{
@@ -590,8 +598,8 @@ void USART2_IRQHandler(void)
 				flag = 1;
 		}
 
-		//球最多的角度
-		else if (g_cameraPlan == 1)
+		//球最多的角度(4高6低)
+		else if (g_cameraPlan == 2)
 		{
 			if (flag)
 			{
