@@ -65,6 +65,7 @@ extern int32_t     btV;
 extern int32_t     btAngle;
 extern int32_t     g_rightPulse ;
 extern int32_t     g_leftPulse ;
+extern int32_t     g_collectVel;
 int               shootStart = 0, ballColor = 0,youqiu=0;
 
 float GetAngleZ(void)
@@ -83,7 +84,6 @@ float GetPosy(void)
 {
 	return Position_t.Y;
 }
-
 
 void CAN2_RX0_IRQHandler(void)
 {
@@ -172,13 +172,13 @@ void CAN1_RX0_IRQHandler(void)
 				g_shootAngle = msg.data32[1];
 		}
 	}
-//	else if(Id== (0x280 + LEFT_MOTOR_WHEEL_ID))
-//	{
-//		if(msg.data32[0] == 0x00005856)
-//		{
-//				zuoLun = msg.data32[1];
-//		}
-//	}
+	else if(Id== (0x280 + COLLECT_BALL_ID))
+	{
+		if(msg.data32[0] == 0x00005856)
+		{
+				g_collectVel = msg.data32[1];
+		}
+	}
 
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);

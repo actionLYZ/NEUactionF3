@@ -47,6 +47,7 @@ int32_t     g_shootAngle = 0;
 int32_t     btV = 0;                  //蓝牙控制发射台转速
 int32_t     g_rightPulse = 0;         //记录右轮的脉冲
 int32_t     g_leftPulse = 0;          //记录左轮的脉冲
+int32_t     g_collectVel = 0;         //记录收球棍子的速度
 void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);
 
@@ -133,13 +134,13 @@ void WalkTask(void)
 	CPU_INT08U os_err;
 
 	os_err = os_err;
-	int ifEscape = 0, time = 0, V = 0;
+	int ifEscape = 0, time = 0;
 	//拉低PE6，拉高PE4的电平，接收球最多区域的角度
 	GPIO_SetBits(GPIOE, GPIO_Pin_4);
 	GPIO_ResetBits(GPIOE, GPIO_Pin_6);
 	g_cameraPlan = 2;
 	delay_s(10);
-	CollectBallVelCtr(45);
+	CollectBallVelCtr(40);
 	
 	//等待激光被触发
 	do{
@@ -158,7 +159,7 @@ void WalkTask(void)
 //		ReadActualVel(CAN2, LEFT_MOTOR_WHEEL_ID);
 //		USART_OUT(UART5,(u8*)"y%d\t",g_rightPulse);
 //		USART_OUT(UART5,(u8*)"%d\r\n",g_leftPulse);
-
+      
 		if (ifEscape)
 		{
 			time++;

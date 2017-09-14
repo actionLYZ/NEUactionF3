@@ -37,6 +37,7 @@ extern int32_t     btV;
 extern int32_t     btAngle;
 extern int32_t     g_rightPulse ;
 extern int32_t     g_leftPulse ;
+extern int32_t     g_collectVel;
 /*======================================================================================
    函数定义	  ：		Send Get函数
    函数参数	  ：
@@ -470,7 +471,7 @@ void CollecMostBall1(void)
 	g_cameraPlan  = 2;
 	aimAngle      = Position_t.angle + g_cameraAng[0];
 	aimAngle      = AvoidOverAngle(aimAngle);
-	USART_OUT(UART5,(u8*)"a%d\r\n",(int)g_cameraAng[0]);
+//	USART_OUT(UART5,(u8*)"a%d\r\n",(int)g_cameraAng[0]);
 	angClose(1200, aimAngle, 120);
 } 
 /*======================================================================================
@@ -482,7 +483,6 @@ int RunWithCamera1(uint8_t circleNum)
 {
 	static uint8_t  i       = 0, count = 0;
 	static uint8_t  circle  = 0;
-	static float aimAngle = 0;
   uint8_t success = 0;
 	switch (i)
 	{
@@ -1240,10 +1240,18 @@ int ShootBallW(void)
 	else if(160 < Position_t.angle && Position_t.angle < -160)
 	{
 		shootAngle = AvoidOverAngle(180 - aimAngle) + 2;
+		
+		//射速计算
+    V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
+		rps = 2 * V / (PI * 66) + 16.5;
 	}
 	else
 	{
 		shootAngle = AvoidOverAngle(-90 - aimAngle) + 2;
+		
+		//射速计算
+    V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
+		rps = 2 * V / (PI * 66) + 16.5;
 	}
 
 //球出射速度(mm/s)与投球点距离篮筐的距离的关系
@@ -1288,7 +1296,7 @@ int ShootBallW(void)
 		}
 	}
 	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",ballColor,count,noBall,success);
-	USART_OUT(UART5,(u8*)"X%d\tY%d\r\n",Position_t.X,Position_t.Y);
+	USART_OUT(UART5,(u8*)"X%d\tY%d\r\n",(int)Position_t.X,(int)Position_t.Y);
 	return success;
 }
 /*======================================================================================
@@ -1345,13 +1353,13 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
-		  R1 += 200;
+		  R1 += 300;
 		}
 		
 		//否则,缩小扫场
 		else
 		{
-			R1 -= 200;
+			R1 -= 300;
 		}
 		
 		//达到预定圈数,success置1,acceSpeed置0
@@ -1442,4 +1450,46 @@ int stuckCar(void)
 		count = 0;
 	}
 	return success;
+}
+/*======================================================================================
+   函数定义		：		  数球函数
+   函数参数		：		  无
+
+   函数返回值	：	    球的个数
+ =====================================================================================*/
+void countBall(void)
+{
+	static int32_t lastPulse = 0, lastTrend = 0;
+	static uint8_t ballSum = 0;
+	int32_t trend = 0, minPulse = 0;
+	int8_t ballNum = 0;
+	//问询收球棍子的转速
+	ReadActualVel(CAN1, COLLECT_BALL_ID);
+	
+	//trend < 0表明转速有下降的趋势
+	trend = g_collectVel - lastPulse;
+	
+	//棍子脉冲达到最低值的条件
+	if(lastTrend < 0 && trend > 0)
+	{
+		//记录棍子最小的脉冲数
+		minPulse = lastPulse;
+	}
+	if(1430000 < minPulse && minPulse <152000)
+	{
+		ballNum = 1;
+	}
+	else if(137000 < minPulse && minPulse < 1430000)
+	{
+		ballNum = 2;
+	}
+	else if(130000 < minPulse && minPulse < 137000)
+	{
+		ballNum = 3;
+	}
+	ballSum += ballNum;
+	
+	//记录上一次的trend值和收球转速值
+	lastTrend = trend;
+  lastPulse = g_collectVel;
 }

@@ -247,7 +247,7 @@ void GoGoGo(void)
 	case 5:
 	{
 		carRun      = 1;
-		CollectBallVelCtr(45);
+		CollectBallVelCtr(40);
 		if(RunWithCamera1(2))
 		{
 			state = 3;
@@ -289,34 +289,38 @@ bool FirstRound(float speed)
 	case 1:
 	{
 		StaightCLose((275 + WIDTH / 2 + 5), 0, 0, speed);
-		if (Position_t.Y >= 3100 + WIDTH / 2 - FIR_ADV)
-			state = 2;
+//		if (Position_t.Y >= 3100 + WIDTH / 2 - FIR_ADV)
+		
+		//返回1，切换到画圆扫场
+		if(Position_t.Y >= 2900)
+			return true;
+//			state = 2;
 	} break;
 
 	//上边，目标角度90度
-	case 2:
-	{
-		StaightCLose(0, 3100 + WIDTH / 2 + 100, 90, speed);
-		if (Position_t.X <= -275 - WIDTH / 2 + FIR_ADV)
-			state = 3;
-	} break;
+//	case 2:
+//	{
+//		StaightCLose(0, 3100 + WIDTH / 2 + 100, 90, speed);
+//		if (Position_t.X <= -275 - WIDTH / 2 + FIR_ADV)
+//			state = 3;
+//	} break;
 
-	//左边，目标角度180度
-	case 3:
-	{
-		StaightCLose((-275 - WIDTH / 2 - 150), 0, 180, FIRST_SPEED);
-		if (Position_t.Y <= 1700 - WIDTH / 2 + FIR_ADV - 500)
-			state = 4;
-	} break;
+//	//左边，目标角度180度
+//	case 3:
+//	{
+//		StaightCLose((-275 - WIDTH / 2 - 150), 0, 180, FIRST_SPEED);
+//		if (Position_t.Y <= 1700 - WIDTH / 2 + FIR_ADV - 500)
+//			state = 4;
+//	} break;
 
-	//下边，目标角度-90度
-	case 4:
-	{
-		StaightCLose(0, 1700 - WIDTH / 2 - 100, -90, FIRST_SPEED);
+//	//下边，目标角度-90度
+//	case 4:
+//	{
+//		StaightCLose(0, 1700 - WIDTH / 2 - 100, -90, FIRST_SPEED);
 
-		if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
-			return true;
-	} break;
+//		if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
+//			return true;
+//	} break;
 	}
 
 	return false;
@@ -473,8 +477,8 @@ int CheckPosition(void)
 	{
 		StaightCLose(tempx, tempy, 0, -800);
 		//两个行程开关触发,则进入下一次状态进行激光矫正
-		//if(SWITCHA0==0&&SWITCHC0==0)
-		if (IfStuck2())
+		if(SWITCHC2==1 && SWITCHC0==1)
+//		if (IfStuck2())
 			state = 4;
 //			{
 //		//		USART_OUT(USART1,(uint8_t*) "case = 4\r\n");
@@ -783,8 +787,6 @@ void TurnAngle(float angel, int speed)
 {
 	float Dangel  = 0;            //角度差值
 	float Input   = 0;            //pid控制输出
-	USART_OUT(UART5,(u8*)"y%d\t",g_rightPulse);
-	USART_OUT(UART5,(u8*)"%d\r\n",g_leftPulse);
 	Dangel = (angel - Position_t.angle);
 
 	//纠正角度
@@ -825,7 +827,6 @@ int LaserCheck(void)
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
 	laserGetRight = Get_Adc_Average(RIGHT_LASER, 20);
 	laserGetLeft  = Get_Adc_Average(LEFT_LASER, 20);
-  USART_OUT(UART5,(u8*)"laser%d\r\n",(int)(laserGetRight + laserGetLeft ));
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	//如果激光被挡，返回 0
 	if (laserGetRight + laserGetLeft < 4700)
