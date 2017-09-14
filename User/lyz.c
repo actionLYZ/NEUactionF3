@@ -24,7 +24,8 @@ extern int        g_plan, g_camera, bestSum;
 float             angleError = 0, xError = 0, yError = 0;
 int               cameraScheme = 0;
 extern int        shootStart, ballColor;
-
+extern int32_t     g_rightPulse ;
+extern int32_t     g_leftPulse ;
 
 /*================================================函数定义区==============================================*/
 
@@ -177,7 +178,7 @@ void GoGoGo(void)
 //				wide = 2125 - WIDTH / 2 - 100;
 //		}
 //		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-		if(sweepYuan(2600, 1000, 4, 1))
+		if(sweepYuan(1800, 1000, 3, 1))
 			state = 3;
 	}
 	break;
@@ -199,6 +200,7 @@ void GoGoGo(void)
 	{
 		carRun      = 0;
 		shootStart  = 1;
+		CollectBallVelCtr(0);
 		if (ShootBallW())
 		{
 			state = 5;
@@ -244,6 +246,8 @@ void GoGoGo(void)
 
 	case 5:
 	{
+		carRun      = 1;
+		CollectBallVelCtr(45);
 		if(RunWithCamera1(2))
 		{
 			state = 3;
@@ -284,7 +288,7 @@ bool FirstRound(float speed)
 	//右边，目标角度0度
 	case 1:
 	{
-		StaightCLose((275 + WIDTH / 2 + 100), 0, 0, speed);
+		StaightCLose((275 + WIDTH / 2 + 5), 0, 0, speed);
 		if (Position_t.Y >= 3100 + WIDTH / 2 - FIR_ADV)
 			state = 2;
 	} break;
@@ -308,7 +312,7 @@ bool FirstRound(float speed)
 	//下边，目标角度-90度
 	case 4:
 	{
-		StaightCLose(0, 1700 - WIDTH / 2 - 100, -90, RUN_SPEED);
+		StaightCLose(0, 1700 - WIDTH / 2 - 100, -90, FIRST_SPEED);
 
 		if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
 			return true;
@@ -332,7 +336,7 @@ bool IfStuck(void)
 		count++;
 		if (count >= 100 * STUCK_TIME) //卡住了
 		{
-			count = 0;
+			count = 0; 
 			return true;
 		}
 	}
@@ -440,7 +444,7 @@ int CheckPosition(void)
 	static int  state = 2;
 	static int  tempx = 0, tempy = 0;
 	int         keepgo = 0;
-
+  static float aimAngle = 0;
 	switch (state)
 	{
 	//后退到 x = 0
@@ -490,7 +494,6 @@ int CheckPosition(void)
 		//		state = 5;	//矫正成功，开始第二阶段跑场
 		else
 		{
-			
 			state = 6;    //矫正失败，继续矫正
 		}
 	} break;
@@ -510,29 +513,42 @@ int CheckPosition(void)
 	//继续矫正
 	//前进
 	case 6:
-	{
-		VelCrl(CAN2, 1, 8000);
-		VelCrl(CAN2, 2, -8000);
-		if (Position_t.Y >= 1000)
-			state = 7;
-	} break;
-
-	//转向90度
+		{
+			VelCrl(CAN2, 1, 8000);
+			VelCrl(CAN2, 2, -8000);
+			if (Position_t.Y >= 1000)
+				state = 7;
+		} 
+		break;
+		
+		//通过坐标判断车距离哪面墙近
 	case 7:
+		if(Position_t.X < 0)
+		{
+			aimAngle = -90;
+		}
+		else
+		{
+			aimAngle = 90;
+		}
+		state = 8;
+		break;
+	//转向90度
+	case 8:
 	{
-		TurnAngle(90, 5000);
+		TurnAngle(aimAngle, 5000);
 		if (Position_t.angle >= 85 && Position_t.angle <= 95)
 		{
 			tempx = Position_t.X;       //记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
 			tempy = Position_t.Y;
-			state = 8;
+			state = 9;
 		}
 	} break;
 
 	//后退
-	case 8:
+	case 9:
 	{
-		StaightCLose(tempx, tempy, 90, -800);
+		StaightCLose(tempx, tempy, aimAngle, -800);
 		if (IfStuck2())
 		//if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_0)==0&&GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0)==0)
 		{
@@ -767,7 +783,8 @@ void TurnAngle(float angel, int speed)
 {
 	float Dangel  = 0;            //角度差值
 	float Input   = 0;            //pid控制输出
-
+	USART_OUT(UART5,(u8*)"y%d\t",g_rightPulse);
+	USART_OUT(UART5,(u8*)"%d\r\n",g_leftPulse);
 	Dangel = (angel - Position_t.angle);
 
 	//纠正角度
@@ -778,8 +795,8 @@ void TurnAngle(float angel, int speed)
 	Input = 30 * Dangel;
 
 	//判断是否反向转更快
-	if (Dangel < 0 && speed > 0)
-		speed = -speed;
+//	if (Dangel < 0 && speed > 0)
+//		speed = -speed;
 
 	//角度大于10，speed转
 	if (Dangel > 15 || Dangel < -15)

@@ -91,7 +91,7 @@ typedef union
 #define REDUCE                  (-1)
 
 //用摄像头找球时的转弯的速度
-#define TURNSPEED               (1000)
+#define TURNSPEED               (1200)
 
 //利用摄像头扫场转弯时允许的角度误差
 #define ANGLEADJUST             (10)
@@ -200,3 +200,9 @@ void ShootCtr(float rps);
 
 // 圆形跑场函数
 int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status);
+
+//用轮子返回的脉冲数判断车是否被困
+int stuckCar(void);
+
+//读取当前车的速度（mm/s,以陀螺仪为参考）
+float RealVel(void);

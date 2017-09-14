@@ -63,8 +63,8 @@ extern int32_t     g_collectSpeed;
 extern int32_t     g_shootAngle;
 extern int32_t     btV;
 extern int32_t     btAngle;
-extern int32_t     zuoLun ;
-extern int32_t     youLun ;
+extern int32_t     g_rightPulse ;
+extern int32_t     g_leftPulse ;
 int               shootStart = 0, ballColor = 0,youqiu=0;
 
 float GetAngleZ(void)
@@ -103,7 +103,7 @@ void CAN2_RX0_IRQHandler(void)
 	{
 		if(msg1.data32[0] == 0x00005856)
 		{
-				youLun = msg1.data32[1];
+				g_rightPulse = msg1.data32[1];
 		}
 	}
 	
@@ -111,7 +111,7 @@ void CAN2_RX0_IRQHandler(void)
 	{
 		if(msg1.data32[0] == 0x00005856)
 		{
-				zuoLun = msg1.data32[1];
+				g_leftPulse = msg1.data32[1];
 		}
 	}
 	CAN_ClearFlag(CAN2, CAN_FLAG_EWG);
