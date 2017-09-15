@@ -283,39 +283,39 @@ bool FirstRound(float speed)
 
 	switch (state)
 	{
-	//右边，目标角度0度
-	case 1:
-	{
-		StaightCLose((275 + WIDTH / 2 + 5), 0, 0, speed);
-		if (Position_t.Y >= 3100 + WIDTH / 2 - FIR_ADV)
-			state = 2;
-	} break;
+		//右边，目标角度0度
+		case 1:
+		{
+			StaightCLose((275 + WIDTH / 2 + 20), 0, 0, speed);
+			if (Position_t.Y >= 3100 + WIDTH / 2 - FIR_ADV)
+				state = 2;
+		} break;
 
-	//上边，目标角度90度
-	case 2:
-	{
-		StaightCLose(0, 3100 + WIDTH / 2 + 50, 90, speed);
-		if (Position_t.X <= -275 - WIDTH / 2 + FIR_ADV)
-			return true;
-//			state = 3;
-	} break;
+		//上边，目标角度90度
+		case 2:
+		{
+			StaightCLose(0, 3100 + WIDTH / 2 + 50, 90, speed);
+			if (Position_t.X <= -275 - WIDTH / 2 + FIR_ADV)
+				return true;
+	//			state = 3;
+		} break;
 
-//	//左边，目标角度180度
-//	case 3:
-//	{
-//		StaightCLose((-275 - WIDTH / 2 - 150), 0, 180, FIRST_SPEED);
-//		if (Position_t.Y <= 1700 - WIDTH / 2 + FIR_ADV - 500)
-//			state = 4;
-//	} break;
+	//	//左边，目标角度180度
+	//	case 3:
+	//	{
+	//		StaightCLose((-275 - WIDTH / 2 - 150), 0, 180, FIRST_SPEED);
+	//		if (Position_t.Y <= 1700 - WIDTH / 2 + FIR_ADV - 500)
+	//			state = 4;
+	//	} break;
 
-//	//下边，目标角度-90度
-//	case 4:
-//	{
-//		StaightCLose(0, 1700 - WIDTH / 2 - 100, -90, FIRST_SPEED);
+	//	//下边，目标角度-90度
+	//	case 4:
+	//	{
+	//		StaightCLose(0, 1700 - WIDTH / 2 - 100, -90, FIRST_SPEED);
 
-//		if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
-//			return true;
-//	} break;
+	//		if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
+	//			return true;
+	//	} break;
 	}
 
 	return false;
@@ -794,8 +794,8 @@ void TurnAngle(float angel, int speed)
 	Input = 30 * Dangel;
 
 	//判断是否反向转更快
-//	if (Dangel < 0 && speed > 0)
-//		speed = -speed;
+	if (Dangel < 0 && speed > 0)
+		speed = -speed;
 
 	//角度大于10，speed转
 	if (Dangel > 15 || Dangel < -15)
@@ -841,16 +841,16 @@ int LaserCheck(void)
 		if (Position_t.angle < 45 && Position_t.angle > -45)
 		{
 			angleError  += Position_t.angle;  //纠正角度坐标
-			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - (2400 - laserGetRight);
+			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetRight);
 			yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError)));
 			return 1;
 		}
 
-		//靠X=2400的墙
+		//靠X=g_plan * 2400的墙
 		else if (Position_t.angle < 135 && Position_t.angle > 45)
 		{
-			angleError  += Position_t.angle - 90;
-			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - (2400 - 64.65);
+			angleError  += Position_t.angle - g_plan * 90;
+			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - 64.65);
 			yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - laserGetRight);
 			return 1;
 		}
@@ -860,16 +860,16 @@ int LaserCheck(void)
 		{
 			angleError  += Position_t.angle - 180;
 			angleError  = AvoidOverAngle(angleError);
-			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - (2400 - laserGetLeft);
+			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetLeft);
 			yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - 64.65);
 			return 1;
 		}
 
-		//靠X=-2400的墙
+		//靠X=-g_plan * 2400的墙
 		else
 		{
-			angleError  += Position_t.angle + 90;
-			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - (-2400 + 64.65);
+			angleError  += Position_t.angle + g_plan * 90;
+			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (-2400 + 64.65);
 			yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetRight - 64.65);
 			return 1;
 		}

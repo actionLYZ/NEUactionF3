@@ -140,18 +140,18 @@ void WalkTask(void)
 	GPIO_ResetBits(GPIOE, GPIO_Pin_6);
 	g_cameraPlan = 2;
 	delay_s(10);
-	CollectBallVelCtr(40);
+	CollectBallVelCtr(50);
 	
 	//等待激光被触发
 	do{
 		g_plan = IfStart();
 	}while(g_plan == 0);
-	GPIO_ResetBits(GPIOE, GPIO_Pin_7);     //关闭蜂鸣器
-  
+  g_plan = 1;
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
-		OSSemPend(PeriodSem, 0, &os_err);    
+		OSSemPend(PeriodSem, 0, &os_err);
+    USART_OUT(UART5,(u8*)"x%d\ty%d\t\r\n",Position_t.X,Position_t.Y);    
 		if (ifEscape)
 		{
 			time++;
@@ -180,7 +180,7 @@ void WalkTask(void)
 			}
 		}
 		else
-		{
+ 		{
 			GoGoGo();
 		}
 //		if(stuckCar())

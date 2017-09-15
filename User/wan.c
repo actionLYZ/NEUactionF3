@@ -90,7 +90,7 @@ void angClose(float V, float aimAngle, float Kp)
 
 	angError  = aimAngle - Position_t.angle;
 	angError  = AvoidOverAngle(angError);
-	angOutput = angError * Kp;
+	angOutput = g_plan * angError * Kp;
 	VelCrl(CAN2, 1, V * SP2PULSE + angOutput);
 	VelCrl(CAN2, 2, -V * SP2PULSE + angOutput);
 }
@@ -1178,22 +1178,22 @@ int ShootBallW(void)
 	else if (ballColor == NO)
 	{
 		noBall++;
-		if(noBall > 0 && noBall < 10)
-		{
-			PushBall();
-		}
 		if(noBall > 150 && noBall < 160)
 		{
-			PushBallReset();
+			PushBall();
 		}
 		if(noBall > 300 && noBall < 310)
 		{
-			PushBall();
+			PushBallReset();
 		}
 		if(noBall > 450 && noBall < 460)
 		{
-			PushBallReset();
+			PushBall();
 		}
+//		if(noBall > 450 && noBall < 460)
+//		{
+//			PushBallReset();
+//		}
 		// 4s noBall依然没有清零，则认为车内没球
 		if(noBall > 700)
 		{
@@ -1277,17 +1277,17 @@ int ShootBallW(void)
 	}
 
   //枪的角度和转速到位,推球
- 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 2.0 && fabs(rps + g_shootFactV / 4096) < 5.0 && ballColor)
+ 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 2.0f && fabs(rps + g_shootFactV / 4096) < 5.0 && ballColor)
 	{
 		count++;
 		
 		//100ms,确定球被推出去
-		if(count ==1)
+		if(count == 80)
 		{
 			PushBall();
 		}
 		
-		if(count == 80)
+		if(count == 160)
 		{
 			PushBallReset();
 		}
@@ -1325,7 +1325,7 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 	}	
   u = u % 2 + 2;
 	
-	// 先缓慢加速(用时2*V/1000秒)
+	// 先缓慢加速
 	if(acceSpeed < V)
 	{
 		acceSpeed += 8;
@@ -1338,7 +1338,7 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		V2 = 4096 * V * (R1 - WHEEL_TREAD / 2) / (106.8 * PI * R1);	
 	}
 	//让小车走一圈半径减小一次
-	if(-500 < Position_t.X && Position_t.X < 500 && Position_t.Y < 2400)
+	if(300 < Position_t.X && Position_t.X < 400 && Position_t.Y < 2400)
 	{
 		Flag++;
 	}
@@ -1372,7 +1372,7 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 	}
 	
   //陀螺仪到圆心的距离
-	disError = sqrt((Position_t.X - 0) * (Position_t.X - 0) + (Position_t.Y - 2335.35) * (Position_t.Y - 2335.35)) - R1;
+	disError = g_plan * sqrt((Position_t.X - 0) * (Position_t.X - 0) + (Position_t.Y - 2335.35) * (Position_t.Y - 2335.35)) - R1;
 	
 	//距离P调节系数为5
 	disOutput = disError * 10;
@@ -1394,7 +1394,7 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 	angError = aimAng - Position_t.angle;
 	
 	//角度P调节系数
-	angOutput = angError * 180;
+	angOutput = g_plan * angError * 180;
 	VelCrl(CAN2, 1,V1+disOutput+angOutput);
 	VelCrl(CAN2, 2,-V2+disOutput+angOutput);
 	return success;
@@ -1431,9 +1431,10 @@ int stuckCar(void)
 	static float V = 0;
 	static uint8_t count = 0;
 	uint8_t success = 0;
+	
 	//获取车当前的速度
 	V = RealVel();
-	USART_OUT(UART5,(u8*)"co%d\tV%d\r\n",count,(int)V);
+	USART_OUT(UART5,(u8*)"c%d\tV%d\r\n",count,(int)V);
 	
 	//车速小于200mm/s,认为车被困,count++
 	if(V < 200)
