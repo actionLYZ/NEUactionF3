@@ -151,15 +151,7 @@ void WalkTask(void)
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
-		OSSemPend(PeriodSem, 0, &os_err);
-//		c0=SWITCHC0;
-//		c2=SWITCHC2;
-//	  USART_OUT(UART5,(u8*)"c0\t%d\tc2\t%d\r\n",c0,c2);
-//    ReadActualVel(CAN2, RIGHT_MOTOR_WHEEL_ID); 
-//		ReadActualVel(CAN2, LEFT_MOTOR_WHEEL_ID);
-//		USART_OUT(UART5,(u8*)"y%d\t",g_rightPulse);
-//		USART_OUT(UART5,(u8*)"%d\r\n",g_leftPulse);
-      
+		OSSemPend(PeriodSem, 0, &os_err);    
 		if (ifEscape)
 		{
 			time++;
@@ -192,7 +184,7 @@ void WalkTask(void)
 			GoGoGo();
 		}
 //		if(stuckCar())
-		if (stuckCar() == 1)
+		if (stuckCar())
 		{
 			if (carRun)
 				ifEscape = 1;

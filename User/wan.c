@@ -38,6 +38,7 @@ extern int32_t     btAngle;
 extern int32_t     g_rightPulse ;
 extern int32_t     g_leftPulse ;
 extern int32_t     g_collectVel;
+extern int         g_plan;
 /*======================================================================================
    函数定义	  ：		Send Get函数
    函数参数	  ：
@@ -489,7 +490,7 @@ int RunWithCamera1(uint8_t circleNum)
 		case 0:
 			count++;
 			VelCrl(CAN2, 1, 6000);
-			VelCrl(CAN2, 2, 6000);	
+			VelCrl(CAN2, 2, -6000);	
 		
 		  //直行200ms
 		  if(count >= 20)
@@ -997,7 +998,7 @@ POSXY_T ShootPointPos(void)
 	float   angle     = 0;
 	POSXY_T position  = { 0, 0 };
 
-	angle       = AvoidOverAngle(90);
+	angle       = AvoidOverAngle(g_plan * Position_t.angle + 90);
 	angle       = ANGTORAD(angle);
 	position.X  = Position_t.X + DISSHOOTTOGYRO * cos(angle);
 	position.Y  = Position_t.Y + DISSHOOTTOGYRO * sin(angle);
@@ -1151,10 +1152,10 @@ int ShootBallW(void)
 	if (ballColor == WHITE)
 	{
 		noBall = 0;
-		distance = sqrt((posShoot.X - WHITEX) * (posShoot.X - WHITEX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY)) + 21.16;
+		distance = sqrt((posShoot.X - g_plan * WHITEX) * (posShoot.X - g_plan * WHITEX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY)) + 21.16;
 
 		//将角度装换成陀螺仪角度坐标系里的角度值
-		aimAngle  = atan2(BALLY - posShoot.Y, WHITEX - posShoot.X);
+		aimAngle  = atan2(BALLY - posShoot.Y, g_plan * WHITEX - posShoot.X);
 		aimAngle  = RADTOANG(aimAngle) - 90;
 
 		//枪顺时针转为正，逆时针为负
@@ -1165,10 +1166,10 @@ int ShootBallW(void)
 	else if (ballColor == BLACK)
 	{
 		noBall = 0;
-		distance = sqrt((posShoot.X - BLACKX) * (posShoot.X - BLACKX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY)) + 21.16;
+		distance = sqrt((posShoot.X - g_plan * BLACKX) * (posShoot.X - g_plan * BLACKX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY)) + 21.16;
 
 		//将角度转换成陀螺仪角度坐标系里的角度值
-		aimAngle  = atan2(BALLY - posShoot.Y, BLACKX - posShoot.X);
+		aimAngle  = atan2(BALLY - posShoot.Y, g_plan * BLACKX - posShoot.X);
 		aimAngle  = RADTOANG(aimAngle) - 90;
 		aimAngle  = AvoidOverAngle(aimAngle);
 	}
@@ -1231,7 +1232,7 @@ int ShootBallW(void)
 	else if(70 < Position_t.angle && Position_t.angle < 110)
 	{
 		//角度计算
-		shootAngle = AvoidOverAngle(90 - aimAngle) + 2;
+		shootAngle = AvoidOverAngle(90 - aimAngle) + 3;
 		
 		//射速计算
     V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
@@ -1239,7 +1240,7 @@ int ShootBallW(void)
 	}
 	else if(160 < Position_t.angle && Position_t.angle < -160)
 	{
-		shootAngle = AvoidOverAngle(180 - aimAngle) + 2;
+		shootAngle = AvoidOverAngle(180 - aimAngle) + 3;
 		
 		//射速计算
     V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
@@ -1266,7 +1267,7 @@ int ShootBallW(void)
 	{
 		  ShootCtr(rps);
   }
-//	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096);
+	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096);
 	//控制发射航向角(30ms发一次)
 	flag++;
 	flag = flag % 3;
@@ -1276,7 +1277,7 @@ int ShootBallW(void)
 	}
 
   //枪的角度和转速到位,推球
- 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0 && fabs(rps + g_shootFactV / 4096) < 8.0 && ballColor)
+ 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 2.0 && fabs(rps + g_shootFactV / 4096) < 5.0 && ballColor)
 	{
 		count++;
 		
@@ -1412,7 +1413,7 @@ float RealVel(void)
 	float distance = 0.0f;
 	distance = sqrt((Position_t.X - lastPoint.X) * (Position_t.X - lastPoint.X) + (Position_t.Y - lastPoint.Y) * (Position_t.Y - lastPoint.Y));
 	
-	//主函数10ms运行一次，故*100计算每秒的速度
+	//主函数运行4次，进入此函数1次，故*50计算每秒的速度
 	V = distance * 100;
 	
 	//将小车当前的坐标记录下来
@@ -1427,11 +1428,12 @@ float RealVel(void)
  =====================================================================================*/
 int stuckCar(void)
 {
-	float V = 0;
+	static float V = 0;
 	static uint8_t count = 0;
 	uint8_t success = 0;
 	//获取车当前的速度
 	V = RealVel();
+	USART_OUT(UART5,(u8*)"co%d\tV%d\r\n",count,(int)V);
 	
 	//车速小于200mm/s,认为车被困,count++
 	if(V < 200)
@@ -1465,7 +1467,7 @@ void countBall(void)
 	int8_t ballNum = 0;
 	//问询收球棍子的转速
 	ReadActualVel(CAN1, COLLECT_BALL_ID);
-	
+	USART_OUT(UART5,(u8*)"%d\t",g_collectVel);
 	//trend < 0表明转速有下降的趋势
 	trend = g_collectVel - lastPulse;
 	
@@ -1475,19 +1477,28 @@ void countBall(void)
 		//记录棍子最小的脉冲数
 		minPulse = lastPulse;
 	}
-	if(1430000 < minPulse && minPulse <152000)
+	if(143000 < minPulse && minPulse <151000)
 	{
 		ballNum = 1;
 	}
-	else if(137000 < minPulse && minPulse < 1430000)
+	else if(135000 < minPulse && minPulse < 143000)
 	{
 		ballNum = 2;
 	}
-	else if(130000 < minPulse && minPulse < 137000)
+	else if(121000 < minPulse && minPulse < 129000)
 	{
 		ballNum = 3;
 	}
+	else if(112000 < minPulse && minPulse < 120000)
+	{
+		ballNum = 4;
+	}
+	else if(102000 < minPulse && minPulse < 110000)
+	{
+		ballNum = 5;
+	}
 	ballSum += ballNum;
+	USART_OUT(UART5,(u8*)"%d\t%d\r\n",minPulse,ballSum);
 	
 	//记录上一次的trend值和收球转速值
 	lastTrend = trend;
