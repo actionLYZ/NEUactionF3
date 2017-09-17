@@ -1815,50 +1815,39 @@ void PathPlan(float camX, float camY)
 =======================================================================================*/
 int CountBall(void)
 {
-	static int ballNumber=0,ballN=0,lastGather=0,increase=0;
+	static int ballNumber=0,ballN=0;
 	ReadActualVel(CAN1, COLLECT_BALL_ID);
+
+	if(g_gather<=235000&&ballN==0)
+	{
+	    ballN=1;
+	}
+	if(g_gather<=230000&&ballN==1)
+	{
+			ballN=2;
+	}
+	if(g_gather<=214000&&ballN==2)
+	{
+			ballN=3;
+	}
+	if(g_gather<=208000&&ballN==3)
+	{
+			ballN=4;
+	}		
+	if(g_gather<=195000&&ballN==4)
+	{
+			ballN=5;
+	}
 	if(finishShoot ==1)
 	{
 		finishShoot=0;
 		ballNumber=0;
 		ballN=0;
 	}
-	if(g_gather<=235000&&ballN==0)
+	if(g_gather>250000&&ballN)
 	{
-	    ballN=1;
-	}
-	if(g_gather<=225000&&ballN==1)
-	{
-			ballN=2;
-	}
-	if(g_gather<=210000&&ballN==2)
-	{
-			ballN=3;
-	}
-	if(g_gather<=200000&&ballN==3)
-	{
-			ballN=4;
-	}		
-	if(g_gather<=190000&&ballN==4)
-	{
-			ballN=5;
-	}
-	if(g_gather<240000)
-	{
-		if(lastGather<g_gather)
-	  {
-		  increase++;
-	  }
-	}
-  lastGather=g_gather;
-	if(g_gather>250000||increase>=3)
-	{
-		if(ballN)
-		{
 			ballNumber +=ballN;
 			ballN=0;
-			increase=0;
-		}
 	}
 	USART_OUT(UART5,(u8*)"%d  %d  %d\r\n",g_gather,ballNumber,ballN);	
 	return ballNumber;
