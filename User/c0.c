@@ -1823,27 +1823,27 @@ int CountBall(void)
 		ballNumber=0;
 		ballN=0;
 	}
-	if(g_gather<=150000&&ballN==0)
+	if(g_gather<=235000&&ballN==0)
 	{
 	    ballN=1;
 	}
-	if(g_gather<=143000&&ballN==1)
+	if(g_gather<=225000&&ballN==1)
 	{
 			ballN=2;
 	}
-	if(g_gather<=137000&&ballN==2)
+	if(g_gather<=210000&&ballN==2)
 	{
 			ballN=3;
 	}
-	if(g_gather<=125000&&ballN==3)
+	if(g_gather<=200000&&ballN==3)
 	{
 			ballN=4;
 	}		
-	if(g_gather<=120000&&ballN==4)
+	if(g_gather<=190000&&ballN==4)
 	{
 			ballN=5;
 	}
-	if(g_gather<161000)
+	if(g_gather<240000)
 	{
 		if(lastGather<g_gather)
 	  {
@@ -1851,7 +1851,7 @@ int CountBall(void)
 	  }
 	}
   lastGather=g_gather;
-	if(abs(g_gather-164000)<=3000||increase>=3)
+	if(g_gather>250000||increase>=3)
 	{
 		if(ballN)
 		{
