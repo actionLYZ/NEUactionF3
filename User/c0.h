@@ -30,6 +30,8 @@
 #define BALL_WEIGHT             (0.046f) //高尔夫球的重量（单位：kg）
 #define PF(a)    ((a) * (a))
 
+#define cameraSpeed (1800)
+
 //宏定义电机转一圈的脉冲数
 #define COUNT_PER_ROUND         (4096.0f)
 
@@ -117,5 +119,6 @@ void SendUint8(void);
 
 void GivenPoint(float pointX, float pointY, float givenSpeed);
 void PathPlan(float camX, float camY);
+int CountBall(void);
 
 /*=====================================================函数定义（万典学长的函数）===================================================*/

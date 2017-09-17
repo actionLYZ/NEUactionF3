@@ -67,6 +67,7 @@ extern int32_t     g_rightPulse ;
 extern int32_t     g_leftPulse ;
 extern int32_t     g_collectVel;
 int               shootStart = 0, ballColor = 0,youqiu=0;
+int32_t g_gather;
 
 float GetAngleZ(void)
 {
@@ -176,10 +177,9 @@ void CAN1_RX0_IRQHandler(void)
 	{
 		if(msg.data32[0] == 0x00005856)
 		{
-				g_collectVel = msg.data32[1];
+				g_gather = msg.data32[1];
 		}
 	}
-
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
 	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
@@ -516,12 +516,12 @@ extern uint8_t  g_cameraPlan;
 //方案1 发三个区域的球数
 int             ballN_L, ballN_M, ballN_R;
 //方案2 发球数最多的那个角度
-float           bestAngle;
+int8_t           bestAngle,nearestAngle;
 //方案3 最近球的极坐标
-float           nearestAngle, nearestDis;
+float            nearestDis;
 //方案4 所有球的角度和距离
 int8_t          arr1[20];
-uint8_t         arr2[20];
+float         arr2[20];
 int             go, arr_number;
 void USART2_IRQHandler(void)
 {
@@ -683,8 +683,7 @@ void USART2_IRQHandler(void)
 			break;
 		}
 		//GPIO4=HIGH,GPIO6=LOW 球最多的角度 发一个角度
-		if (camera == 0xDA)
-			best = 1;
+
 		if (best)
 		{
 			bestAngle = camera;
@@ -695,9 +694,10 @@ void USART2_IRQHandler(void)
 			best  = 0;
 			go    = 1;
 		}
+		if (camera == 0xDA)
+			best = 1;
 		//GPIO4=LOW,GPIO6=HIGH 最近球的坐标 发一个角度 一个距离
-		if (camera == 0xD8)
-			nearest = 1;
+
 		switch (nearest)
 		{
 		case 1:
@@ -724,6 +724,8 @@ void USART2_IRQHandler(void)
 		default:
 			break;
 		}
+		if (camera == 0xD8)
+			nearest = 1;
 		//GPIO4=HIGH,GPIO6=HIGH 所有极坐标 发每个球的角度和坐标
 		if (camera == 0xC5)
 		{

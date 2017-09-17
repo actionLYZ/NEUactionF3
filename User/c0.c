@@ -1,13 +1,15 @@
 #include "c0.h"
 #include "stdlib.h"
 #include "wan.h"
+#include "usart.h"
 extern POSITION_T Position_t;
 extern int        g_plan;
 float             angleP, angleD, distantP, pid1, pid2;
-int               yiquan, line, SPE = 0;
+int               yiquan, line, SPE = 0,finishShoot=0;
 extern int8_t     arr1[20];
-extern uint8_t    arr2[20];
+extern float    arr2[20];
 extern int        arr_number;
+extern int32_t g_gather;
 
 /*======================================================================================
    函数定义	  ：		将小球相对于摄像头的角度转换成相对于陀螺仪的角度(万典学长的函数)
@@ -493,22 +495,22 @@ void First_Scan(void)
 	{
 	case 1:
 	{
-		ClLineAngle(0, 800);
+		ClLineAngle(0, cameraSpeed);
 	} break;
 
 	case 2:
 	{
-		ClLineAngle(90, 800);
+		ClLineAngle(90, cameraSpeed);
 	} break;
 
 	case 3:
 	{
-		ClLineAngle(180, 800);
+		ClLineAngle(180, cameraSpeed);
 	} break;
 
 	case 4:
 	{
-		ClLineAngle(-90, 800);
+		ClLineAngle(-90, cameraSpeed);
 	} break;
 
 	default:
@@ -616,22 +618,22 @@ void New_Route(int down, int right, int up, int left)
 	{
 	case 1:
 	{
-		ClLine(0, -240 + down * 480, -90, 1000);
+		ClLine(0, -240 + down * 480, -90, cameraSpeed);
 	} break;
 
 	case 2:
 	{
-		ClLine(240 + right * 480, 0, 0, 1000);
+		ClLine(240 + right * 480, 0, 0, cameraSpeed);
 	} break;
 
 	case 3:
 	{
-		ClLine(0, 3120 + up * 480, 90, 1000);
+		ClLine(0, 3120 + up * 480, 90, cameraSpeed);
 	} break;
 
 	case 4:
 	{
-		ClLine(-2640 + left * 480, 0, 180, 1000);
+		ClLine(-2640 + left * 480, 0, 180, cameraSpeed);
 	} break;
 
 	default:
@@ -1794,4 +1796,50 @@ void PathPlan(float camX, float camY)
 			}
 		}
 	}
+}
+/*======================================================================================
+函数定义	  ：
+函数参数	  ：    
+                  
+                           
+函数返回值  ：	  无
+=======================================================================================*/
+int CountBall(void)
+{
+	static int ballNumber=0,ballN=0;
+	ReadActualVel(CAN1, COLLECT_BALL_ID);
+
+	if(g_gather<=235000&&ballN==0)
+	{
+	    ballN=1;
+	}
+	if(g_gather<=230000&&ballN==1)
+	{
+			ballN=2;
+	}
+	if(g_gather<=214000&&ballN==2)
+	{
+			ballN=3;
+	}
+	if(g_gather<=208000&&ballN==3)
+	{
+			ballN=4;
+	}		
+	if(g_gather<=195000&&ballN==4)
+	{
+			ballN=5;
+	}
+	if(finishShoot ==1)
+	{
+		finishShoot=0;
+		ballNumber=0;
+		ballN=0;
+	}
+	if(g_gather>250000&&ballN)
+	{
+			ballNumber +=ballN;
+			ballN=0;
+	}
+	//USART_OUT(UART5,(u8*)"%d  %d  %d\r\n",g_gather,ballNumber,ballN);	
+	return ballNumber;
 }
