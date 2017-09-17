@@ -51,6 +51,7 @@ int     g_camera = 0;     //摄像头收到的数
 int     sweepingScheme = 0, blockTime = 0;
 int jiguang1, jiguang2;
 extern int32_t g_gather;
+extern int finishShoot;
 
 void App_Task()
 {
@@ -127,7 +128,7 @@ void ConfigTask(void)
 }
 
 //看车是在跑，还是在矫正、射球
-int carRun = 1,ballNumber=0,ballN=0;
+int carRun = 1;
 /*=====================================================执行函数===================================================*/
 void WalkTask(void)
 {
@@ -138,55 +139,25 @@ void WalkTask(void)
 //	GPIO_ResetBits(GPIOE, GPIO_Pin_4);
 //	GPIO_SetBits(GPIOE, GPIO_Pin_6);
 	g_cameraPlan = 1;
+	CollectBallVelCtr(60);
 	delay_s(10);
-	CollectBallVelCtr(40);
   uint8_t ifEscape = 0, time = 0;
-	
-	
-	//等待激光被触发
-	do{
-		g_plan = IfStart();
-	}while(g_plan == 0);
-	USART_OUT(UART5,(u8*)"p%d\r\n",g_plan);
-	GPIO_ResetBits(GPIOE, GPIO_Pin_7);     //关闭蜂鸣器
 
+//	//等待激光被触发
+//	do{
+//		g_plan = IfStart();
+//	}while(g_plan == 0);
+//	//USART_OUT(UART5,(u8*)"p%d\r\n",g_plan);
+//	GPIO_ResetBits(GPIOE, GPIO_Pin_7);     //关闭蜂鸣器
+  g_plan=1;  
+	finishShoot=1;
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		GPIO_SetBits(GPIOE, GPIO_Pin_4);
-		GPIO_ResetBits(GPIOE, GPIO_Pin_6);
-		//RunCamera();
-		ReadActualVel(CAN1, COLLECT_BALL_ID);
-		if(g_gather<=15800)
-		{
-			ballN=1;
-		}
-		if(g_gather<=15600)
-		{
-			ballN=2;
-		}
-		if(g_gather<=15000)
-		{
-			ballN=3;
-		}
-		if(g_gather<=13600)
-		{
-			ballN=4;
-		}
-		if(g_gather<=13300)
-		{
-			ballN=5;
-		}
-		if(g_gather>=16100&&g_gather<=16700&&ballN)
-		{
-			ballNumber +=ballN;
-		}
-		
-	  USART_OUT(UART5,(u8*)"%d\r\n",ballNumber);	
-
-
-   /*
+		StaightCLose(0,0,0,1800);
+		CountBall();
+		/*
 		if (ifEscape)
 		{
 			time++;
@@ -216,7 +187,7 @@ void WalkTask(void)
 		}
 		else
 		{
-			GoGoGo();
+			RunCamera();
 		}
 		if (IfStuck() == 1)
 		{

@@ -1108,8 +1108,7 @@ int ShootBallW(void)
 	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
 
 	//计算投球点的坐标
-	posShoot.X  = ShootPointPos().X;
-	posShoot.Y  = ShootPointPos().Y;
+	posShoot = ShootPointPos();
   
 	//球是白球
 	if (ballColor == WHITE)

@@ -546,9 +546,9 @@ int CheckPosition(void)
 //方案1 发三个区域的球数
 extern int    ballN_L, ballN_M, ballN_R;
 //方案2 发球数最多的那个角度
-extern float  bestAngle;
+extern int8_t  bestAngle,  nearestAngle;
 //方案3 最近球的极坐标
-extern float  nearestAngle, nearestDis;
+extern float nearestDis;
 //方案4 所有球的角度和距离
 extern int    go, arr_number;
 /*======================================================================================
@@ -570,7 +570,7 @@ int RunCamera(void)
 	static float  cameraX, cameraY;
 	int           finish = 0, circulate;
 	POSITION_T    basePoint;
-
+   cameraScheme = 1;
 	//到边界要拐弯了
 	if (fabs(Position_t.X) > 2000 || Position_t.Y < 400 || Position_t.Y > 4400)
 		haveBall = 0;
@@ -611,6 +611,7 @@ int RunCamera(void)
 	{
 	case 1:
 	{
+		
 		if (go)
 		{
 			go = 0;
@@ -624,6 +625,7 @@ int RunCamera(void)
 				cameraX   = Position_t.X - CAMERATOGYRO * sin(Position_t.angle);
 				cameraY   = Position_t.Y + CAMERATOGYRO * cos(Position_t.angle);
 				ballAngle = AvoidOverAngle(Position_t.angle + bestAngle);
+				USART_OUT(UART5,(u8*)"bestangle%d\r\n",bestAngle);
 			}
 		}
 		switch (haveBall)
@@ -638,7 +640,7 @@ int RunCamera(void)
 
 		case 1:
 		{
-			StaightCLose(cameraX, cameraY, ballAngle, 1000);
+			StaightCLose(cameraX, cameraY, ballAngle, cameraSpeed);
 		} break;
 
 		default:
@@ -737,7 +739,7 @@ int RunCamera(void)
 
 		case 1:
 		{
-			StaightCLose(cameraX, cameraY, ballAngle, 1000);
+			StaightCLose(cameraX, cameraY, ballAngle, cameraSpeed);
 		} break;
 
 		default:
