@@ -209,3 +209,9 @@ float RealVel(void);
 
 //数球函数
 void countBall(void);
+
+//判断车距离哪面墙最近
+int JudgeSide(void);
+
+//画圆之后的矩形扫场
+int AfterCircle(void);

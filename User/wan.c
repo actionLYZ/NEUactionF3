@@ -485,6 +485,7 @@ int RunWithCamera1(uint8_t circleNum)
 	static uint8_t  i       = 0, count = 0;
 	static uint8_t  circle  = 0;
   uint8_t success = 0;
+	//USART_OUT(UART5,(u8*)"X%d\ti%d\r\n",(int)Position_t.X,(int)i);
 	switch (i)
 	{
 		case 0:
@@ -1190,12 +1191,16 @@ int ShootBallW(void)
 		{
 			PushBall();
 		}
+		if(noBall > 600 && noBall < 610)
+		{
+			PushBallReset();
+		}
 //		if(noBall > 450 && noBall < 460)
 //		{
 //			PushBallReset();
 //		}
 		// 4s noBall依然没有清零，则认为车内没球
-		if(noBall > 700)
+		if(noBall > 900)
 		{
 			noBall = 0;
 			success = 1;
@@ -1203,7 +1208,7 @@ int ShootBallW(void)
 	}
 	
 	//计算在四面墙枪应该转的角度(顺时针+，逆时针-)
-	if(fabs(Position_t.angle) < 20)
+	if(fabs(Position_t.angle) < 20 && ballColor)
 	{
 		shootAngle = AvoidOverAngle(0 - aimAngle) + 2;
 		
@@ -1213,13 +1218,13 @@ int ShootBallW(void)
 			//车距离中轴线1m之内,转速+1的调节量
 			if(fabs(Position_t.X) < 1000)
 			{
-				rps = (0.009218 * Position_t.X * Position_t.X + 2.082 * Position_t.X + 263200) / 4096 + 1.4;
+				rps = (0.009218 * Position_t.X * Position_t.X + 2.082 * Position_t.X + 263200) / 4096 + 1.6;
 			}
 			
 			//其他的位置转速+2的调节量
 			else
 			{
-				rps = (0.009218 * Position_t.X * Position_t.X + 2.082 * Position_t.X + 263200) / 4096 + 1.4;
+				rps = (0.009218 * Position_t.X * Position_t.X + 2.082 * Position_t.X + 263200) / 4096 + 1.6;
 			}
 		}
 		
@@ -1229,16 +1234,25 @@ int ShootBallW(void)
 			rps = (0.009218 * Position_t.X * Position_t.X - 2.082 * Position_t.X + 263200) / 4096 + 1.5;
 		}
 	}
-	else if(70 < Position_t.angle && Position_t.angle < 110)
+	else if(70 < Position_t.angle && Position_t.angle < 110 && ballColor)
 	{
 		//角度计算
 		shootAngle = AvoidOverAngle(90 - aimAngle) + 3;
 		
 		//射速计算
     V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
-		rps = 2 * V / (PI * 66) + 16.5;
+		
+		//白球
+		if(ballColor == WHITE)
+		{
+			rps = 2 * V / (PI * 66) + 16.7;
+		}
+		else
+		{
+			rps = 2 * V / (PI * 66) + 16.3;
+		}
 	}
-	else if(160 < Position_t.angle && Position_t.angle < -160)
+	else if(160 < Position_t.angle && Position_t.angle < -160 && ballColor)
 	{
 		shootAngle = AvoidOverAngle(180 - aimAngle) + 3;
 		
@@ -1246,7 +1260,7 @@ int ShootBallW(void)
     V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 		rps = 2 * V / (PI * 66) + 16.5;
 	}
-	else
+	else if(-110 < Position_t.angle && Position_t.angle < -70 && ballColor)
 	{
 		shootAngle = AvoidOverAngle(-90 - aimAngle) + 2;
 		
@@ -1254,7 +1268,9 @@ int ShootBallW(void)
     V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 		rps = 2 * V / (PI * 66) + 16.5;
 	}
-
+  else
+	{
+	}
 //球出射速度(mm/s)与投球点距离篮筐的距离的关系
 //	V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 //	rps = 2 * V / (PI * 66) + 16.5;
@@ -1267,7 +1283,7 @@ int ShootBallW(void)
 	{
 		  ShootCtr(rps);
   }
-	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096);
+	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)distance);
 	//控制发射航向角(30ms发一次)
 	flag++;
 	flag = flag % 3;
@@ -1291,13 +1307,12 @@ int ShootBallW(void)
 		{
 			PushBallReset();
 		}
-		if(count >= 160)
+		if(count >= 161)
 		{
 			count = 0;
 		}
 	}
 	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",ballColor,count,noBall,success);
-	USART_OUT(UART5,(u8*)"X%d\tY%d\r\n",(int)Position_t.X,(int)Position_t.Y);
 	return success;
 }
 /*======================================================================================
@@ -1315,7 +1330,7 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
   float disError = 0, disOutput = 0, aimAng = 0, angError = 0, angOutput = 0, V1 = 0, V2 = 0;
 	uint8_t success = 0;
 	static uint8_t Flag = 0, circle = 0;
-	static uint16_t acceSpeed = 11000, R1 = 0, u = 0;
+	static uint16_t acceSpeed = 1500, R1 = 0, u = 0;
 	
 	//只是为了让开始时R1 = R
 	u++;
@@ -1325,20 +1340,40 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 	}	
   u = u % 2 + 2;
 	
-	// 先缓慢加速
-	if(acceSpeed < V)
+	// 逆时针，先缓慢加速
+	if(g_plan == 1)
 	{
-		acceSpeed += 8;
-		V1 = 4096 * acceSpeed * (R1 + WHEEL_TREAD / 2) / (WHEEL_DIAMETER * PI * R1);
-		V2 = 4096 * acceSpeed * (R1 - WHEEL_TREAD / 2) / (WHEEL_DIAMETER * PI * R1);	
+		if(acceSpeed < V)
+		{
+			acceSpeed += 8;
+			V1 = 4096 * acceSpeed * (R1 + WHEEL_TREAD / 2) / (WHEEL_DIAMETER * PI * R1);
+			V2 = 4096 * acceSpeed * (R1 - WHEEL_TREAD / 2) / (WHEEL_DIAMETER * PI * R1);	
+		}
+		else
+		{
+			V1 = 4096 * V * (R1 + WHEEL_TREAD / 2) / (106.8 * PI * R1);
+			V2 = 4096 * V * (R1 - WHEEL_TREAD / 2) / (106.8 * PI * R1);	
+		}
 	}
+	
+	//顺时针
 	else
 	{
-		V1 = 4096 * V * (R1 + WHEEL_TREAD / 2) / (106.8 * PI * R1);
-		V2 = 4096 * V * (R1 - WHEEL_TREAD / 2) / (106.8 * PI * R1);	
+		if(acceSpeed < V)
+		{
+			acceSpeed += 8;
+			V2 = 4096 * acceSpeed * (R1 + WHEEL_TREAD / 2) / (WHEEL_DIAMETER * PI * R1);
+			V1 = 4096 * acceSpeed * (R1 - WHEEL_TREAD / 2) / (WHEEL_DIAMETER * PI * R1);	
+		}
+		else
+		{
+			V2 = 4096 * V * (R1 + WHEEL_TREAD / 2) / (106.8 * PI * R1);
+			V1 = 4096 * V * (R1 - WHEEL_TREAD / 2) / (106.8 * PI * R1);	
+		}
 	}
-	//让小车走一圈半径减小一次
-	if(300 < Position_t.X && Position_t.X < 400 && Position_t.Y < 2400)
+	
+	//让小车走一圈半径改变一次
+	if(0 < Position_t.X && 1950 < Position_t.Y && Position_t.Y < 2100)
 	{
 		Flag++;
 	}
@@ -1372,10 +1407,10 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 	}
 	
   //陀螺仪到圆心的距离
-	disError = g_plan * sqrt((Position_t.X - 0) * (Position_t.X - 0) + (Position_t.Y - 2335.35) * (Position_t.Y - 2335.35)) - R1;
+	disError = sqrt((Position_t.X - 0) * (Position_t.X - 0) + (Position_t.Y - 2335.35) * (Position_t.Y - 2335.35)) - R1;
 	
-	//距离P调节系数为5
-	disOutput = disError * 10;
+	//距离P调节系数
+	disOutput = g_plan * disError * 10;
 
 	//目标角度与小车位置到圆心的角度相同
 	aimAng = atan2(Position_t.Y - 2335.35,Position_t.X - 0) * 180.0 / PI;
@@ -1394,9 +1429,11 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 	angError = aimAng - Position_t.angle;
 	
 	//角度P调节系数
-	angOutput = g_plan * angError * 180;
+	angOutput = g_plan * angError * 200;
+	
 	VelCrl(CAN2, 1,V1+disOutput+angOutput);
 	VelCrl(CAN2, 2,-V2+disOutput+angOutput);
+//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)aimAng,(int)angOutput,(int)disOutput,(int)R1,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)(V1+disOutput+angOutput),(int)(-V2+disOutput+angOutput));
 	return success;
 }
 /*======================================================================================
@@ -1434,7 +1471,7 @@ int stuckCar(void)
 	
 	//获取车当前的速度
 	V = RealVel();
-	USART_OUT(UART5,(u8*)"c%d\tV%d\r\n",count,(int)V);
+//	USART_OUT(UART5,(u8*)"c%d\tV%d\r\n",count,(int)V);
 	
 	//车速小于200mm/s,认为车被困,count++
 	if(V < 200)
@@ -1504,4 +1541,102 @@ void countBall(void)
 	//记录上一次的trend值和收球转速值
 	lastTrend = trend;
   lastPulse = g_collectVel;
+}
+/*======================================================================================
+   函数定义		：		  判断车距离哪面墙最近
+   函数参数		：		  
+   备注       ：      顺时针时墙的1234顺时针排序，逆时针时逆时针排序
+   函数返回值	：	    墙的标志
+ =====================================================================================*/
+int JudgeSide(void)
+{
+	uint8_t side = 0;
+	if(Position_t.X > 0 && Position_t.Y < 2335.35)
+	{
+		if(Position_t.Y + 64.65 > (2400 - Position_t.X))
+		{
+			side = 2;
+		}
+		else
+		{
+			side = 1;
+		}
+	}
+	else if(Position_t.X > 0 && Position_t.Y >= 2335.35)
+	{
+		if((4800 - 64.65 - Position_t.Y) > (2400 - Position_t.X))
+		{
+			side = 2;
+		}
+		else
+		{
+			side = 3;
+		}
+	}
+	else if(Position_t.X < 0 && Position_t.Y > 2335.35)
+	{
+		if((4800 - 64.65 - Position_t.Y) > (2400 + Position_t.X))
+		{
+			side = 4;
+		}
+		else
+		{
+			side = 3;
+		}
+	}
+	else
+	{
+		if(Position_t.Y + 64.65 > (2400 + Position_t.X))
+		{
+			side = 4; 
+		}
+		else
+		{
+			side = 1;
+		}
+	}
+	return side;
+}
+/*======================================================================================
+   函数定义		：		  画圆之后的矩形扫场
+   函数参数		：		  
+   
+   函数返回值	：	    完成之后返回1
+ =====================================================================================*/
+int AfterCircle(void)
+{
+	static uint8_t step = 0;
+	uint8_t success = 0;
+	switch(step)
+	{
+		case 0:
+			StaightCLose(1850, 0, 0, 1500);
+			if(Position_t.Y > 3200)
+				step++;
+			break;
+		case 1:
+			StaightCLose(0, 4200, 90, 1500);
+			if(Position_t.X < -800)
+				step++;
+			break;
+		case 2:
+			StaightCLose(-1800, 0, 180, 1500);
+			if(Position_t.Y < 1600)
+				step++;
+			break;
+		case 3:
+			StaightCLose(0, 600, -90, 1500);
+			if(Position_t.X > 800)
+				step++;
+			break;
+		case 4:
+			StaightCLose(1800, 0, 0, 1500);
+			if(Position_t.Y > 2100)
+			{
+				step = 0;
+				success = 1;
+			}
+			break;
+	}
+	return success;
 }

@@ -158,7 +158,7 @@ void CAN1_RX0_IRQHandler(void)
       ballColor = 0;
 	}
 	
-	else if(Id== (0x280 + GUN_YAW_ID))
+	else if(Id == (0x280 + GUN_YAW_ID))
 	{
 		//接收电机转速(脉冲每秒)
 		if(msg.data32[0] == 0x00005856)

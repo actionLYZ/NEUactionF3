@@ -8,8 +8,8 @@
 int   IfStart(void);                                                  //通过激光判断是否开始
 float Piont2Straight(float aimx, float aimy, float angle);            //计算点到直线距离
 void  StaightCLose(float aimx, float aimy, float angle, float speed); //点斜式直线闭环
-void  GoGoGo(void);                                                   //跑场
-bool  FirstRound(float speed);                                        //第一圈(放球区附近)
+void  GoGoGo(float firstLine);                                                   //跑场
+bool  FirstRound(float firstLine);                                        //第一圈(放球区附近)
 bool  IfStuck(void);                                                  //是否卡住不动，是返回true，不是返回false
 bool  IfStuck2(void);                                                 //是否靠住墙不动，当行程开关加入后删除此函数
 bool  RunRectangle(int length, int wide, float speed);                //长方形跑场

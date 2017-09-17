@@ -26,7 +26,7 @@ int               cameraScheme = 0;
 extern int        shootStart, ballColor;
 extern int32_t     g_rightPulse ;
 extern int32_t     g_leftPulse ;
-
+extern float       firstLine;
 /*================================================函数定义区==============================================*/
 
 
@@ -39,12 +39,16 @@ extern int32_t     g_leftPulse ;
    =======================================================================================*/
 int IfStart(void)
 {
-	if (Get_Adc_Average(RIGHT_LASER, 30) < 1000)     //右侧激光触发
+	u16 right = 0, left = 0;
+	right = Get_Adc_Average(RIGHT_LASER, 30);
+	left = Get_Adc_Average(LEFT_LASER, 30);
+	USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
+	if (right < 2000)     //右侧激光触发
 	{
 		return 1;
 	}
 		
-	else if (Get_Adc_Average(LEFT_LASER, 30) < 1000) //左侧激光触发
+	else if (left < 2000) //左侧激光触发
 	{
 		return -1;
 	}
@@ -142,7 +146,7 @@ extern int carRun;
    函数参数	：		方案：暂定1为逆时针(右侧激光触发)，-1为顺时针(左侧激光触发)
    函数返回值：		无
    =======================================================================================*/
-void GoGoGo(void)
+void GoGoGo(float firstLine)
 {
 	static int  state = 1, shootTime = 0;             //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
@@ -154,7 +158,7 @@ void GoGoGo(void)
 	{
 		shootStart  = 0;
 		carRun      = 1;
-		if (FirstRound(FIRST_SPEED) == 1)
+		if (FirstRound(firstLine) == 1)
 		{
 			//初始化长方形跑场参数
 			length  += SPREAD_DIS;
@@ -182,34 +186,39 @@ void GoGoGo(void)
 			state = 3;
 	}
 	break;
-
+	
+	//紧随画圆后矩形扫场
+  case 3:
+		if(AfterCircle())
+			state = 4;
+		break;
 	//进行坐标校正
-	case 3:
+	case 4:
 	{
 		carRun = 0;
 		if (CheckPosition())
 		{
-			state = 4;
+			state = 5;
 			VelCrl(CAN2, 1, 0);
 			VelCrl(CAN2, 2, 0);
 		}
 			
 	} break;
 
-	case 4:
+	case 5:
 	{
 		carRun      = 0;
 		shootStart  = 1;
 		if (ShootBallW())
 		{
-			state = 5;
+			state = 6;
 			shootStart = 0;
 			shootTime++;
 			switch (shootTime)
 			{
 			case 1:
 			{
-				state = 5;
+				state = 6;
 				if (cameraScheme == 0)
 				{
 					cameraScheme = 1;
@@ -233,7 +242,7 @@ void GoGoGo(void)
 				}
 			} break;
 
-			case 2: state = 6; break;
+			case 2: state = 7; break;
 
 			default: break;
 			}
@@ -243,28 +252,25 @@ void GoGoGo(void)
 		}
 	} break;
 
-	case 5:
+	case 6:
 	{
 		carRun      = 1;
 		if(RunWithCamera1(2))
 		{
-			state = 3;
+			state = 4;
 		}
-//		carRun = 1;
-//		if (RunCamera())
-//			state = 3;
 	} break;
 
-	case 6:
+	case 7:
 	{
 		carRun = 1;
 		if (RunEdge())
 		{
-			state     = 3;
+			state     = 4;
 			shootTime = 0;
 		}
 	} break;
-
+  
 	default:
 		break;
 	}
@@ -277,18 +283,34 @@ void GoGoGo(void)
    用时				：			未测算
    (WIDTH为小车宽度)
    =======================================================================================*/
-bool FirstRound(float speed)
+bool FirstRound(float firstLine)
 {
 	static int state = 1;
-
+  float speed = 0, advance = 0;
+	
+	//第一条目标直线距离铁框太近,就让它贴铁框走
+	if(firstLine < 800)
+	{
+		speed = 1000;
+		advance = 500;
+		if(firstLine < 550)
+		{
+			firstLine = 525;
+		}
+	}
+	else
+	{
+		speed = 1500;
+		advance = 800;
+	}
 	switch (state)
 	{
 		//右边，目标角度0度
 		case 1:
 		{
-			StaightCLose((275 + WIDTH / 2 + 20), 0, 0, speed);
-			if (Position_t.Y >= 3100 + WIDTH / 2 - FIR_ADV)
-				state = 2;
+			StaightCLose(firstLine, 0, 0, speed);
+			if (Position_t.Y >= 3100 + WIDTH / 2 - advance)
+        state = 2;
 		} break;
 
 		//上边，目标角度90度
@@ -297,7 +319,6 @@ bool FirstRound(float speed)
 			StaightCLose(0, 3100 + WIDTH / 2 + 50, 90, speed);
 			if (Position_t.X <= -275 - WIDTH / 2 + FIR_ADV)
 				return true;
-	//			state = 3;
 		} break;
 
 	//	//左边，目标角度180度
@@ -433,35 +454,50 @@ bool  RunRectangle(int length, int wide, float speed)
 }
 int x1 = 0, x2 = 0, y1 = 0, y2 = 0;
 /*======================================================================================
-   函数定义		：			坐标校正
+   函数定义		：			坐标校正(考虑了顺逆时针)
    函数参数		：			无
    函数返回值	：			1:           已完成矫正
-                    0:           未完成矫正
+                      0:           未完成矫正
    =======================================================================================*/
 int CheckPosition(void)
 {
-	static int  state = 2, count = 0;
+	static int  state = 1, count = 0, side = 0;
 	static int  tempx = 0, tempy = 0;
 	int         keepgo = 0;
   static float aimAngle = 0;
 	switch (state)
 	{
-		//后退到 x = 0
+		//判断距离哪面墙最近
 		case 1:
 		{
-			StaightCLose(0, 500, -90, -500);
-			if (Position_t.X <= 1000)         //在y = 0处两个激光不容易射到球或射出去
-
-				state = 2;
+			side = JudgeSide();
+			if(side == 1)
+			{
+				aimAngle = 0;
+			}
+			else if(side == 2)
+			{
+				aimAngle = 90;
+			}
+			else if(side == 3)
+			{
+				aimAngle = 180;
+			}
+			else
+			{
+				aimAngle = -90;
+			}
+			state = 2;
 		} break;
 
-		//原地旋转至0度
+		//原地旋转至目标角度
 		case 2:
 		{
-			TurnAngle(0, 5000);
-			if (fabs(Position_t.angle) <= 15)
+			TurnAngle(aimAngle, 5000);
+			if (fabs(Position_t.angle - aimAngle) <= 15)
 			{
-				tempx = Position_t.X;       //记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
+				//记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
+				tempx = Position_t.X;       
 				tempy = Position_t.Y;
 				state = 3;
 			}
@@ -470,7 +506,8 @@ int CheckPosition(void)
 		//后退靠墙
 		case 3:
 		{
-			StaightCLose(tempx, tempy, 0, -800);
+			StaightCLose(tempx, tempy, aimAngle, -500);
+			
 			//两个行程开关触发,则进入下一次状态进行激光矫正
 			if(SWITCHC2==1 && SWITCHC0==1)
 			{
@@ -492,72 +529,114 @@ int CheckPosition(void)
 				state   = 2;
 				tempx   = 0, tempy = 0;
 			}
-			//		state = 5;	//矫正成功，开始第二阶段跑场
 			else
 			{
-				state = 6;    //矫正失败，继续矫正
+				//矫正失败，继续矫正
+				state = 5;    
+				
+        //如果激光矫正失败，先利用一次靠墙矫正一次坐标
+				if(side == 1)
+				{
+					angleError  += Position_t.angle;
+					yError  = getPosition_t.Y *cos(ANGTORAD(angleError)) - getPosition_t.X * sin(ANGTORAD(angleError));
+				}
+				else if(side == 2)
+				{
+					angleError += Position_t.angle - 90;
+					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - (2400 - 64.65);
+				}
+				else if(side == 3)
+				{
+					angleError += Position_t.angle - 180;
+					yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - 64.65);
+				}
+				else
+				{
+					angleError += Position_t.angle + 90;
+					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - (-2400 + 64.65);
+				}
 			}
 		} break;
 
-		//换个位置再后退
+		//继续矫正,前进
 		case 5:
-		{
-			StaightCLose((tempx + 500), tempy, 0, 800);
-			if (Position_t.Y > 1000)
 			{
-				tempx = Position_t.X;         //记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
-				tempy = Position_t.Y;
-				state = 3;
-			}
-		} break;
-
-		//继续矫正
-		//前进
-		case 6:
-			{
+				count++;
 				VelCrl(CAN2, 1, 8000);
 				VelCrl(CAN2, 2, -8000);
-				if (Position_t.Y >= 1000)
-					state = 7;
+				if (count > 20)
+				{
+					count = 0;
+					state = 6;
+				}
 			} 
 			break;
 			
 			//通过坐标判断车距离哪面墙近
-		case 7:
-			if(Position_t.X < 0)
+		case 6:
+			side = JudgeSide();
+			if(side == 1)
 			{
-				aimAngle = -90;
+				aimAngle = 0;
 			}
-			else
+			else if(side == 2)
 			{
 				aimAngle = 90;
 			}
-			state = 8;
+			else if(side == 3)
+			{
+				aimAngle = 180;
+			}
+			else
+			{
+				aimAngle = -90;
+			}
+			state = 7;
 			break;
-		//转向90度
-		case 8:
+			
+		//转向目标角度
+		case 7:
 		{
 			TurnAngle(aimAngle, 5000);
-			if (Position_t.angle >= 85 && Position_t.angle <= 95)
+			if (fabs(Position_t.angle - aimAngle) <5)
 			{
 				tempx = Position_t.X;       //记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
 				tempy = Position_t.Y;
-				state = 9;
+				state = 8;
 			}
 		} break;
 
 		//后退
-		case 9:
+		case 8:
 		{
 			StaightCLose(tempx, tempy, aimAngle, -800);
-			if (IfStuck2())
-			//if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_0)==0&&GPIO_ReadInputDataBit(GPIOA,GPIO_Pin_0)==0)
+			if(SWITCHC2==1 && SWITCHC0==1)
 			{
-				angleError = Position_t.angle - 90;
-				x2      = getPosition_t.X;
-				y2      = getPosition_t.Y;
-				xError  = 2400 - POSYSTEM_TO_BACK - x2 * cos(ANGTORAD(angleError)) - y2 * sin(ANGTORAD(angleError));
-				yError  = -y1 *cos(ANGTORAD(angleError)) + x1 * sin(ANGTORAD(angleError));
+				count++;
+			}
+			if(count >= 10)
+			{
+				count = 0;
+				state = 1;
+				
+				//利用第二面墙矫正
+				if(side == 1)
+				{
+					yError  = getPosition_t.Y *cos(ANGTORAD(angleError)) - getPosition_t.X * sin(ANGTORAD(angleError));
+				}
+				else if(side == 2)
+				{
+					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - (2400 - 64.65);
+				}
+				else if(side == 3)
+				{
+					yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - 64.65);
+				}
+				else
+				{
+					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - (-2400 + 64.65);
+				}
+
 				keepgo  = 1;
 				state   = 2;
 				tempx   = 0, tempy = 0;
@@ -825,6 +904,7 @@ int LaserCheck(void)
 	laserGetRight = Get_Adc_Average(RIGHT_LASER, 20);
 	laserGetLeft  = Get_Adc_Average(LEFT_LASER, 20);
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);
+	
 	//如果激光被挡，返回 0
 	if (laserGetRight + laserGetLeft < 4700)
 	{	

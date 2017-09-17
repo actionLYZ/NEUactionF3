@@ -648,30 +648,21 @@ void New_Route(int down, int right, int up, int left)
 int RunEdge(void)
 {
 	int         finish = 0;
-	static int  side = 1, num = 0;
+	static int  side = 1;
 
-	if (side == 1 && num == 0 && Position_t.X > 1800)
-		num = 1;
-	if (side == 1 && num == 1 && Position_t.X > 1800)
+	if (side == 1 && Position_t.X > 1800)
 		side = 2;
 
-	if (side == 2 && num == 1 && Position_t.Y > 4200)
-		num = 2;
-	if (side == 2 && num == 2 && Position_t.Y > 4200)
+	if (side == 2 && Position_t.Y > 4200)
 		side = 3;
 
-	if (side == 3 && num == 2 && Position_t.X < -1800)
-		num = 3;
-	if (side == 3 && num == 3 && Position_t.X < -1800)
+	if (side == 3 && Position_t.X < -1800)
 		side = 4;
 
-	if (side == 4 && num == 3 && Position_t.Y < 600)
-		num = 4;
-	if (side == 4 && num == 4 && Position_t.Y < 600)
+	if (side == 4 && Position_t.Y < 600)
 	{
-		side = 1; num = 0; finish = 1;
+		side = 1; finish = 1;
 	}
-
 	switch (side)
 	{
 	case 1:

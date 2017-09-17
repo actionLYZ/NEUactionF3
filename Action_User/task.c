@@ -48,6 +48,8 @@ int32_t     btV = 0;                  //蓝牙控制发射台转速
 int32_t     g_rightPulse = 0;         //记录右轮的脉冲
 int32_t     g_leftPulse = 0;          //记录左轮的脉冲
 int32_t     g_collectVel = 0;         //记录收球棍子的速度
+float       firstLine = 0;            //记录第一圈的目标直线
+extern float             angleError, xError , yError ;
 void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);
 
@@ -140,22 +142,38 @@ void WalkTask(void)
 	GPIO_ResetBits(GPIOE, GPIO_Pin_6);
 	g_cameraPlan = 2;
 	delay_s(10);
-	CollectBallVelCtr(50);
+	CollectBallVelCtr(60);
+	ShootCtr(60);
 	
 	//等待激光被触发
 	do{
 		g_plan = IfStart();
 	}while(g_plan == 0);
-  g_plan = 1;
+	
+	//记录第一圈的目标直线值
+	if(g_plan == 1)
+	{
+		firstLine = Get_Adc_Average(RIGHT_LASER, 10);
+	}
+	else
+	{
+		firstLine = Get_Adc_Average(LEFT_LASER, 10);
+	}
+	USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)g_plan,(int)firstLine);
+
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-    USART_OUT(UART5,(u8*)"x%d\ty%d\t\r\n",Position_t.X,Position_t.Y);    
+		
+//		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
+//		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
+//		StaightCLose(1600, 0, 0, 1500);
+    USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);    
 		if (ifEscape)
 		{
 			time++;
-			if (time < 100)
+			if (time < 200)
 			{
 				VelCrl(CAN2, 1, -8000);
 				VelCrl(CAN2, 2, 8000);
@@ -173,7 +191,7 @@ void WalkTask(void)
 					VelCrl(CAN2, 2, -4000);
 				}
 			}
-			if (time > 200)
+			if (time > 400)
 			{
 				ifEscape  = 0;
 				time      = 0;
@@ -181,9 +199,8 @@ void WalkTask(void)
 		}
 		else
  		{
-			GoGoGo();
+			GoGoGo(firstLine);
 		}
-//		if(stuckCar())
 		if (stuckCar())
 		{
 			if (carRun)
