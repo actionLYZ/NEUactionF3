@@ -1809,11 +1809,11 @@ int CountBall(void)
 	static int ballNumber=0,ballN=0;
 	ReadActualVel(CAN1, COLLECT_BALL_ID);
 
-	if(g_gather<=235000&&ballN==0)
+	if(g_gather<=234000&&ballN==0)
 	{
 	    ballN=1;
 	}
-	if(g_gather<=230000&&ballN==1)
+	if(g_gather<=225000&&ballN==1)
 	{
 			ballN=2;
 	}
@@ -1821,25 +1821,21 @@ int CountBall(void)
 	{
 			ballN=3;
 	}
-	if(g_gather<=208000&&ballN==3)
-	{
-			ballN=4;
-	}		
-	if(g_gather<=195000&&ballN==4)
-	{
-			ballN=5;
-	}
+//	if(g_gather<=208000&&ballN==3)
+//	{
+//			ballN=4;
+//	}		
 	if(finishShoot ==1)
 	{
 		finishShoot=0;
 		ballNumber=0;
 		ballN=0;
 	}
-	if(g_gather>250000&&ballN)
+	if(g_gather>254000&&ballN)
 	{
 			ballNumber +=ballN;
 			ballN=0;
 	}
-	//USART_OUT(UART5,(u8*)"%d  %d  %d\r\n",g_gather,ballNumber,ballN);	
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",g_gather,ballNumber,ballN);	
 	return ballNumber;
 }

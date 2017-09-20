@@ -48,7 +48,8 @@ int32_t     btV = 0;                  //蓝牙控制发射台转速
 int32_t     g_rightPulse = 0;         //记录右轮的脉冲
 int32_t     g_leftPulse = 0;          //记录左轮的脉冲
 int32_t     g_collectVel = 0;         //记录收球棍子的速度
-float       firstLine = 0;            //记录第一圈的目标直线
+int32_t     g_pushPosition = 0;       //推球装置的位置
+u16       firstLine = 0;              //记录第一圈的目标直线
 extern float             angleError, xError , yError ;
 void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);
@@ -130,60 +131,43 @@ void ConfigTask(void)
 }
 
 //看车是在跑，还是在矫正、射球
-int carRun = 1;
+int carRun = 1,ifEscape = 0, time = 0;
 /*=====================================================执行函数===================================================*/
 void WalkTask(void)
 {
 	CPU_INT08U os_err;
 
 	os_err = os_err;
-	int ifEscape = 0, time = 0;
+	
 	//拉低PE6，拉高PE4的电平，接收球最多区域的角度
 	GPIO_SetBits(GPIOE, GPIO_Pin_4);
 	GPIO_ResetBits(GPIOE, GPIO_Pin_6);
 	g_cameraPlan = 2;
+	
+	//延时，稳定定位系统
 	delay_s(10);
+	
+	//棍子，发射机构的初始速度
 	CollectBallVelCtr(60);
 	ShootCtr(60);
-	
-	//等待激光被触发
-	do{
-		g_plan = IfStart();
-	}while(g_plan == 0);
-	
-	//记录第一圈的目标直线值
-	if(g_plan == 1)
-	{
-		firstLine = Get_Adc_Average(RIGHT_LASER, 10);
-	}
-	else
-	{
-		firstLine = Get_Adc_Average(LEFT_LASER, 10);
-	}
+	//激光触发
+  firstLine = LaserTrigger();
 	USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)g_plan,(int)firstLine);
-
-//	//等待激光被触发
-//	do{
-//		g_plan = IfStart();
-//	}while(g_plan == 0);
-//	//USART_OUT(UART5,(u8*)"p%d\r\n",g_plan);
-//	GPIO_ResetBits(GPIOE, GPIO_Pin_7);     //关闭蜂鸣器
-  g_plan=1;  
 	finishShoot=1;
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
-//		StaightCLose(1600, 0, 0, 1500);
-    USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,CountBall());    
-		StaightCLose(0,0,0,1800);
+//    USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,CountBall()); 
+//		USART_OUT(UART5,(u8*)"%d\r\n",ifEscape);		
+//		CountBall();
+//		ShootBallW();
 		if (ifEscape)
 		{
 			time++;
-			if (time < 200)
+			if (time < 100)
 			{
 				VelCrl(CAN2, 1, -8000);
 				VelCrl(CAN2, 2, 8000);
@@ -201,7 +185,7 @@ void WalkTask(void)
 					VelCrl(CAN2, 2, -4000);
 				}
 			}
-			if (time > 400)
+			if (time > 300)
 			{
 				ifEscape  = 0;
 				time      = 0;
@@ -211,14 +195,13 @@ void WalkTask(void)
  		{
 			GoGoGo(firstLine);
 		}
-		if (stuckCar())
+		if (stuckCar(100))
 		{
 			if (carRun)
 				ifEscape = 1;
 			else
 				ifEscape = 0;
 		}
-		
 	}
 }
 
@@ -236,7 +219,6 @@ void TwoWheelWalk(float x, float y, float vel)
 	TwoWheelVelControl(vel, rotateVel);
 //	MultiPinThroughPro(0,0,x,y,vel);
 }
-
 
 void TwoWheelVelControl(float vel, float rotateVel)
 {

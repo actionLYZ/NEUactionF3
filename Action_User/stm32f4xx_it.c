@@ -66,6 +66,7 @@ extern int32_t     btAngle;
 extern int32_t     g_rightPulse ;
 extern int32_t     g_leftPulse ;
 extern int32_t     g_collectVel;
+extern int32_t     g_pushPosition;
 int               shootStart = 0, ballColor = 0,youqiu=0;
 int32_t g_gather;
 
@@ -178,6 +179,13 @@ void CAN1_RX0_IRQHandler(void)
 		if(msg.data32[0] == 0x00005856)
 		{
 				g_gather = msg.data32[1];
+		}
+	}
+	else if(Id == (0x280 + PUSH_BALL_ID))
+	{
+		if(msg.data32[0] == 0x00005850)
+		{
+			g_pushPosition = msg.data32[1];
 		}
 	}
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);

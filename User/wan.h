@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "lyz.h"
+#include "stm32f4xx.h"
 /*=====================================================结构体定义===================================================*/
 //定位系统
 typedef struct
@@ -57,7 +58,7 @@ typedef union
 #define DISRIGHTGYRO            492.598
 
 //投射点到陀螺仪的距离
-#define DISSHOOTTOGYRO          50.0
+#define DISSHOOTTOGYRO          97.2
 
 //PE4 摄像头拉数据
 #define READPE4                 (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_4))
@@ -202,7 +203,7 @@ void ShootCtr(float rps);
 int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status);
 
 //用轮子返回的脉冲数判断车是否被困
-int stuckCar(void);
+int stuckCar(uint16_t stuckV);
 
 //读取当前车的速度（mm/s,以陀螺仪为参考）
 float RealVel(void);
@@ -215,3 +216,6 @@ int JudgeSide(void);
 
 //画圆之后的矩形扫场
 int AfterCircle(void);
+
+//激光触发函数
+u16 LaserTrigger(void);

@@ -8,6 +8,7 @@
 #include "stm32f4xx_it.h"
 #include "c0.h"
 #include "stm32f4xx_adc.h"
+#include "stdlib.h"
 /*==============================================全局变量声明区============================================*/
 
 extern POSITION_T Position_t;
@@ -38,6 +39,7 @@ extern int32_t     btAngle;
 extern int32_t     g_rightPulse ;
 extern int32_t     g_leftPulse ;
 extern int32_t     g_collectVel;
+extern int32_t     g_pushPosition;
 extern int         g_plan;
 /*======================================================================================
    函数定义	  ：		Send Get函数
@@ -483,7 +485,7 @@ void CollecMostBall1(void)
 int RunWithCamera1(uint8_t circleNum)
 {
 	static uint8_t  i       = 0, count = 0;
-	static uint8_t  circle  = 0;
+	static uint8_t  circle  = 1;
   uint8_t success = 0;
 	//USART_OUT(UART5,(u8*)"X%d\ti%d\r\n",(int)Position_t.X,(int)i);
 	switch (i)
@@ -496,6 +498,7 @@ int RunWithCamera1(uint8_t circleNum)
 		  //直行200ms
 		  if(count >= 20)
 			{
+				count = 0;
 				//判断车现在在哪一面墙,从而决定下一步i的值
 				if(fabs(Position_t.angle) < 20)
 				{
@@ -515,7 +518,7 @@ int RunWithCamera1(uint8_t circleNum)
 				}
 			}
 			break;
-			
+
 		//起步先转弯到-90°，然后i++;进入下一个状态
 		case 1:
 			angClose(TURNSPEED, -90, 100);
@@ -1140,11 +1143,12 @@ int ShootBallW(void)
 	static uint16_t count = 0, noBall = 0, flag = 0;
   POSXY_T  posShoot = { 0, 0 };
 	int      success = 0;
-	static float  shootAngle = 0, distance = 0,aimAngle = 0, V = 0, rps = 0;
+	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
 	
-	//问询航向电机角度和收球电机速度
+	//问询航向电机角度、收球电机速度、推球电机的位置
   ReadActualPos(CAN1, GUN_YAW_ID);
 	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
+	ReadActualPos(CAN1, PUSH_BALL_ID);
 
 	//计算投球点的坐标
 	posShoot  = ShootPointPos();
@@ -1153,7 +1157,7 @@ int ShootBallW(void)
 	if (ballColor == WHITE)
 	{
 		noBall = 0;
-		distance = sqrt((posShoot.X - g_plan * WHITEX) * (posShoot.X - g_plan * WHITEX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY)) + 21.16;
+		distance = sqrt((posShoot.X - g_plan * WHITEX) * (posShoot.X - g_plan * WHITEX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
 
 		//将角度装换成陀螺仪角度坐标系里的角度值
 		aimAngle  = atan2(BALLY - posShoot.Y, g_plan * WHITEX - posShoot.X);
@@ -1161,18 +1165,20 @@ int ShootBallW(void)
 
 		//枪顺时针转为正，逆时针为负
 		aimAngle = AvoidOverAngle(aimAngle);
+		shootAngle = AvoidOverAngle(Position_t.angle - aimAngle) + 2;
 	}
 
 	//球是黑球
 	else if (ballColor == BLACK)
 	{
 		noBall = 0;
-		distance = sqrt((posShoot.X - g_plan * BLACKX) * (posShoot.X - g_plan * BLACKX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY)) + 21.16;
+		distance = sqrt((posShoot.X - g_plan * BLACKX) * (posShoot.X - g_plan * BLACKX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
 
 		//将角度转换成陀螺仪角度坐标系里的角度值
 		aimAngle  = atan2(BALLY - posShoot.Y, g_plan * BLACKX - posShoot.X);
 		aimAngle  = RADTOANG(aimAngle) - 90;
 		aimAngle  = AvoidOverAngle(aimAngle);
+		shootAngle = AvoidOverAngle(Position_t.angle - aimAngle) + 2;
 	}
 	
 	// 没球,4s内来回拨动一次
@@ -1195,11 +1201,6 @@ int ShootBallW(void)
 		{
 			PushBallReset();
 		}
-//		if(noBall > 450 && noBall < 460)
-//		{
-//			PushBallReset();
-//		}
-		// 4s noBall依然没有清零，则认为车内没球
 		if(noBall > 900)
 		{
 			noBall = 0;
@@ -1207,83 +1208,19 @@ int ShootBallW(void)
 		}
 	}
 	
-	//计算在四面墙枪应该转的角度(顺时针+，逆时针-)
-	if(fabs(Position_t.angle) < 20 && ballColor)
-	{
-		shootAngle = AvoidOverAngle(0 - aimAngle) + 2;
-		
-		//白球
-		if(ballColor == WHITE)
-		{
-			//车距离中轴线1m之内,转速+1的调节量
-			if(fabs(Position_t.X) < 1000)
-			{
-				rps = (0.009218 * Position_t.X * Position_t.X + 2.082 * Position_t.X + 263200) / 4096 + 1.6;
-			}
-			
-			//其他的位置转速+2的调节量
-			else
-			{
-				rps = (0.009218 * Position_t.X * Position_t.X + 2.082 * Position_t.X + 263200) / 4096 + 1.6;
-			}
-		}
-		
-		//黑球
-		else
-		{
-			rps = (0.009218 * Position_t.X * Position_t.X - 2.082 * Position_t.X + 263200) / 4096 + 1.5;
-		}
-	}
-	else if(70 < Position_t.angle && Position_t.angle < 110 && ballColor)
-	{
-		//角度计算
-		shootAngle = AvoidOverAngle(90 - aimAngle) + 3;
-		
-		//射速计算
-    V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
-		
-		//白球
-		if(ballColor == WHITE)
-		{
-			rps = 2 * V / (PI * 66) + 16.7;
-		}
-		else
-		{
-			rps = 2 * V / (PI * 66) + 16.3;
-		}
-	}
-	else if(160 < Position_t.angle && Position_t.angle < -160 && ballColor)
-	{
-		shootAngle = AvoidOverAngle(180 - aimAngle) + 3;
-		
-		//射速计算
-    V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
-		rps = 2 * V / (PI * 66) + 16.5;
-	}
-	else if(-110 < Position_t.angle && Position_t.angle < -70 && ballColor)
-	{
-		shootAngle = AvoidOverAngle(-90 - aimAngle) + 2;
-		
-		//射速计算
-    V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
-		rps = 2 * V / (PI * 66) + 16.5;
-	}
-  else
-	{
-	}
 //球出射速度(mm/s)与投球点距离篮筐的距离的关系
-//	V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
-//	rps = 2 * V / (PI * 66) + 16.5;
-//	rps = 0.01434f * V - 6.086f;
+	V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 	
-// rps=distance/sqrt(5.539*distance-1904.73);
+	//自己测的关系
+	rps = 0.01402f * V - 5.457f;
 // 表明射球蓝牙没有收到主控发送的数据
 
 	if (fabs(rps + g_shootV / 4096) > 0.1)
 	{
 		  ShootCtr(rps);
   }
-	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)distance);
+//	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)distance);
+	
 	//控制发射航向角(30ms发一次)
 	flag++;
 	flag = flag % 3;
@@ -1293,26 +1230,19 @@ int ShootBallW(void)
 	}
 
   //枪的角度和转速到位,推球
- 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 2.0f && fabs(rps + g_shootFactV / 4096) < 5.0 && ballColor)
+ 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.5f && fabs(rps + g_shootFactV / 4096) < 2.0 && ballColor)
 	{
-		count++;
-		
-		//100ms,确定球被推出去
-		if(count == 80)
-		{
-			PushBall();
-		}
-		
-		if(count == 160)
+		if(g_pushPosition > 3900)
 		{
 			PushBallReset();
 		}
-		if(count >= 161)
+		if(g_pushPosition < 100)
 		{
-			count = 0;
+			PushBall();
 		}
 	}
-	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",ballColor,count,noBall,success);
+	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",ballColor,count,noBall,success,(int)g_pushPosition);
 	return success;
 }
 /*======================================================================================
@@ -1389,13 +1319,13 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
-		  R1 += 300;
+		  R1 += 400;
 		}
 		
 		//否则,缩小扫场
 		else
 		{
-			R1 -= 300;
+			R1 -= 400;
 		}
 		
 		//达到预定圈数,success置1,acceSpeed置0
@@ -1459,11 +1389,11 @@ float RealVel(void)
 }
 /*======================================================================================
    函数定义		：		  利用轮子返回的当前转速判断车是否卡住
-   函数参数		：		  正常走形时的速度(mm/s)
+   函数参数		：		  设定的认为车子被困的速度
 
    函数返回值	：	    如果车被卡,返回1
  =====================================================================================*/
-int stuckCar(void)
+int stuckCar(uint16_t stuckV)
 {
 	static float V = 0;
 	static uint8_t count = 0;
@@ -1471,10 +1401,10 @@ int stuckCar(void)
 	
 	//获取车当前的速度
 	V = RealVel();
-//	USART_OUT(UART5,(u8*)"c%d\tV%d\r\n",count,(int)V);
+	//USART_OUT(UART5,(u8*)"c%d\tV%d\r\n",count,(int)V);
 	
-	//车速小于200mm/s,认为车被困,count++
-	if(V < 200)
+	//车速小于stuckV,认为车被困,count++
+	if(V < stuckV)
 	{
 		count++;
 	}
@@ -1586,7 +1516,7 @@ int JudgeSide(void)
 	}
 	else
 	{
-		if(Position_t.Y + 64.65 > (2400 + Position_t.X))
+		if((Position_t.Y + 64.65) > (2400 + Position_t.X))
 		{
 			side = 4; 
 		}
@@ -1595,6 +1525,7 @@ int JudgeSide(void)
 			side = 1;
 		}
 	}
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)side,(int)Position_t.X,(int)Position_t.Y);
 	return side;
 }
 /*======================================================================================
@@ -1610,27 +1541,27 @@ int AfterCircle(void)
 	switch(step)
 	{
 		case 0:
-			StaightCLose(1850, 0, 0, 1500);
+			StaightCLose(1850, 0, 0, 1800);
 			if(Position_t.Y > 3200)
 				step++;
 			break;
 		case 1:
-			StaightCLose(0, 4200, 90, 1500);
+			StaightCLose(0, 4200, 90, 1800);
 			if(Position_t.X < -800)
 				step++;
 			break;
 		case 2:
-			StaightCLose(-1800, 0, 180, 1500);
+			StaightCLose(-1800, 0, 180, 1800);
 			if(Position_t.Y < 1600)
 				step++;
 			break;
 		case 3:
-			StaightCLose(0, 600, -90, 1500);
+			StaightCLose(0, 600, -90, 1800);
 			if(Position_t.X > 800)
 				step++;
 			break;
 		case 4:
-			StaightCLose(1800, 0, 0, 1500);
+			StaightCLose(1800, 0, 0, 1800);
 			if(Position_t.Y > 2100)
 			{
 				step = 0;
@@ -1639,4 +1570,59 @@ int AfterCircle(void)
 			break;
 	}
 	return success;
+}
+/*======================================================================================
+   函数定义		：		  画圆之后的矩形扫场
+   函数参数		：		  
+   
+   函数返回值	：	    完成之后返回1
+ =====================================================================================*/
+u16 LaserTrigger(void)
+{
+	u16 laser = 0, lastLaser = 0, count = 0;
+	
+	//等待激光被触发
+	do
+	{
+		g_plan = IfStart();
+	}while(g_plan == 0);
+	
+	//等待激光值稳定
+	if(g_plan == 1)
+	{
+		do
+		{
+			laser = Get_Adc_Average(RIGHT_LASER, 10);
+			//USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",lastLaser,laser,count);
+			if(abs(laser - lastLaser) < 10)
+			{
+				count++;
+			}
+			lastLaser = laser;
+		}while(count < 20);
+	}
+	else
+	{
+		do
+		{
+			laser = Get_Adc_Average(LEFT_LASER, 10);
+			if(abs(laser - lastLaser) < 10)
+			{
+				count++;
+			}
+			lastLaser = laser;
+		}while(count < 20);
+	}
+	count = 0; 
+	return laser;
+}
+/*======================================================================================
+   函数定义		：		  边走边投函数
+   函数参数		：		  
+   
+   函数返回值	：	    
+ =====================================================================================*/
+void RunAndShoot(void)
+{
+	
 }
