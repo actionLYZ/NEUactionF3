@@ -1806,39 +1806,63 @@ void PathPlan(float camX, float camY)
 =======================================================================================*/
 int CountBall(void)
 {
-	static int ballNumber=0,ballN=0;
+	static int ballNumber=0,ballN=0,sum=0;
 	ReadActualVel(CAN1, COLLECT_BALL_ID);
-
-	if(g_gather<=235000&&ballN==0)
+  if(g_gather<=234)
 	{
-	    ballN=1;
+		sum += g_gather;		
 	}
-	if(g_gather<=230000&&ballN==1)
-	{
-			ballN=2;
-	}
-	if(g_gather<=214000&&ballN==2)
-	{
-			ballN=3;
-	}
-	if(g_gather<=208000&&ballN==3)
-	{
-			ballN=4;
-	}		
-	if(g_gather<=195000&&ballN==4)
-	{
-			ballN=5;
-	}
+//	if(g_gather<=234000&&ballN==0)
+//	{
+//	    ballN=1;
+//	}
+//	if(g_gather<=225000&&ballN==1)
+//	{
+//			ballN=2;
+//	}
+//	if(g_gather<=214000&&ballN==2)
+//	{
+//			ballN=3;
+//	}
+//	if(g_gather<=208000&&ballN==3)
+//	{
+//			ballN=4;
+//	}		
+//	if(g_gather<=195000&&ballN==4)
+//	{
+//			ballN=5;
+//	}
 	if(finishShoot ==1)
 	{
 		finishShoot=0;
 		ballNumber=0;
 		ballN=0;
 	}
-	if(g_gather>250000&&ballN)
+	if(g_gather>254)
+	{
+		if(sum>=400&&sum<=2000)
+		{
+			ballN=1;
+		}
+		else if(sum>2000&&sum<=5000)
+		{
+			ballN=2;
+		}
+		else if(sum>5000)
+		{
+			ballN=3;
+		}
+		else 
+		{
+			ballN=0; 
+			sum=0;
+		}
+	}
+	if(ballN)
 	{
 			ballNumber +=ballN;
 			ballN=0;
+		  sum=0;
 	}
 	//USART_OUT(UART5,(u8*)"%d  %d  %d\r\n",g_gather,ballNumber,ballN);	
 	return ballNumber;

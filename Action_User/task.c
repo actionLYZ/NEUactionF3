@@ -144,6 +144,7 @@ void WalkTask(void)
 	g_cameraPlan = 2;
 	delay_s(10);
 	CollectBallVelCtr(60);
+	delay_s(2);	
 	ShootCtr(60);
 	
 	//等待激光被触发
@@ -180,6 +181,7 @@ void WalkTask(void)
 //		StaightCLose(1600, 0, 0, 1500);
     USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,CountBall());    
 		StaightCLose(0,0,0,1800);
+		/*
 		if (ifEscape)
 		{
 			time++;
@@ -218,7 +220,7 @@ void WalkTask(void)
 			else
 				ifEscape = 0;
 		}
-		
+		*/
 	}
 }
 

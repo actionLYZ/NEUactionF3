@@ -178,6 +178,7 @@ void CAN1_RX0_IRQHandler(void)
 		if(msg.data32[0] == 0x00005856)
 		{
 				g_gather = msg.data32[1];
+			  g_gather = g_gather/1000;
 		}
 	}
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
