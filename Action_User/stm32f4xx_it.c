@@ -204,6 +204,11 @@ void CAN1_RX0_IRQHandler(void)
 /*************定时器2******start************/
 //每1ms调用一次
 
+/**********光电门的变量************/
+float blindTime = 0.0f;
+float photoElectricityCount = 0.0f;//球的数量
+/**********************************/
+
 extern OS_EVENT *PeriodSem;
 void TIM2_IRQHandler(void)
 {
@@ -220,6 +225,23 @@ void TIM2_IRQHandler(void)
 	if (TIM_GetITStatus(TIM2, TIM_IT_Update) == SET)
 	{
 		//实现10ms 发送1次信号量
+		
+		//光电门数球
+		
+		if(!ballVacant)
+		{
+			blindTime++;
+		}
+		else
+		{
+			if(blindTime > 0)
+			{
+				photoElectricityCount += (int)((blindTime * RealVel() / 1000) / 38) + 0.7;
+			}
+			blindTime = 0;
+		}
+		
+		
 		periodCounter--;
 		if (periodCounter == 0)
 		{

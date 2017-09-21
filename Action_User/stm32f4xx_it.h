@@ -45,6 +45,9 @@ void DebugMon_Handler(void);
 float GetAngleZ(void);
 float GetPosx(void);
 float GetPosy(void);
+	
+extern float photoElectricityCount;//光电门数到的球数	
+	
 #define WAN
 #ifdef __cplusplus
 }

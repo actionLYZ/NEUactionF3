@@ -126,6 +126,9 @@ void ConfigTask(void)
 
 	VelCrl(CAN2, 1, 0);
 	VelCrl(CAN2, 2, 0);
+	
+	//光电门初始化
+	PhotoelectricityInit();
 
 	OSTaskSuspend(OS_PRIO_SELF);
 }
@@ -159,7 +162,9 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-//		CountBall();
+		CountBall();
+		//StaightCLose(0, 0, 0, 1800);
+		
 		if (ifEscape)
 		{
 			//逃逸完成后，ifEscape清零
@@ -179,6 +184,7 @@ void WalkTask(void)
 			else
 				ifEscape = 0;
 		}
+		
 	}
 }
 

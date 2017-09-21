@@ -1806,51 +1806,30 @@ void PathPlan(float camX, float camY)
 =======================================================================================*/
 int CountBall(void)
 {
-	static int ballNumber=0,ballN=0,sum=0;
+	static int ballNumber=0,ballN=0,sum=0,beginSum=0;
 	ReadActualVel(CAN1, COLLECT_BALL_ID);
   if(g_gather<=234)
 	{
-		sum += g_gather;		
+		beginSum = 1;
 	}
-//	if(g_gather<=234000&&ballN==0)
-//	{
-//	    ballN=1;
-//	}
-//	if(g_gather<=225000&&ballN==1)
-//	{
-//			ballN=2;
-//	}
-//	if(g_gather<=214000&&ballN==2)
-//	{
-//			ballN=3;
-//	}
-//	if(g_gather<=208000&&ballN==3)
-//	{
-//			ballN=4;
-//	}		
-//	if(g_gather<=195000&&ballN==4)
-//	{
-//			ballN=5;
-//	}
-	if(finishShoot ==1)
+	if(g_gather>=252)
 	{
-		finishShoot=0;
-		ballNumber=0;
-		ballN=0;
-	}
-	if(g_gather>254)
-	{
-		if(sum>=400&&sum<=2000)
+		beginSum = 0;
+		if(sum>=50&&sum<=1300)
 		{
 			ballN=1;
 		}
-		else if(sum>2000&&sum<=5000)
+		else if(sum>1300&&sum<=1800)
 		{
 			ballN=2;
 		}
-		else if(sum>5000)
+		else if(sum>1800&&sum<=2500)
 		{
 			ballN=3;
+		}
+		else if(sum>2500)
+		{
+			ballN=4;
 		}
 		else 
 		{
@@ -1858,12 +1837,23 @@ int CountBall(void)
 			sum=0;
 		}
 	}
+	if(beginSum)
+	{
+		sum += (252-g_gather);
+	}
+	if(finishShoot ==1)//射球完毕的标志
+	{
+		finishShoot=0;
+		ballNumber=0;
+		ballN=0;
+	}
+
 	if(ballN)
 	{
 			ballNumber +=ballN;
 			ballN=0;
 		  sum=0;
 	}
-	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,sum,ballNumber,ballN);
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",sum,g_gather,ballN,ballNumber,(int)photoElectricityCount);
 	return ballNumber;
 }

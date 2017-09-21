@@ -100,13 +100,13 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	//计算距离输出
 	Ddis = Piont2Straight(aimx, aimy, angle);
 
-//	if (fabs(speed) <= 500)
-//		Dinput = 9 * Ddis; 
-//	else if (fabs(speed) <= 1000)
-//		Dinput = 12 * Ddis ;
-//	else if (fabs(speed) <= 1500)
-//		Dinput = 18 * Ddis;
-//	else
+	if (fabs(speed) <= 500)
+		Dinput = 9 * Ddis; 
+	else if (fabs(speed) <= 1000)
+		Dinput = 12 * Ddis ;
+	else if (fabs(speed) <= 1500)
+		Dinput = 18 * Ddis;
+	else
 		Dinput = 15 * Ddis;
 
 
@@ -117,14 +117,14 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	if (Dangle < -180)
 		Dangle += 360;
 
-//	if (fabs(speed) <= 500)
-//		Ainput = 100 * Dangle;
-//	else if (fabs(speed) <= 1000)
-//		Ainput = 160 * Dangle;
-//	else if (fabs(speed) <= 1500)
-//		Ainput = 250 * Dangle;
-//	else
+	if (fabs(speed) <= 500)
+		Ainput = 100 * Dangle;
+	else if (fabs(speed) <= 1000)
+		Ainput = 160 * Dangle;
+	else if (fabs(speed) <= 1500)
 		Ainput = 250 * Dangle;
+	else
+		Ainput = 260 * Dangle;
 
 
 	//计算脉冲
@@ -145,19 +145,24 @@ extern int carRun;
    函数参数	：		方案：暂定1为逆时针(右侧激光触发)，-1为顺时针(左侧激光触发)
    函数返回值：		无
    =======================================================================================*/
-void GoGoGo(float firstLine)
+void GoGoGo(float fLine)
 {
-	static int  state = 2, shootTime = 0;             //应该执行的状态
-	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
+	static int  state = 1, shootTime = 0;             //应该执行的状态
+	static int  length = WIDTH / 2, wide = WIDTH / 2,count = 0; //长方形跑场参数
 
 	switch (state)
 	{
 		//第一圈放球区附近跑场
 		case 1:
 		{
-			shootStart  = 0;
-			carRun      = 1;
-			if (FirstRound(firstLine) == 1)
+			count++;
+			if(count > 100)
+			{
+				shootStart  = 0;
+				carRun      = 1;
+				count = 100;
+			}
+			if (FirstRound(fLine) == 1)
 			{
 				//初始化长方形跑场参数
 				length  += SPREAD_DIS;
@@ -286,7 +291,7 @@ void GoGoGo(float firstLine)
    用时				：			未测算
    (WIDTH为小车宽度)
    =======================================================================================*/
-bool FirstRound(float firstLine)
+bool FirstRound(float firLine)
 {
 	static int state = 1;
   static float speed = 800;
@@ -303,7 +308,7 @@ bool FirstRound(float firstLine)
 		//右边，目标角度0度
 		case 1:
 		{
-			StaightCLose(firstLine, 0, 0, speed);
+			StaightCLose(firLine, 0, 0, speed);
 			if (Position_t.Y >= 3100 + WIDTH / 2 - advance)
         state = 2;
 		} break;
