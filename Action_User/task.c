@@ -149,6 +149,7 @@ void WalkTask(void)
 	
 	//棍子，发射机构的初始速度
 	CollectBallVelCtr(60);
+	delay_s(2);	
 	ShootCtr(60);
 	//激光触发
   firstLine = LaserTrigger();
@@ -158,12 +159,7 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-//		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
-//		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
-//    USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,CountBall()); 
-//		USART_OUT(UART5,(u8*)"%d\r\n",ifEscape);		
 //		CountBall();
-//		ShootBallW();
 		if (ifEscape)
 		{
 			//逃逸完成后，ifEscape清零
