@@ -42,7 +42,7 @@ int IfStart(void)
 	u16 right = 0, left = 0;
 	right = Get_Adc_Average(RIGHT_LASER, 30);
 	left = Get_Adc_Average(LEFT_LASER, 30);
-	USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
+//	USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
 	if (right < 2000)     //右侧激光触发
 	{
 		return 1;
@@ -153,126 +153,130 @@ void GoGoGo(float firstLine)
 
 	switch (state)
 	{
-	//第一圈放球区附近跑场
-	case 1:
-	{
-		shootStart  = 0;
-		carRun      = 1;
-		if (FirstRound(firstLine) == 1)
+		//第一圈放球区附近跑场
+		case 1:
 		{
-			//初始化长方形跑场参数
-			length  += SPREAD_DIS;
-			wide    += SPREAD_DIS;
-			state   = 2;
-		}
-	}
-	break;
-
-	//向外扩散扫场
-	case 2:
-	{
-//		if (RunRectangle(length, wide, RUN_SPEED))
-//		{
-//			//逐渐增加长方形跑场参数
-//			length  += SPREAD_DIS;
-//			wide    += SPREAD_DIS;
-//			if (length >= 1700 - WIDTH / 2 - 100)
-//				length = 1700 - WIDTH / 2 - 100;
-//			if (wide >= 2125 - WIDTH / 2 - 100)
-//				wide = 2125 - WIDTH / 2 - 100;
-//		}
-//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-		if(sweepYuan(1800, 1000, 3, 1))
-			state = 3;
-	}
-	break;
-	
-	//紧随画圆后矩形扫场
-  case 3:
-		if(AfterCircle())
-			state = 4;
-		break;
-	//进行坐标校正
-	case 4:
-	{
-		carRun = 0;
-		if (CheckPosition())
-		{
-			state = 5;
-			VelCrl(CAN2, 1, 0);
-			VelCrl(CAN2, 2, 0);
-		}
-			
-	} break;
-
-	case 5:
-	{
-		carRun      = 0;
-		shootStart  = 1;
-		if (ShootBallW())
-		{
-			state = 6;
-			shootStart = 0;
-			shootTime++;
-			switch (shootTime)
+			shootStart  = 0;
+			carRun      = 1;
+			if (FirstRound(firstLine) == 1)
 			{
-			case 1:
-			{
-				state = 6;
-				if (cameraScheme == 0)
-				{
-					cameraScheme = 1;
-					GPIO_SetBits(GPIOE, GPIO_Pin_4);
-					GPIO_ResetBits(GPIOE, GPIO_Pin_6);
-				}
-				else if (cameraScheme == 1)
-				{
-					cameraScheme = 2;
-					GPIO_SetBits(GPIOE, GPIO_Pin_4);
-					GPIO_SetBits(GPIOE, GPIO_Pin_6);
-				}
-				else if (cameraScheme == 2)
-				{
-					cameraScheme = 3;
-					GPIO_ResetBits(GPIOE, GPIO_Pin_4);
-					GPIO_SetBits(GPIOE, GPIO_Pin_6);
-				}
-				else
-				{
-				}
-			} break;
-
-			case 2: state = 7; break;
-
-			default: break;
+				//初始化长方形跑场参数
+				length  += SPREAD_DIS;
+				wide    += SPREAD_DIS;
+				state   = 2;
 			}
 		}
-		else
-		{
-		}
-	} break;
-
-	case 6:
-	{
-		carRun      = 1;
-		if(RunWithCamera1(2))
-		{
-			state = 4;
-		}
-	} break;
-
-	case 7:
-	{
-		carRun = 1;
-		if (RunEdge())
-		{
-			state     = 4;
-			shootTime = 0;
-		}
-	} break;
-  
-	default:
 		break;
+
+		//向外扩散扫场
+		case 2:
+		{
+	//		if (RunRectangle(length, wide, RUN_SPEED))
+	//		{
+	//			//逐渐增加长方形跑场参数
+	//			length  += SPREAD_DIS;
+	//			wide    += SPREAD_DIS;
+	//			if (length >= 1700 - WIDTH / 2 - 100)
+	//				length = 1700 - WIDTH / 2 - 100;
+	//			if (wide >= 2125 - WIDTH / 2 - 100)
+	//				wide = 2125 - WIDTH / 2 - 100;
+	//		}
+	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
+			if(sweepYuan(1800, 1000, 3, 1))
+				state = 3;
+		}
+		break;
+		
+		//紧随画圆后矩形扫场
+		case 3:
+			if(AfterCircle())
+				state = 4;
+			break;
+		//进行坐标校正
+		case 4:
+		{
+			carRun = 0;
+			if (CheckPosition())
+			{
+				state = 5;
+				VelCrl(CAN2, 1, 0);
+				VelCrl(CAN2, 2, 0);
+			}
+				
+		} break;
+
+		case 5:
+		{
+			carRun      = 0;
+			shootStart  = 1;
+			if (ShootBallW())
+			{
+				state = 6;
+				shootStart = 0;
+				shootTime++;
+				switch (shootTime)
+				{
+					case 1:
+					{
+						state = 6;
+						if (cameraScheme == 0)
+						{
+							cameraScheme = 1;
+							GPIO_SetBits(GPIOE, GPIO_Pin_4);
+							GPIO_ResetBits(GPIOE, GPIO_Pin_6);
+						}
+						else if (cameraScheme == 1)
+						{
+							cameraScheme = 2;
+							GPIO_SetBits(GPIOE, GPIO_Pin_4);
+							GPIO_SetBits(GPIOE, GPIO_Pin_6);
+						}
+						else if (cameraScheme == 2)
+						{
+							cameraScheme = 3;
+							
+							GPIO_ResetBits(GPIOE, GPIO_Pin_4);
+							GPIO_SetBits(GPIOE, GPIO_Pin_6);
+						}
+						else
+						{
+						}
+					} 
+					break;
+
+					case 2: 
+						state = 7;
+					break;
+
+				default: break;
+				}
+			}
+			else
+			{
+			}
+		} break;
+
+		case 6:
+		{
+			carRun      = 1;
+			if(RunWithCamera1(2))
+			{
+				state = 4;
+			}
+		} break;
+
+		case 7:
+		{
+			carRun = 1;
+			if (RunEdge())
+			{
+				state     = 4;
+				shootTime = 0;
+			}
+		} break;
+		
+		default:
+			break;
 	}
 }
 
@@ -286,23 +290,15 @@ void GoGoGo(float firstLine)
 bool FirstRound(float firstLine)
 {
 	static int state = 1;
-  float speed = 0, advance = 0;
-	
+  static float speed = 800;
+	float advance = 0;
 	//第一条目标直线距离铁框太近,就让它贴铁框走
-	if(firstLine < 800)
+	speed += 5;
+	if(speed >= 1800)
 	{
-		speed = 1000;
-		advance = 500;
-		if(firstLine < 550)
-		{
-			firstLine = 525;
-		}
+		speed = 1800;
 	}
-	else
-	{
-		speed = 1500;
-		advance = 800;
-	}
+	advance = 1000;
 	switch (state)
 	{
 		//右边，目标角度0度
@@ -488,6 +484,7 @@ int CheckPosition(void)
 				aimAngle = -90;
 			}
 			state = 2;
+			USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",(int)side,(int)aimAngle,(int)Position_t.X,(int)Position_t.Y);
 		} break;
 
 		//原地旋转至目标角度
@@ -508,8 +505,13 @@ int CheckPosition(void)
 		{
 			StaightCLose(tempx, tempy, aimAngle, -500);
 			
+			//后退时如果被困，则进入状态9
+//			if(stuckCar(100))
+//			{
+//				state = 10;
+//			}
 			//两个行程开关触发,则进入下一次状态进行激光矫正
-			if(SWITCHC2==1 && SWITCHC0==1)
+			if(SWITCHC2 == 1 && SWITCHC0 == 1)
 			{
 				count++;
 			}
@@ -526,7 +528,7 @@ int CheckPosition(void)
 			if (LaserCheck())
 			{
 				keepgo  = 1;
-				state   = 2;
+				state   = 1;
 				tempx   = 0, tempy = 0;
 			}
 			else
@@ -642,6 +644,11 @@ int CheckPosition(void)
 				tempx   = 0, tempy = 0;
 			}
 		} break;
+//		case 9:
+//			
+//			VelCrl(CAN2, 1, 5000);
+//			VelCrl(CAN2, 2, -5000);
+//			break;
 	}
 	return keepgo;
 }
