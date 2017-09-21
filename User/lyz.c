@@ -96,20 +96,19 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 {
 	float         Ddis, Dangle;     //距离与角度差
 	float         Dinput, Ainput;   //距离与角度PID计算结果
-	static float  LDdis, LDangle;   //上一次距离与角度差
 
 	//计算距离输出
 	Ddis = Piont2Straight(aimx, aimy, angle);
 
-	if (fabs(speed) <= 500)
-		Dinput = 9 * Ddis + 1.5 * (Ddis - LDdis);
-	else if (fabs(speed) <= 1000)
-		Dinput = 12 * Ddis + 3 * (Ddis - LDdis);
-	else if (fabs(speed) <= 1500)
-		Dinput = 18 * Ddis + 3 * (Ddis - LDdis);
-	else
-		Dinput = 24 * Ddis + 3 * (Ddis - LDdis);
-	LDdis = Ddis;
+//	if (fabs(speed) <= 500)
+//		Dinput = 9 * Ddis; 
+//	else if (fabs(speed) <= 1000)
+//		Dinput = 12 * Ddis ;
+//	else if (fabs(speed) <= 1500)
+//		Dinput = 18 * Ddis;
+//	else
+		Dinput = 15 * Ddis;
+
 
 	//计算角度输出
 	Dangle = (angle - Position_t.angle);
@@ -118,15 +117,15 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	if (Dangle < -180)
 		Dangle += 360;
 
-	if (fabs(speed) <= 500)
-		Ainput = 100 * Dangle + 1 * (Dangle - LDangle);
-	else if (fabs(speed) <= 1000)
-		Ainput = 160 * Dangle + 30 * (Dangle - LDangle);
-	else if (fabs(speed) <= 1500)
-		Ainput = 250 * Dangle + 30 * (Dangle - LDangle);
-	else
-		Ainput = 350 * Dangle + 30 * (Dangle - LDangle);
-	LDangle = Dangle;
+//	if (fabs(speed) <= 500)
+//		Ainput = 100 * Dangle;
+//	else if (fabs(speed) <= 1000)
+//		Ainput = 160 * Dangle;
+//	else if (fabs(speed) <= 1500)
+//		Ainput = 250 * Dangle;
+//	else
+		Ainput = 250 * Dangle;
+
 
 	//计算脉冲
 	if (speed >= 0)

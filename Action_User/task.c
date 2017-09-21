@@ -131,7 +131,7 @@ void ConfigTask(void)
 }
 
 //看车是在跑，还是在矫正、射球
-int carRun = 1,ifEscape = 0, time = 0;
+int carRun = 1,ifEscape = 0;
 /*=====================================================执行函数===================================================*/
 void WalkTask(void)
 {
@@ -166,29 +166,10 @@ void WalkTask(void)
 //		ShootBallW();
 		if (ifEscape)
 		{
-			time++;
-			if (time < 100)
+			//逃逸完成后，ifEscape清零
+			if(Escape())
 			{
-				VelCrl(CAN2, 1, -8000);
-				VelCrl(CAN2, 2, 8000);
-			}
-			else
-			{
-				if (!In_Or_Out())
-				{
-					VelCrl(CAN2, 1, 4000);
-					VelCrl(CAN2, 2, -10000);
-				}
-				else
-				{
-					VelCrl(CAN2, 1, 10000);
-					VelCrl(CAN2, 2, -4000);
-				}
-			}
-			if (time > 300)
-			{
-				ifEscape  = 0;
-				time      = 0;
+				ifEscape = 0;
 			}
 		}
 		else
