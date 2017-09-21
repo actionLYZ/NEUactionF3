@@ -147,7 +147,7 @@ extern int carRun;
    =======================================================================================*/
 void GoGoGo(float firstLine)
 {
-	static int  state = 1, shootTime = 0;             //应该执行的状态
+	static int  state = 2, shootTime = 0;             //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
 
 	switch (state)
