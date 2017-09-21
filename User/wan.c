@@ -1187,21 +1187,49 @@ int ShootBallW(void)
 		noBall++;
 		if(noBall > 150 && noBall < 160)
 		{
-			PushBall();
+			if(g_pushPosition > 3900)
+			{
+				PushBallReset();
+			}
+			if(g_pushPosition < 100)
+			{
+				PushBall();
+			}
 		}
 		if(noBall > 300 && noBall < 310)
 		{
-			PushBallReset();
+			if(g_pushPosition > 3900)
+			{
+				PushBallReset();
+			}
+			if(g_pushPosition < 100)
+			{
+				PushBall();
+			}
 		}
 		if(noBall > 450 && noBall < 460)
 		{
-			PushBall();
+			if(g_pushPosition > 3900)
+			{
+				PushBallReset();
+			}
+			if(g_pushPosition < 100)
+			{
+				PushBall();
+			}
 		}
 		if(noBall > 600 && noBall < 610)
 		{
-			PushBallReset();
+			if(g_pushPosition > 3900)
+			{
+				PushBallReset();
+			}
+			if(g_pushPosition < 100)
+			{
+				PushBall();
+			}
 		}
-		if(noBall > 900)
+		if(noBall > 800)
 		{
 			noBall = 0;
 			success = 1;
@@ -1230,7 +1258,7 @@ int ShootBallW(void)
 	}
 
   //枪的角度和转速到位,推球
- 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.5f && fabs(rps + g_shootFactV / 4096) < 2.0 && ballColor)
+ 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 2.0 && ballColor)
 	{
 		if(g_pushPosition > 3900)
 		{
@@ -1617,12 +1645,38 @@ u16 LaserTrigger(void)
 	return laser;
 }
 /*======================================================================================
-   函数定义		：		  边走边投函数
+   函数定义		：		  逃逸函数
    函数参数		：		  
    
    函数返回值	：	    
  =====================================================================================*/
-void RunAndShoot(void)
+int Escape(void)
 {
-	
+	static u16 time = 0;
+	u8 success = 0;
+	time++;
+	if (time < 100)
+	{
+		VelCrl(CAN2, 1, -8000);
+		VelCrl(CAN2, 2, 8000);
+	}
+	else
+	{
+		if (!In_Or_Out())
+		{
+			VelCrl(CAN2, 1, 4000);
+			VelCrl(CAN2, 2, -10000);
+		}
+		else
+		{
+			VelCrl(CAN2, 1, 10000);
+			VelCrl(CAN2, 2, -4000);
+		}
+	}
+	if (time > 300)
+	{
+		success = 1;
+		time      = 0;
+	}
+	return success;
 }
