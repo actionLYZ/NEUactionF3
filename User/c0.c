@@ -1864,6 +1864,6 @@ int CountBall(void)
 			ballN=0;
 		  sum=0;
 	}
-	//USART_OUT(UART5,(u8*)"%d  %d  %d\r\n",g_gather,ballNumber,ballN);	
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,sum,ballNumber,ballN);
 	return ballNumber;
 }

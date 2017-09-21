@@ -163,12 +163,6 @@ void WalkTask(void)
 	}
 	USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)g_plan,(int)firstLine);
 
-//	//等待激光被触发
-//	do{
-//		g_plan = IfStart();
-//	}while(g_plan == 0);
-//	//USART_OUT(UART5,(u8*)"p%d\r\n",g_plan);
-//	GPIO_ResetBits(GPIOE, GPIO_Pin_7);     //关闭蜂鸣器
   g_plan=1;  
 	finishShoot=1;
 	OSSemSet(PeriodSem, 0, &os_err);
@@ -179,9 +173,10 @@ void WalkTask(void)
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		StaightCLose(1600, 0, 0, 1500);
-    USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,CountBall());    
-		StaightCLose(0,0,0,1800);
-		/*
+    //USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,CountBall());    
+//		StaightCLose(0,0,0,1800);
+		CountBall();
+		
 		if (ifEscape)
 		{
 			time++;
@@ -220,7 +215,7 @@ void WalkTask(void)
 			else
 				ifEscape = 0;
 		}
-		*/
+		
 	}
 }
 
