@@ -215,7 +215,7 @@ void countBall(void);
 int JudgeSide(void);
 
 //画圆之后的矩形扫场
-int AfterCircle(void);
+int AfterCircle(uint16_t speed);
 
 //激光触发函数
 u16 LaserTrigger(void);

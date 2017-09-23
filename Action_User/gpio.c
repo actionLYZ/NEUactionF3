@@ -171,3 +171,4 @@ void CameraInit(void)
  GPIO_InitStructure.GPIO_PuPd=GPIO_PuPd_DOWN;//下拉
  GPIO_Init(GPIOE,&GPIO_InitStructure);//初始化GPIO
 }
+
