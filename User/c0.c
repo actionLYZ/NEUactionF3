@@ -1806,11 +1806,23 @@ void PathPlan(float camX, float camY)
 =======================================================================================*/
 int CountBall(void)
 {
-	static int ballNumber=0,ballN=0,sum=0,beginSum=0;
+	static int ballNumber=0,ballN=0,sum=0,beginSum=0,pass=0;
 	ReadActualVel(CAN1, COLLECT_BALL_ID);
   if(g_gather<=235)
 	{
 		beginSum = 1;
+		pass=2;
+	}
+	if(pass==2)
+	{
+		if(g_gather>245)
+		{
+			pass=0;
+		}
+		else 
+		{
+			pass=1;
+		}
 	}
 	if(g_gather>=250)
 	{
@@ -1837,7 +1849,7 @@ int CountBall(void)
 			sum=0;
 		}
 	}
-	if(beginSum)
+	if(beginSum&&pass)
 	{
 		sum += (250-g_gather);
 	}
