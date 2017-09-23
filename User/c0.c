@@ -1808,26 +1808,26 @@ int CountBall(void)
 {
 	static int ballNumber=0,ballN=0,sum=0,beginSum=0;
 	ReadActualVel(CAN1, COLLECT_BALL_ID);
-  if(g_gather<=234)
+  if(g_gather<=235)
 	{
 		beginSum = 1;
 	}
-	if(g_gather>=252)
+	if(g_gather>=250)
 	{
 		beginSum = 0;
-		if(sum>=50&&sum<=1300)
+		if(sum>=50&&sum<=230)
 		{
 			ballN=1;
 		}
-		else if(sum>1300&&sum<=1800)
+		else if(sum>230&&sum<=1000)
 		{
 			ballN=2;
 		}
-		else if(sum>1800&&sum<=2500)
+		else if(sum>1000&&sum<=1500)
 		{
 			ballN=3;
 		}
-		else if(sum>2500)
+		else if(sum>1500)
 		{
 			ballN=4;
 		}
@@ -1839,7 +1839,7 @@ int CountBall(void)
 	}
 	if(beginSum)
 	{
-		sum += (252-g_gather);
+		sum += (250-g_gather);
 	}
 	if(finishShoot ==1)//射球完毕的标志
 	{
@@ -1854,6 +1854,6 @@ int CountBall(void)
 			ballN=0;
 		  sum=0;
 	}
-	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",sum,g_gather,ballN,ballNumber,(int)photoElectricityCount);
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
 	return ballNumber;
 }

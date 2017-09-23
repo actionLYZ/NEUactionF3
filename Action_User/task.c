@@ -152,7 +152,7 @@ void WalkTask(void)
 	
 	//棍子，发射机构的初始速度
 	CollectBallVelCtr(60);
-	delay_s(2);	
+	delay_s(5);	
 	ShootCtr(60);
 	//激光触发
   firstLine = LaserTrigger();

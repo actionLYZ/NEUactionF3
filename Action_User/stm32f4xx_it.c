@@ -236,7 +236,7 @@ void TIM2_IRQHandler(void)
 		{
 			if(blindTime > 0)
 			{
-				photoElectricityCount += (int)((blindTime * RealVel() / 1000) / 38) + 0.7;
+				photoElectricityCount += (int)((blindTime * RealVel() / 1000) / 35) + 0.7;
 			}
 			blindTime = 0;
 		}
