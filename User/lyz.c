@@ -100,14 +100,15 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	//计算距离输出
 	Ddis = Piont2Straight(aimx, aimy, angle);
 
-	if (fabs(speed) <= 500)
-		Dinput = 9 * Ddis; 
-	else if (fabs(speed) <= 1000)
-		Dinput = 12 * Ddis ;
-	else if (fabs(speed) <= 1500)
-		Dinput = 18 * Ddis;
-	else
-		Dinput = 15 * Ddis;
+	// if (fabs(speed) <= 500)
+	// 	Dinput = 9 * Ddis; 
+	// else if (fabs(speed) <= 1000)
+	// 	Dinput = 12 * Ddis ;
+	// else if (fabs(speed) <= 1500)
+	// 	Dinput = 18 * Ddis;
+	// else
+	// 	Dinput = 15 * Ddis;
+		Dinput = 30 * Ddis;
 
 
 	//计算角度输出
@@ -117,14 +118,15 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	if (Dangle < -180)
 		Dangle += 360;
 
-	if (fabs(speed) <= 500)
-		Ainput = 100 * Dangle;
-	else if (fabs(speed) <= 1000)
-		Ainput = 160 * Dangle;
-	else if (fabs(speed) <= 1500)
-		Ainput = 250 * Dangle;
-	else
-		Ainput = 260 * Dangle;
+	// if (fabs(speed) <= 500)
+	// 	Ainput = 100 * Dangle;
+	// else if (fabs(speed) <= 1000)
+	// 	Ainput = 160 * Dangle;
+	// else if (fabs(speed) <= 1500)
+	// 	Ainput = 250 * Dangle;
+	// else
+	// 	Ainput = 260 * Dangle;
+		Ainput = 270 * Dangle;
 
 
 	//计算脉冲
@@ -147,26 +149,28 @@ extern int carRun;
    =======================================================================================*/
 void GoGoGo(float fLine)
 {
-	static int  state = 1, shootTime = 0;             //应该执行的状态
-	static int  length = WIDTH / 2, wide = WIDTH / 2,count = 0; //长方形跑场参数
+	static int  state = 1, shootTime = 0, count = 0;             //应该执行的状态
+	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
 
 	switch (state)
 	{
 		//第一圈放球区附近跑场
 		case 1:
 		{
+			//先启动1s
 			count++;
-			if(count > 100)
+			if(count >= 300)
 			{
 				shootStart  = 0;
 				carRun      = 1;
-				count = 100;
+				count = 300;
 			}
-			if (FirstRound(fLine) == 1)
+			if (FirstRound(firstLine) == 1)
 			{
 				//初始化长方形跑场参数
 				length  += SPREAD_DIS;
 				wide    += SPREAD_DIS;
+				count   = 0;
 				state   = 2;
 			}
 		}
@@ -186,14 +190,14 @@ void GoGoGo(float fLine)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(1800, 1000, 3, 1))
+			if(sweepYuan(2000, 1000, 3, 1))
 				state = 3;
 		}
 		break;
 		
 		//紧随画圆后矩形扫场
 		case 3:
-			if(AfterCircle())
+			if(AfterCircle(2000))
 				state = 4;
 			break;
 		//进行坐标校正
@@ -294,15 +298,16 @@ void GoGoGo(float fLine)
 bool FirstRound(float firLine)
 {
 	static int state = 1;
-  static float speed = 800;
+  float speed = 1800;
 	float advance = 0;
 	//第一条目标直线距离铁框太近,就让它贴铁框走
-	speed += 5;
-	if(speed >= 1800)
+	advance = 900;
+	
+	//第一圈贴框走成都极限条件
+	if(firstLine < 650)
 	{
-		speed = 1800;
+		firstLine = 600;
 	}
-	advance = 1000;
 	switch (state)
 	{
 		//右边，目标角度0度
@@ -465,6 +470,7 @@ int CheckPosition(void)
 	static int  tempx = 0, tempy = 0;
 	int         keepgo = 0;
   static float aimAngle = 0;
+	float distance = 0;
 	switch (state)
 	{
 		//判断距离哪面墙最近
@@ -488,7 +494,6 @@ int CheckPosition(void)
 				aimAngle = -90;
 			}
 			state = 2;
-			USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",(int)side,(int)aimAngle,(int)Position_t.X,(int)Position_t.Y);
 		} break;
 
 		//原地旋转至目标角度
@@ -507,8 +512,8 @@ int CheckPosition(void)
 		//后退靠墙
 		case 3:
 		{
-			StaightCLose(tempx, tempy, aimAngle, -500);
-			
+			StaightCLose(tempx, tempy, aimAngle, -800);
+			USART_OUT(UART5,(u8*)"%SWITCH\r\n");
 			//后退时如果被困，则进入状态9
 //			if(stuckCar(100))
 //			{
@@ -537,9 +542,12 @@ int CheckPosition(void)
 			}
 			else
 			{
+				
 				//矫正失败，继续矫正
 				state = 5;    
-				
+				tempx = Position_t.X;
+				tempy = Position_t.Y;
+				aimAngle = AvoidOverAngle(aimAngle + 45);
         //如果激光矫正失败，先利用一次靠墙矫正一次坐标
 				if(side == 1)
 				{
@@ -567,12 +575,10 @@ int CheckPosition(void)
 		//继续矫正,前进
 		case 5:
 			{
-				count++;
-				VelCrl(CAN2, 1, 8000);
-				VelCrl(CAN2, 2, -8000);
-				if (count > 20)
+				angClose(1800, aimAngle, 250);
+				distance = sqrt((Position_t.X - tempx) *(Position_t.X - tempx) + (Position_t.Y - tempy) * (Position_t.Y - tempy));
+				if(distance > 1000)
 				{
-					count = 0;
 					state = 6;
 				}
 			} 
@@ -580,6 +586,7 @@ int CheckPosition(void)
 			
 			//通过坐标判断车距离哪面墙近
 		case 6:
+			
 			side = JudgeSide();
 			if(side == 1)
 			{
@@ -598,8 +605,7 @@ int CheckPosition(void)
 				aimAngle = -90;
 			}
 			state = 7;
-			break;
-			
+		break;
 		//转向目标角度
 		case 7:
 		{
@@ -624,7 +630,7 @@ int CheckPosition(void)
 			{
 				count = 0;
 				state = 1;
-				
+				side = JudgeSide();
 				//利用第二面墙矫正
 				if(side == 1)
 				{
@@ -648,11 +654,6 @@ int CheckPosition(void)
 				tempx   = 0, tempy = 0;
 			}
 		} break;
-//		case 9:
-//			
-//			VelCrl(CAN2, 1, 5000);
-//			VelCrl(CAN2, 2, -5000);
-//			break;
 	}
 	return keepgo;
 }

@@ -50,6 +50,7 @@ int32_t     g_leftPulse = 0;          //记录左轮的脉冲
 int32_t     g_collectVel = 0;         //记录收球棍子的速度
 int32_t     g_pushPosition = 0;       //推球装置的位置
 u16       firstLine = 0;              //记录第一圈的目标直线
+uint8_t     circleFlag = 0;
 extern float             angleError, xError , yError ;
 void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);
@@ -134,7 +135,7 @@ void ConfigTask(void)
 }
 
 //看车是在跑，还是在矫正、射球
-int carRun = 1,ifEscape = 0;
+int carRun = 1,ifEscape = 0, count = 0;
 /*=====================================================执行函数===================================================*/
 void WalkTask(void)
 {
@@ -165,6 +166,9 @@ void WalkTask(void)
 		CountBall();
 		//StaightCLose(0, 0, 0, 1800);
 		
+//		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
+//		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
+//		CountBall();
 		if (ifEscape)
 		{
 			//逃逸完成后，ifEscape清零
@@ -177,6 +181,7 @@ void WalkTask(void)
  		{
 			GoGoGo(firstLine);
 		}
+		
 		if (stuckCar(100))
 		{
 			if (carRun)

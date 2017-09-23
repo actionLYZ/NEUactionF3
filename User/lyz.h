@@ -24,7 +24,7 @@ void InputArr(char[], unsigned char[], int);                          //输出�
 #define STUCK_TIME      0.8                                         //判断卡住时长(s)
 #define FIRST_SPEED     1000                                        //第一圈速度
 #define RUN_SPEED       1500                                        //正常跑场速度
-#define FIR_ADV         700                                         //first_advance:第一圈提前量
+#define FIR_ADV         500                                         //first_advance:第一圈提前量
 #define ADV_TUEN        1200                                        //提前变向距离
 #define SPREAD_DIS      400                                         //扩散距离（每圈边长增大距离）
 #define CAMERA_DIS      700                                         //摄像头找球时扩散距离
