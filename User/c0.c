@@ -1852,11 +1852,11 @@ void CountBall(void)
 		{
 			ballN=2;
 		}
-		else if(sum>1200&&sum<=2200)
+		else if(sum>1200&&sum<=2000)
 		{
 			ballN=3;
 		}
-		else if(sum>2200)
+		else if(sum>2000)
 		{
 			ballN=4;
 		}
@@ -1879,9 +1879,9 @@ void CountBall(void)
 
 	if(ballN)
 	{
-			ballNumber +=ballN;
-			ballN=0;
-		  sum=0;
+		ballNumber +=ballN;
+		ballN=0;
+		sum=0;
 	}
 	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
 

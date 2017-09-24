@@ -721,11 +721,15 @@ void USART2_IRQHandler(void)
 
 		if (best)
 		{
-			bestAngle = camera;
-			if (bestAngle == 0)
+			if(camera == 0xDA)
+			{
 				arr_number = 0;
-			else
+			}
+			else 
+			{
+				bestAngle = camera;
 				arr_number = 1;
+			}
 			best  = 0;
 			go    = 1;
 		}
