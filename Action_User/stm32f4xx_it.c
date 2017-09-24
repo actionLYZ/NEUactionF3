@@ -635,7 +635,7 @@ void USART2_IRQHandler(void)
 			if (flag)
 			{
 				g_cameraAng[0] = g_camera;
-
+        USART_OUT(UART5,(u8*)"%d\r\n",(int)g_camera);
 				//将此时的陀螺仪的角度发送出去
 				SendAng(Position_t.angle);
 				flag = 0;

@@ -49,8 +49,9 @@ int32_t     g_rightPulse = 0;         //记录右轮的脉冲
 int32_t     g_leftPulse = 0;          //记录左轮的脉冲
 int32_t     g_collectVel = 0;         //记录收球棍子的速度
 int32_t     g_pushPosition = 0;       //推球装置的位置
-u16       firstLine = 0;              //记录第一圈的目标直线
-uint8_t     circleFlag = 0;
+u16         firstLine = 0;            //记录第一圈的目标直线
+uint8_t     circleFlag = 0;           //画圆标志位
+uint8_t     shootNum = 0;             //记录射球的个数
 extern float             angleError, xError , yError ;
 void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);
@@ -155,20 +156,29 @@ void WalkTask(void)
 	CollectBallVelCtr(60);
 	delay_s(5);	
 	ShootCtr(60);
+	
+	//鸣笛
+	GPIO_SetBits(GPIOE,GPIO_Pin_7);
+	
 	//激光触发
   firstLine = LaserTrigger();
 	USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)g_plan,(int)firstLine);
+	
+	//关蜂鸣器
+	GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	finishShoot=1;
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		CountBall();
+//		CountBall();
 		//StaightCLose(0, 0, 0, 1800);
 		
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
 //		CountBall();
+//		ShootBallW();
+//		RunWithCamera1(2);
 		if (ifEscape)
 		{
 			//逃逸完成后，ifEscape清零
@@ -189,7 +199,6 @@ void WalkTask(void)
 			else
 				ifEscape = 0;
 		}
-		
 	}
 }
 
