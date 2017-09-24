@@ -705,6 +705,7 @@ int RunEdge(void)
 	default:
 		break;
 	}
+	USART_OUT(UART5,(u8*)"edge  %d\t%d\r\n",side,sideTimes);
 	return finish;
 }
 /*======================================================================================

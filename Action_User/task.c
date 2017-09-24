@@ -178,7 +178,8 @@ void WalkTask(void)
 		//StaightCLose(0, 0, 0, 1800);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
-//		CountBall();
+
+		
 		if (ifEscape)
 		{
 			//逃逸完成后，ifEscape清零
