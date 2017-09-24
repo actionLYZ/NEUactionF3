@@ -10,6 +10,8 @@ extern int8_t     arr1[20];
 extern float    arr2[20];
 extern int        arr_number;
 extern int32_t g_gather;
+extern int ifEscape;
+int ballNumber=0;
 
 /*======================================================================================
    函数定义	  ：		将小球相对于摄像头的角度转换成相对于陀螺仪的角度(万典学长的函数)
@@ -597,9 +599,9 @@ int Least_S(int a1[10], int a2[10], int a3[10], int a4[10])
 /*======================================================================================
    函数定义	  ：    更新路线，走之前没怎么走过的(顺时针)
    函数参数	  ：    down          正方形下面三条线中哪条是要走的
-                  right         正方形右面四条线中哪条是要走的
-                  up            正方形上面三条线中哪条是要走的
-                  left          正方形左面四条线中哪条是要走的
+                    right         正方形右面四条线中哪条是要走的
+                    up            正方形上面三条线中哪条是要走的
+                    left          正方形左面四条线中哪条是要走的
    函数返回值  ：	  无
    =======================================================================================*/
 void New_Route(int down, int right, int up, int left)
@@ -650,41 +652,54 @@ void New_Route(int down, int right, int up, int left)
 int RunEdge(void)
 {
 	int         finish = 0;
-	static int  side = 1;
-
-	if (side == 1 && Position_t.X > 1800)
-		side = 2;
-
-	if (side == 2 && Position_t.Y > 4200)
-		side = 3;
-
-	if (side == 3 && Position_t.X < -1800)
-		side = 4;
-
-	if (side == 4 && Position_t.Y < 600)
+	static int  side = 0,sideTimes=0;
+	
+  if(!ifEscape)
 	{
-		side = 1; finish = 1;
+		if (Position_t.X >= 1450&&side!=2)
+		{
+			side = 2;sideTimes++;
+		}
+		if (Position_t.Y >= 3800&&side!=3)
+		{
+			side = 3;sideTimes++;
+		}
+		if (Position_t.X <= -1450&&side!=4)
+		{
+			side = 4;sideTimes++;
+		}
+		if (Position_t.Y <= 900&&side!=1)
+		{
+			side = 1;sideTimes++;
+		}
+		if(sideTimes>=6)
+		{
+			side = 0;
+			sideTimes = 0;
+			finish = 1;
+		}
 	}
+
 	switch (side)
 	{
 	case 1:
 	{
-		ClLine(0, 0, -90, 1000);
+		ClLine(0, 245-POSYSTEM_TO_BACK, -90, 1000);
 	} break;
 
 	case 2:
 	{
-		ClLine(2400, 0, 0, 1000);
+		ClLine(2155, 0, 0, 1000);
 	} break;
 
 	case 3:
 	{
-		ClLine(0, 4800, 90, 1000);
+		ClLine(0, 4555-POSYSTEM_TO_BACK, 90, 1000);
 	} break;
 
 	case 4:
 	{
-		ClLine(-2400, 0, 180, 1000);
+		ClLine(-2155, 0, 180, 1000);
 	} break;
 
 	default:
@@ -1804,26 +1819,28 @@ void PathPlan(float camX, float camY)
                            
 函数返回值  ：	  无
 =======================================================================================*/
-int CountBall(void)
+void CountBall(void)
 {
-	static int ballNumber=0,ballN=0,sum=0,beginSum=0,pass=0;
+	static int ballN=0,sum=0,beginSum=0,pass=0;
 	ReadActualVel(CAN1, COLLECT_BALL_ID);
-  if(g_gather<=235)
-	{
-		beginSum = 1;
-		pass=2;
-	}
 	if(pass==2)
 	{
-		if(g_gather>245)
+		if(g_gather>240)
 		{
 			pass=0;
+			sum=0;
 		}
 		else 
 		{
 			pass=1;
 		}
+	}	
+  if(g_gather<=235&&g_gather>100)
+	{
+		beginSum = 1;
+		pass=2;
 	}
+
 	if(g_gather>=250)
 	{
 		beginSum = 0;
@@ -1831,15 +1848,15 @@ int CountBall(void)
 		{
 			ballN=1;
 		}
-		else if(sum>230&&sum<=1000)
+		else if(sum>230&&sum<=1200)
 		{
 			ballN=2;
 		}
-		else if(sum>1000&&sum<=1500)
+		else if(sum>1200&&sum<=2200)
 		{
 			ballN=3;
 		}
-		else if(sum>1500)
+		else if(sum>2200)
 		{
 			ballN=4;
 		}
@@ -1867,5 +1884,5 @@ int CountBall(void)
 		  sum=0;
 	}
 	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
-	return ballNumber;
+
 }

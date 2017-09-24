@@ -1272,6 +1272,7 @@ int ShootBallW(void)
 			setCount++;
 			resetCount = 0;
 			PushBall();
+			USART_OUT(UART5,(u8*)"tui\r\n");
 		}
 	}
 	
@@ -1302,13 +1303,13 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 	
 	//只是为了让开始时R1 = R
 	circleFlag++;
-  if(circleFlag == 1)
+  if(circleFlag <= 100)
 	{
 		R1 = R;
 	}
-  if(circleFlag >= 2)
+  if(circleFlag > 100)
 	{
-		circleFlag = 2;
+		circleFlag = 100;
 	}		
 
 	// 逆时针，先缓慢加速
@@ -1621,22 +1622,22 @@ int AfterCircle(uint16_t speed)
 	{
 		case 0:
 			StaightCLose(1850, 0, 0, speed);
-			if(Position_t.Y > 3200)
+			if(Position_t.Y > 3100)
 				step++;
 			break;
 		case 1:
-			StaightCLose(0, 4300, 90, speed);
+			StaightCLose(0, 4300-POSYSTEM_TO_BACK, 90, speed);
 			if(Position_t.X < -800)
 				step++;
 			break;
 		case 2:
-			StaightCLose(-2000, 0, 180, speed);
+			StaightCLose(-1900, 0, 180, speed);
 			if(Position_t.Y < 1700)
 				step++;
 			break;
 		case 3:
 			StaightCLose(0, 500, -90, speed);
-			if(Position_t.X > 800)
+			if(Position_t.X > 700)
 				step++;
 			break;
 		case 4:
@@ -1659,13 +1660,13 @@ int AfterCircle(uint16_t speed)
 u16 LaserTrigger(void)
 {
 	u16 laser = 0, lastLaser = 0, count = 0;
-	
+	GPIO_SetBits(GPIOE,GPIO_Pin_7);
 	//等待激光被触发
 	do
 	{
 		g_plan = IfStart();
 	}while(g_plan == 0);
-	
+GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	//等待激光值稳定
 	if(g_plan == 1)
 	{
@@ -1772,6 +1773,7 @@ int Escape(void)
 			if(time > 100)
 			{
 				time = 0;
+				step=0;
 				success = 1;
 			}
 		 break;

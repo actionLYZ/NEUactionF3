@@ -207,6 +207,7 @@ void CAN1_RX0_IRQHandler(void)
 /**********光电门的变量************/
 float blindTime = 0.0f;
 float photoElectricityCount = 0.0f;//球的数量
+float velocity = 0;
 /**********************************/
 
 extern OS_EVENT *PeriodSem;
@@ -237,6 +238,7 @@ void TIM2_IRQHandler(void)
 			if(blindTime > 0)
 			{
 				photoElectricityCount += (int)((blindTime * RealVel() / 1000) / 35) + 0.7;
+				velocity = RealVel();
 			}
 			blindTime = 0;
 		}
@@ -556,8 +558,10 @@ float         arr2[20];
 int             go, arr_number;
 void USART2_IRQHandler(void)
 {
-//	uint8_t         camera;
-//	static uint8_t  i = 0, data = 1, num = 0, best = 0, nearest = 0;
+	/*****诗玲的变量*****/
+	uint8_t         camera;
+	static uint8_t  i = 0, data = 1, num = 0, best = 0, nearest = 0;
+	/********************/
 	OS_CPU_SR       cpu_sr;
 
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/

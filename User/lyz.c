@@ -27,6 +27,7 @@ extern int        shootStart, ballColor;
 extern int32_t     g_rightPulse ;
 extern int32_t     g_leftPulse ;
 extern float       firstLine;
+extern int ballNumber;
 /*================================================函数定义区==============================================*/
 
 
@@ -152,6 +153,10 @@ void GoGoGo(float fLine)
 	static int  state = 1, shootTime = 0, count = 0;             //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
 
+	if(ballNumber>20)
+	{
+		state=4;
+	}
 	switch (state)
 	{
 		//第一圈放球区附近跑场
@@ -219,7 +224,8 @@ void GoGoGo(float fLine)
 			shootStart  = 1;
 			if (ShootBallW())
 			{
-				state = 6;
+				state = 7;
+        /*
 				shootStart = 0;
 				shootTime++;
 				switch (shootTime)
@@ -258,13 +264,14 @@ void GoGoGo(float fLine)
 
 				default: break;
 				}
+				*/
 			}
 			else
 			{
 			}
 		} break;
 
-		case 6:
+		case 6: 
 		{
 			carRun      = 1;
 			if(RunWithCamera1(2))
