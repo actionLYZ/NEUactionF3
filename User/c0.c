@@ -652,7 +652,7 @@ void New_Route(int down, int right, int up, int left)
 int RunEdge(void)
 {
 	int         finish = 0;
-	static int  side = 0,sideTimes=0;
+	static int  side = 0,sideTimes=0,avoidBack=0;
 	
   if(!ifEscape)
 	{
@@ -676,35 +676,79 @@ int RunEdge(void)
 		{
 			side = 0;
 			sideTimes = 0;
+			avoidBack=0;
 			finish = 1;
 		}
 	}
-
-	switch (side)
+  if(sideTimes==1&&avoidBack==0)
 	{
-	case 1:
-	{
-		ClLine(0, 245-POSYSTEM_TO_BACK, -90, 1000);
-	} break;
-
-	case 2:
-	{
-		ClLine(2155, 0, 0, 1000);
-	} break;
-
-	case 3:
-	{
-		ClLine(0, 4555-POSYSTEM_TO_BACK, 90, 1000);
-	} break;
-
-	case 4:
-	{
-		ClLine(-2200, 0, 180, 1000);
-	} break;
-
-	default:
-		break;
+		switch(side)
+		{
+			case 1:
+			{
+				ClLineAngle(-90,1000);
+				if(Position_t.angle>-95&&Position_t.angle<-85)
+				{
+					avoidBack=1;
+				}
+			}break;
+			case 2:
+			{
+				ClLineAngle(0,1000);
+				if(fabs(Position_t.angle)<5)
+				{
+					avoidBack=1;
+				}
+			}break;
+			case 3:
+			{
+				ClLineAngle(90,1000);
+				if(Position_t.angle>85&&Position_t.angle<95)
+				{
+          avoidBack=1;
+				}
+			}break;
+			case 4:
+			{
+				ClLineAngle(180,1000);
+				if(fabs(Position_t.angle)>175)
+				{
+					avoidBack=1;
+				}
+			}break;
+			default:
+				break;
+		}
 	}
+	if(avoidBack)
+	{
+		switch (side)
+		{
+		case 1:
+		{
+			ClLine(0, 245-POSYSTEM_TO_BACK, -90, 1000);
+		} break;
+
+		case 2:
+		{
+			ClLine(2155, 0, 0, 1000);
+		} break;
+
+		case 3:
+		{
+			ClLine(0, 4555-POSYSTEM_TO_BACK, 90, 1000);
+		} break;
+
+		case 4:
+		{
+			ClLine(-2250, 0, 180, 1000);
+		} break;
+
+		default:
+			break;
+		}
+	}
+
 	USART_OUT(UART5,(u8*)"edge  %d\t%d\r\n",side,sideTimes);
 	return finish;
 }
@@ -1836,7 +1880,7 @@ void CountBall(void)
 			pass=1;
 		}
 	}	
-  if(g_gather<=235&&g_gather>100)
+  if(g_gather<=235&&g_gather>100&&sum==0)
 	{
 		beginSum = 1;
 		pass=2;
