@@ -656,19 +656,19 @@ int RunEdge(void)
 	
   if(!ifEscape)
 	{
-		if (Position_t.X >= 1450&&side!=2)
+		if (Position_t.X >= 1450&&Position_t.Y<3800&&side!=2)
 		{
 			side = 2;sideTimes++;
 		}
-		if (Position_t.Y >= 3800&&side!=3)
+		if (Position_t.Y >= 3800&&Position_t.X>1450&&side!=3)
 		{
 			side = 3;sideTimes++;
 		}
-		if (Position_t.X <= -1450&&side!=4)
+		if (Position_t.X <= -1450&&Position_t.Y>900&&side!=4)
 		{
 			side = 4;sideTimes++;
 		}
-		if (Position_t.Y <= 900&&side!=1)
+		if (Position_t.Y <= 950&&Position_t.X<1450&&side!=1)
 		{
 			side = 1;sideTimes++;
 		}
@@ -699,7 +699,7 @@ int RunEdge(void)
 
 	case 4:
 	{
-		ClLine(-2155, 0, 180, 1000);
+		ClLine(-2200, 0, 180, 1000);
 	} break;
 
 	default:

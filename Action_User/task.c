@@ -178,30 +178,30 @@ void WalkTask(void)
 		//StaightCLose(0, 0, 0, 1800);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
-
+    
 		
-		if (ifEscape)
-		{
-			//逃逸完成后，ifEscape清零
-			if(Escape())
-			{
-				ifEscape = 0;
-			}
-		}
-		else
- 		{
-//			RunCamera();
-//			carRun=1;
-			GoGoGo(firstLine);
-		}
-		
-		if (stuckCar(100))
-		{
-			if (carRun)
-				ifEscape = 1;
-			else
-				ifEscape = 0;
-		}
+//		if (ifEscape)
+//		{
+//			//逃逸完成后，ifEscape清零
+//			if(Escape())
+//			{
+//				ifEscape = 0;
+//			}
+//		}
+//		else
+// 		{
+////			RunCamera();
+////			carRun=1;
+//			GoGoGo(firstLine);
+//		}
+//		
+//		if (stuckCar(100))
+//		{
+//			if (carRun)
+//				ifEscape = 1;
+//			else
+//				ifEscape = 0;
+//		}
 		
 	}
 }
