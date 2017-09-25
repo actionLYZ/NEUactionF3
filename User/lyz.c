@@ -108,6 +108,7 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	// 	Dinput = 18 * Ddis;
 	// else
 	// 	Dinput = 15 * Ddis;
+	
 		Dinput = 25 * Ddis;
 
 
@@ -126,7 +127,14 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	// 	Ainput = 250 * Dangle;
 	// else
 	// 	Ainput = 260 * Dangle;
+	if(speed < 1900)
+	{
 		Ainput = 280 * Dangle;
+	}
+	else
+	{
+		Ainput = 300 * Dangle;
+	}
 
 
 	//计算脉冲
@@ -295,7 +303,7 @@ void GoGoGo(float fLine)
    用时				：			未测算
    (WIDTH为小车宽度)
    =======================================================================================*/
-bool FirstRound(float firLine)
+bool FirstRound(float firstLine)
 {
 	static int state = 1;
   float speed = 1800;
@@ -313,7 +321,8 @@ bool FirstRound(float firLine)
 		//右边，目标角度0度
 		case 1:
 		{
-			StaightCLose(firLine, 0, 0, speed);
+			StaightCLose(firstLine, 0, 0, speed);
+			USART_OUT(UART5,(u8*)"%d\r\n",(int)firstLine);
 			if (Position_t.Y >= 3100 + WIDTH / 2 - advance)
         state = 2;
 		} break;
@@ -613,7 +622,7 @@ int CheckPosition(void)
 				angClose(1800, aimAngle, 250);
 				distance = sqrt((Position_t.X - tempx) *(Position_t.X - tempx) + (Position_t.Y - tempy) * (Position_t.Y - tempy));
 				
-				//判断距离第二面墙1.2米时准备靠墙
+				//判断距离第二面墙1米时准备靠墙
 				if(side == 1)
 				{
 					if(aimAngle > 0)

@@ -1144,7 +1144,7 @@ extern int ballColor,youqiu;
 extern int ballSpeed,need;
 int ShootBallW(void)
 {
-	static uint16_t noBall = 0, flag = 0, setCount = 0, resetCount = 0, positionError = 0;
+	static uint16_t noBall = 0, flag = 0, setCount = 0, resetCount = 0;
   POSXY_T  posShoot = { 0, 0 };
 	int      success = 0;
 	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
@@ -1191,44 +1191,44 @@ int ShootBallW(void)
 		noBall++;
 		if(noBall > 150 && noBall < 160)
 		{
-			if(g_pushPosition > 3900)
+			if(g_pushPosition > 2000)
 			{
 				PushBallReset();
 			}
-			if(g_pushPosition < 100)
+			else
 			{
 				PushBall();
 			}
 		}
 		if(noBall > 300 && noBall < 310)
 		{
-			if(g_pushPosition > 3900)
+			if(g_pushPosition > 2000)
 			{
 				PushBallReset();
 			}
-			if(g_pushPosition < 100)
+			else
 			{
 				PushBall();
 			}
 		}
 		if(noBall > 450 && noBall < 460)
 		{
-			if(g_pushPosition > 3900)
+			if(g_pushPosition > 2000)
 			{
 				PushBallReset();
 			}
-			if(g_pushPosition < 100)
+			else
 			{
 				PushBall();
 			}
 		}
 		if(noBall > 600 && noBall < 610)
 		{
-			if(g_pushPosition > 3900)
+			if(g_pushPosition > 2000)
 			{
 				PushBallReset();
 			}
-			if(g_pushPosition < 100)
+			else
 			{
 				PushBall();
 			}
@@ -1243,18 +1243,17 @@ int ShootBallW(void)
 		}
 	}
 	
-//球出射速度(mm/s)与投球点距离篮筐的距离的关系
+	//球出射速度(mm/s)与投球点距离篮筐的距离的关系
 	V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 	
 	//自己测的关系
 	rps = 0.01402f * V - 5.457f;
-// 表明射球蓝牙没有收到主控发送的数据
-
+	
+	// 表明射球蓝牙没有收到主控发送的数据
 	if (fabs(rps + g_shootV / 4096) > 0.1)
 	{
 		  ShootCtr(rps);
   }
-//	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)distance);
 	
 	//控制发射航向角(30ms发一次)
 	flag++;
@@ -1265,39 +1264,44 @@ int ShootBallW(void)
 	}
 
   //枪的角度和转速到位,推球
- 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 5.0 && ballColor)
+ 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 2.0 && ballColor)
 	{
-		//防止推球装置没有在（100-3900）之间
-		positionError++;
-		if(g_pushPosition > 3900)
+		//reset
+		if(g_pushPosition > 2000)
 		{
-			
-			positionError = 0;
 			resetCount++;
 			setCount = 0;
 			PushBallReset();
-			
-			//记录射球的个数
-			shootNum++;
 		}
-		if(g_pushPosition < 100)
+		
+		//push
+		else
 		{
-			positionError = 0;
 			setCount++;
 			resetCount = 0;
 			PushBall();
-			
-			//记录射球的个数
-			shootNum++;
 		}
 	}
 	
-	//推球装置超过5s在同一个位置，表明球卡住了
-	if(resetCount > 500 || setCount > 500)
+	//推球装置PushBallReset()指令超过1.5s不起作用
+	if(resetCount > 80 )
 	{
+		resetCount = 0;
+		PushBall();
+	}
+	
+	//推球装置PushBall()指令超过1.5s不起作用
+	if(setCount > 80)
+	{
+		setCount = 0;
+		PushBallReset();
+	}
+	if(g_pushPosition > 2100 && g_pushPosition > 2000)
+	{
+		shootNum++;
 	}
 	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)(g_shootV / 4096),(int)rps,(int)g_shootFactV/4096,(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
-	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",ballColor,noBall,success,(int)g_pushPosition);
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",ballColor,noBall,success,(int)g_pushPosition,(int)shootNum,(int)resetCount,(int)setCount);
 	return 0;
 }
 /*======================================================================================
@@ -1638,22 +1642,22 @@ int AfterCircle(uint16_t speed)
 	{
 		case 0:
 			StaightCLose(1850, 0, 0, speed);
-			if(Position_t.Y > 2700)
+			if(Position_t.Y > 2600)
 				step++;
 			break;
 		case 1:
 			StaightCLose(0, 4200, 90, speed);
-			if(Position_t.X < -400)
+			if(Position_t.X < -300)
 				step++;
 			break;
 		case 2:
 			StaightCLose(-1900, 0, 180, speed);
-			if(Position_t.Y < 2100)
+			if(Position_t.Y < 2200)
 				step++;
 			break;
 		case 3:
 			StaightCLose(0, 600, -90, speed);
-			if(Position_t.X > 400)
+			if(Position_t.X > 300)
 				step++;
 			break;
 		case 4:

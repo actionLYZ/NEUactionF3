@@ -155,7 +155,7 @@ void WalkTask(void)
 	//棍子，发射机构的初始速度
 	CollectBallVelCtr(60);
 	delay_s(5);	
-	ShootCtr(60);
+	ShootCtr(50);
 	
 	//鸣笛
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
@@ -178,6 +178,7 @@ void WalkTask(void)
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
 //		CountBall();
 //		ShootBallW();
+
 //		RunWithCamera1(2);
 		if (ifEscape)
 		{
@@ -191,7 +192,6 @@ void WalkTask(void)
  		{
 			GoGoGo(firstLine);
 		}
-		
 		if (stuckCar(100))
 		{
 			if (carRun)
@@ -238,3 +238,13 @@ float TwoWheelAngleControl(float targetAng)
 	anglePresent = GetAngleZ();
 	return angleErr * 10.0f;
 }
+//		count++;
+//		if(count>100&&count<110)
+//		{
+//			PushBall();
+//		}
+//		if(count>200&&count<210)
+//		{
+//			count=0;
+//			PushBallReset();
+//		}
