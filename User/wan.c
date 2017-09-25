@@ -1522,57 +1522,6 @@ int stuckCar(uint16_t stuckV)
 	return success;
 }
 /*======================================================================================
-   函数定义		：		  数球函数
-   函数参数		：		  无
-
-   函数返回值	：	    球的个数
- =====================================================================================*/
-void countBall(void)
-{
-	static int32_t lastPulse = 0, lastTrend = 0;
-	static uint8_t ballSum = 0;
-	int32_t trend = 0, minPulse = 0;
-	int8_t ballNum = 0;
-	//问询收球棍子的转速
-	ReadActualVel(CAN1, COLLECT_BALL_ID);
-	USART_OUT(UART5,(u8*)"%d\t",g_collectVel);
-	//trend < 0表明转速有下降的趋势
-	trend = g_collectVel - lastPulse;
-	
-	//棍子脉冲达到最低值的条件
-	if(lastTrend < 0 && trend > 0)
-	{
-		//记录棍子最小的脉冲数
-		minPulse = lastPulse;
-	}
-	if(143000 < minPulse && minPulse <151000)
-	{
-		ballNum = 1;
-	}
-	else if(135000 < minPulse && minPulse < 143000)
-	{
-		ballNum = 2;
-	}
-	else if(121000 < minPulse && minPulse < 129000)
-	{
-		ballNum = 3;
-	}
-	else if(112000 < minPulse && minPulse < 120000)
-	{
-		ballNum = 4;
-	}
-	else if(102000 < minPulse && minPulse < 110000)
-	{
-		ballNum = 5;
-	}
-	ballSum += ballNum;
-	USART_OUT(UART5,(u8*)"%d\t%d\r\n",minPulse,ballSum);
-	
-	//记录上一次的trend值和收球转速值
-	lastTrend = trend;
-  lastPulse = g_collectVel;
-}
-/*======================================================================================
    函数定义		：		  判断车距离哪面墙最近
    函数参数		：		  
    备注       ：      顺时针时墙的1234顺时针排序，逆时针时逆时针排序
@@ -1723,36 +1672,6 @@ u16 LaserTrigger(void)
    
    函数返回值	：	    
  =====================================================================================*/
-//int Escape(void)
-//{
-//	static u16 time = 0;
-//	u8 success = 0;
-//	time++;
-//	if (time < 100)
-//	{
-//		VelCrl(CAN2, 1, -10000);
-//		VelCrl(CAN2, 2, 10000);
-//	}
-//	else
-//	{
-//		if (!In_Or_Out())
-//		{
-//			VelCrl(CAN2, 1, 7000);
-//			VelCrl(CAN2, 2, -14000);
-//		}
-//		else
-//		{
-//			VelCrl(CAN2, 1, 14000);
-//			VelCrl(CAN2, 2, -7000);
-//		}
-//	}
-//	if (time > 250)
-//	{
-//		success = 1;
-//		time      = 0;
-//	}
-//	return success;
-//}
 int Escape(void)
 {
 	static u16 time = 0, step = 0,status = 0;

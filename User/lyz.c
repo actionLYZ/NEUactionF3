@@ -129,7 +129,7 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	// 	Ainput = 260 * Dangle;
 	if(speed < 1900)
 	{
-		Ainput = 280 * Dangle;
+		Ainput = 290 * Dangle;
 	}
 	else
 	{
@@ -314,7 +314,7 @@ bool FirstRound(float firstLine)
 	//第一圈贴框走成都极限条件
 	if(firstLine < 650)
 	{
-		firstLine = 600;
+		firstLine = 550;
 	}
 	switch (state)
 	{
@@ -480,7 +480,6 @@ int CheckPosition(void)
 	static int  tempx = 0, tempy = 0;
 	int         keepgo = 0;
   static float aimAngle = 0;
-	float distance = 0;
 	switch (state)
 	{
 		//判断距离哪面墙最近
@@ -620,7 +619,6 @@ int CheckPosition(void)
 		case 5:
 			{
 				angClose(1800, aimAngle, 250);
-				distance = sqrt((Position_t.X - tempx) *(Position_t.X - tempx) + (Position_t.Y - tempy) * (Position_t.Y - tempy));
 				
 				//判断距离第二面墙1米时准备靠墙
 				if(side == 1)
