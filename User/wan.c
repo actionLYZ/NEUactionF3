@@ -1698,19 +1698,22 @@ u16 LaserTrigger(void)
 int Escape(void)
 {
 	static u16 time = 0, step = 0,status = 0;
+	static float aimAngle = 0;
 	u8 success = 0;
 	switch(step)
 	{
 		case 0:
 			status = In_Or_Out();
+		
+		  //记录当前的角度
+		  aimAngle = Position_t.angle;
 		  step = 1;
 			break;
 		case 1:
 			time++;
 			if (time < 100)
 			{
-				VelCrl(CAN2, 1, -15000);
-				VelCrl(CAN2, 2, 15000);
+				angClose(-800,aimAngle,100);
 			}
 			else
 			{
