@@ -43,6 +43,7 @@ extern int32_t     g_pushPosition;
 extern int         g_plan;
 extern uint8_t    circleFlag;
 extern uint8_t     shootNum;
+extern float             angleError, xError, yError;
 /*======================================================================================
    函数定义	  ：		Send Get函数
    函数参数	  ：
@@ -1144,11 +1145,12 @@ extern int ballColor,youqiu;
 extern int ballSpeed,need;
 int ShootBallW(void)
 {
-	static uint16_t noBall = 0, flag = 0, setCount = 0, resetCount = 0;
+	static uint16_t noBall = 0, flag = 0, pushError = 0, resetError = 0;
   POSXY_T  posShoot = { 0, 0 };
 	int      success = 0;
 	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
-	
+	static int32_t lastPosition = 0;
+	static int8_t pushSignal = 0, resetSignal = 0;
 	//问询航向电机角度、收球电机速度、推球电机的位置
   ReadActualPos(CAN1, GUN_YAW_ID);
 	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
@@ -1238,7 +1240,7 @@ int ShootBallW(void)
 			noBall = 0;
 			
 			//射球完成，shootNum清零
-			shootNum = 0;
+			shootNum = 1;
 			success = 1;
 		}
 	}
@@ -1266,42 +1268,63 @@ int ShootBallW(void)
   //枪的角度和转速到位,推球
  	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 2.0 && ballColor)
 	{
-		//reset
-		if(g_pushPosition > 2000)
+		//位置正常，reset推球电机
+		if(g_pushPosition > 3800)
 		{
-			resetCount++;
-			setCount = 0;
 			PushBallReset();
 		}
 		
-		//push
-		else
+		//位置正常，push推球电机
+		else if(g_pushPosition < 200)
 		{
-			setCount++;
-			resetCount = 0;
 			PushBall();
 		}
+		
+		//当推球电机的位置在（200-3800）时，认为推球电机位置错误
+		if(g_pushPosition > 2000 && g_pushPosition <= 3800)
+		{
+			resetError++;
+			pushError = 0;
+		}
+		if(g_pushPosition >= 200 && g_pushPosition <= 2000)
+		{
+			pushError++;
+			resetError = 0;
+		}
+		
+		//记录射球的个数
+		if((g_pushPosition - lastPosition) < 0)
+		{
+			resetSignal = 1;
+		}
+		if((g_pushPosition - lastPosition) > 0)
+		{
+			pushSignal = 1;
+		}
+		if(pushSignal && resetSignal)
+		{
+			shootNum++;
+			pushSignal = 0;
+			resetSignal = 0;
+		}
+		lastPosition = g_pushPosition;
 	}
 	
-	//推球装置PushBallReset()指令超过1.5s不起作用
-	if(resetCount > 80 )
+	//推球装置PushBallReset()指令超过0.5s不起作用
+	if(pushError > 50 )
 	{
-		resetCount = 0;
+		pushError = 0;
 		PushBall();
 	}
 	
-	//推球装置PushBall()指令超过1.5s不起作用
-	if(setCount > 80)
+	//推球装置PushBall()指令超过0.5s不起作用
+	if(resetError > 50)
 	{
-		setCount = 0;
+		resetError = 0;
 		PushBallReset();
 	}
-	if(g_pushPosition > 2100 && g_pushPosition > 2000)
-	{
-		shootNum++;
-	}
-	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)(g_shootV / 4096),(int)rps,(int)g_shootFactV/4096,(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
-	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",ballColor,noBall,success,(int)g_pushPosition,(int)shootNum,(int)resetCount,(int)setCount);
+	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)(g_shootV / 4096),(int)rps,(int)g_shootFactV/4096,(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",ballColor,noBall,success,(int)g_pushPosition,(int)shootNum);
 	return 0;
 }
 /*======================================================================================
@@ -1591,22 +1614,22 @@ int AfterCircle(uint16_t speed)
 	{
 		case 0:
 			StaightCLose(1850, 0, 0, speed);
-			if(Position_t.Y > 2600)
+			if(Position_t.Y > 2500)
 				step++;
 			break;
 		case 1:
 			StaightCLose(0, 4200, 90, speed);
-			if(Position_t.X < -300)
+			if(Position_t.X < -200)
 				step++;
 			break;
 		case 2:
 			StaightCLose(-1900, 0, 180, speed);
-			if(Position_t.Y < 2200)
+			if(Position_t.Y < 2300)
 				step++;
 			break;
 		case 3:
 			StaightCLose(0, 600, -90, speed);
-			if(Position_t.X > 300)
+			if(Position_t.X > 200)
 				step++;
 			break;
 		case 4:

@@ -51,7 +51,7 @@ int32_t     g_collectVel = 0;         //记录收球棍子的速度
 int32_t     g_pushPosition = 0;       //推球装置的位置
 u16         firstLine = 0;            //记录第一圈的目标直线
 uint8_t     circleFlag = 0;           //画圆标志位
-uint8_t     shootNum = 0;             //记录射球的个数
+uint8_t     shootNum = 1;             //记录射球的个数
 extern float             angleError, xError , yError ;
 void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);

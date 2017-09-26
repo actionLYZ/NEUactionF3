@@ -198,7 +198,7 @@ void GoGoGo(float fLine)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(2000, 1000, 3, 1))
+			if(sweepYuan(2000, 900, 3, 1))
 				state = 3;
 		}
 		break;
@@ -306,11 +306,15 @@ void GoGoGo(float fLine)
 bool FirstRound(float firstLine)
 {
 	static int state = 1;
-  float speed = 1800;
+  static float speed = 1000;
 	float advance = 0;
 	//第一条目标直线距离铁框太近,就让它贴铁框走
 	advance = 900;
-	
+	speed += 2.5;
+	if(speed > 2000)
+	{
+		speed = 2000;
+	}
 	//第一圈贴框走成都极限条件
 	if(firstLine < 650)
 	{
@@ -331,26 +335,26 @@ bool FirstRound(float firstLine)
 		case 2:
 		{
 			StaightCLose(0, 3100 + WIDTH / 2 + 50, 90, speed);
-			if (Position_t.X <= -275 - WIDTH / 2 + FIR_ADV)
-				return true;
+			if (Position_t.X <= -800 + FIR_ADV)
+				state = 3;
 		} break;
 
 	//	//左边，目标角度180度
-	//	case 3:
-	//	{
-	//		StaightCLose((-275 - WIDTH / 2 - 150), 0, 180, FIRST_SPEED);
-	//		if (Position_t.Y <= 1700 - WIDTH / 2 + FIR_ADV - 500)
-	//			state = 4;
-	//	} break;
+		case 3:
+		{
+			StaightCLose(-800, 0, 180, FIRST_SPEED);
+			if (Position_t.Y <= 1200 + FIR_ADV)
+				state = 4;
+		} break;
 
 	//	//下边，目标角度-90度
-	//	case 4:
-	//	{
-	//		StaightCLose(0, 1700 - WIDTH / 2 - 100, -90, FIRST_SPEED);
+		case 4:
+		{
+			StaightCLose(0, 1200, -90, FIRST_SPEED);
 
-	//		if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
-	//			return true;
-	//	} break;
+			if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
+				return true;
+		} break;
 	}
 
 	return false;
