@@ -208,9 +208,6 @@ int stuckCar(uint16_t stuckV);
 //读取当前车的速度（mm/s,以陀螺仪为参考）
 float RealVel(void);
 
-//数球函数
-void countBall(void);
-
 //判断车距离哪面墙最近
 int JudgeSide(void);
 

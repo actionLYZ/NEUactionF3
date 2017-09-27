@@ -1857,6 +1857,7 @@ void PathPlan(float camX, float camY)
 		}
 	}
 }
+int ballNumber;
 /*======================================================================================
 函数定义	  ：
 函数参数	  ：    
@@ -1931,3 +1932,4 @@ void CountBall(void)
 	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
 
 }
+

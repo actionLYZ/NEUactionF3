@@ -150,6 +150,13 @@ void CAN1_RX0_IRQHandler(void)
 	uint32_t  Id;
 //	uint8_t   re[8];
 	CAN_RxMsg(CAN1, &Id, msg.buf, 8);
+	 if(Id == (0x280 + PUSH_BALL_ID))
+	{
+		if(msg.data32[0] == 0x00005850)
+		{
+			g_pushPosition = msg.data32[1];
+		}
+	}
 	if (Id == 0x30)
 	{
 		if (msg.buf[0] == 100)
@@ -182,13 +189,7 @@ void CAN1_RX0_IRQHandler(void)
 			  g_gather = g_gather/1000;
 		}
 	}
-	else if(Id == (0x280 + PUSH_BALL_ID))
-	{
-		if(msg.data32[0] == 0x00005850)
-		{
-			g_pushPosition = msg.data32[1];
-		}
-	}
+	
 	CAN_ClearFlag(CAN1, CAN_FLAG_EWG);
 	CAN_ClearFlag(CAN1, CAN_FLAG_EPV);
 	CAN_ClearFlag(CAN1, CAN_FLAG_BOF);
@@ -639,7 +640,7 @@ void USART2_IRQHandler(void)
 			if (flag)
 			{
 				g_cameraAng[0] = g_camera;
-
+        USART_OUT(UART5,(u8*)"%d\r\n",(int)g_camera);
 				//将此时的陀螺仪的角度发送出去
 				SendAng(Position_t.angle);
 				flag = 0;
