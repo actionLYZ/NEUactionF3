@@ -664,7 +664,7 @@ int RunEdge(void)
 		{
 			side = 3;sideTimes++;
 		}
-		if (Position_t.X <= -1450&&Position_t.Y>900&&side!=4)
+		if (Position_t.X <= -1450&&Position_t.Y>950&&side!=4)
 		{
 			side = 4;sideTimes++;
 		}
@@ -749,7 +749,7 @@ int RunEdge(void)
 		}
 	}
 
-	USART_OUT(UART5,(u8*)"edge  %d\t%d\r\n",side,sideTimes);
+	USART_OUT(UART5,(u8*)"edge  %d\t%d\t\r\n",side,sideTimes,avoidBack);
 	return finish;
 }
 /*======================================================================================

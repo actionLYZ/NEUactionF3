@@ -156,6 +156,7 @@ void GoGoGo(float fLine)
 	if(ballNumber>20)
 	{
 		state=4;
+	  ballNumber=0;	
 	}
 	switch (state)
 	{
@@ -224,8 +225,8 @@ void GoGoGo(float fLine)
 			shootStart  = 1;
 			if (ShootBallW())
 			{
-				state = 7;
-        /*
+//				state = 7;
+
 				shootStart = 0;
 				shootTime++;
 				switch (shootTime)
@@ -264,7 +265,7 @@ void GoGoGo(float fLine)
 
 				default: break;
 				}
-				*/
+	
 			}
 			else
 			{
@@ -692,7 +693,7 @@ int RunCamera(void)
 	static float  cameraX, cameraY;
 	int           finish = 0, circulate;
 	POSITION_T    basePoint;
-   cameraScheme = 1;
+   cameraScheme = 2;
 	//到边界要拐弯了
 	if (fabs(Position_t.X) > 2000 || Position_t.Y < 400 || Position_t.Y > 4400)
 		haveBall = 0;

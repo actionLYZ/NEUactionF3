@@ -1141,7 +1141,7 @@ extern int ballColor,youqiu;
 extern int ballSpeed,need;
 int ShootBallW(void)
 {
-	static uint16_t noBall = 0, flag = 0, setCount = 0, resetCount = 0,test=0;
+	static uint16_t noBall = 0, flag = 0, setCount = 0, resetCount = 0;
   POSXY_T  posShoot = { 0, 0 };
 	int      success = 0;
 	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
@@ -1150,12 +1150,7 @@ int ShootBallW(void)
   ReadActualPos(CAN1, GUN_YAW_ID);
 	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
 	ReadActualPos(CAN1, PUSH_BALL_ID);
-  test++;
-	if(test>=500)
-	{
-		test=0;
-		success=1;
-	}
+
 	//计算投球点的坐标
 	posShoot  = ShootPointPos();
 	

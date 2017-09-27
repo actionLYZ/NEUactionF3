@@ -153,8 +153,8 @@ void WalkTask(void)
 	os_err = os_err;
 	
 //	//拉低PE6，拉高PE4的电平，接收球最多区域的角度
-	GPIO_SetBits(GPIOE, GPIO_Pin_4);
-	GPIO_ResetBits(GPIOE, GPIO_Pin_6);
+							GPIO_SetBits(GPIOE, GPIO_Pin_4);
+							GPIO_SetBits(GPIOE, GPIO_Pin_6);
 //	g_cameraPlan = 2;
 	
 	//延时，稳定定位系统
@@ -178,8 +178,7 @@ void WalkTask(void)
 		//StaightCLose(0, 0, 0, 1800);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
-    
-	
+    	
 		if (ifEscape)
 		{
 			//逃逸完成后，ifEscape清零
@@ -190,9 +189,9 @@ void WalkTask(void)
 		}
 		else
  		{
-//			RunCamera();
-//			carRun=1;
-			GoGoGo(firstLine);
+			RunCamera();
+			carRun=1;
+//			GoGoGo(firstLine);
 		}
 		
 		if (stuckCar(100))
