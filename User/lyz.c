@@ -134,7 +134,7 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	}
 	else
 	{
-		Ainput = 320 * Dangle;
+		Ainput = 400 * Dangle;
 	}
 
 
@@ -161,11 +161,11 @@ void GoGoGo(float fLine)
 	static int  state = 1, shootTime = 0, count = 0;             //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
 
-	if(ballNumber>20)
-	{
-		state=4;
-	  ballNumber=0;	
-	}
+//	if(ballNumber>20)
+//	{
+//		state=4;
+//	  ballNumber=0;	
+//	}
 	switch (state)
 	{
 		//第一圈放球区附近跑场
@@ -233,8 +233,8 @@ void GoGoGo(float fLine)
 			shootStart  = 1;
 			if (ShootBallW())
 			{
-//				state = 7;
-
+				state = 7;
+/*
 				shootStart = 0;
 				shootTime++;
 				switch (shootTime)
@@ -273,7 +273,7 @@ void GoGoGo(float fLine)
 
 				default: break;
 				}
-	
+	*/
 			}
 			else
 			{
@@ -291,11 +291,18 @@ void GoGoGo(float fLine)
 
 		case 7:
 		{
-			carRun = 1;
+			count++;
+			if(count >= 300)
+			{
+				shootStart  = 0;
+				carRun      = 1;
+				count = 300;
+			}
 			if (RunEdge())
 			{
 				state     = 4;
 				shootTime = 0;
+				count = 0;
 			}
 		} break;
 		
@@ -813,7 +820,7 @@ int RunCamera(void)
 	static float  cameraX, cameraY;
 	int           finish = 0, circulate;
 	POSITION_T    basePoint;
-   cameraScheme = 2;
+   cameraScheme = 1;
 	//到边界要拐弯了
 	if (fabs(Position_t.X) > 2000 || Position_t.Y < 400 || Position_t.Y > 4400)
 		haveBall = 0;
