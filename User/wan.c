@@ -477,7 +477,7 @@ void CollecMostBall1(void)
 	g_cameraPlan  = 2;
 	aimAngle      = Position_t.angle + g_cameraAng[0];
 	aimAngle      = AvoidOverAngle(aimAngle);
-//	USART_OUT(UART5,(u8*)"a%d\r\n",(int)g_cameraAng[0]);
+	USART_OUT(UART5,(u8*)"a%d\r\n",(int)g_cameraAng[0]);
 	angClose(1200, aimAngle, 120);
 } 
 /*======================================================================================
@@ -490,21 +490,37 @@ int RunWithCamera1(uint8_t circleNum)
 	static uint8_t  i       = 0, count = 0, side = 0;
 	static uint8_t  circle  = 0;
   uint8_t success = 0;
+	float aimAngle = 0;
 	//USART_OUT(UART5,(u8*)"X%d\ti%d\r\n",(int)Position_t.X,(int)i);
 	switch (i)
 	{
 		case 0:
+			side = JudgeSide();
 			count++;
-			VelCrl(CAN2, 1, 6000);
-			VelCrl(CAN2, 2, -6000);	
-		
-		  //直行200ms
-		  if(count >= 20)
+			if(side == 1)
+			{
+				aimAngle = 0;
+			}
+			else if(side == 2)
+			{
+				aimAngle = 90;
+			}
+			else if(side == 3)
+			{
+				aimAngle = 180;
+			}
+			else
+			{
+				aimAngle = -90;
+			}
+			angClose(1000,aimAngle,100);
+			
+		  //直行1s
+		  if(count >= 100)
 			{
 				count = 0;
 				
 				//判断车现在在哪一面墙,从而决定下一步i的值
-				side = JudgeSide();
 				if(side == 1)
 				{
 					i = 1;
@@ -534,7 +550,7 @@ int RunWithCamera1(uint8_t circleNum)
 		//在-90°的角度上收集球，当Position_t.X>1600时，转弯，然后下一个角度收集球。以后的步骤类同
 		case 2:
 			CollecMostBall1();
-			if (Position_t.X > (1300 - circle * CAMERA_DIS))
+			if (Position_t.X > (200 + circle * CAMERA_DIS))
 				i++;
 			break;
 		case 3:
@@ -544,7 +560,7 @@ int RunWithCamera1(uint8_t circleNum)
 			break;
 		case 4:
 			CollecMostBall1();
-			if (Position_t.Y > (3600 - circle * CAMERA_DIS))
+			if (Position_t.Y > (2600 + circle * CAMERA_DIS))
 				i++;
 			break;
 		case 5:
@@ -554,7 +570,7 @@ int RunWithCamera1(uint8_t circleNum)
 			break;
 		case 6:
 			CollecMostBall1();
-			if (Position_t.X < -(1300 - circle * CAMERA_DIS))
+			if (Position_t.X < -(200 + circle * CAMERA_DIS))
 				i++;
 			break;
 		case 7:
@@ -564,7 +580,7 @@ int RunWithCamera1(uint8_t circleNum)
 			break;
 		case 8:
 			CollecMostBall1();
-			if (Position_t.Y < (1100 + circle * CAMERA_DIS))
+			if (Position_t.Y < (2200 - circle * CAMERA_DIS))
 				i++;
 			break;
 		case 9:
@@ -1145,7 +1161,7 @@ extern int ballColor,youqiu;
 extern int ballSpeed,need;
 int ShootBallW(void)
 {
-	static uint16_t noBall = 0, flag = 0, pushError = 0, resetError = 0;
+	static uint16_t noBall = 0, flag = 0, pushError = 0, resetError = 0, notShoot = 0;
   POSXY_T  posShoot = { 0, 0 };
 	int      success = 0;
 	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
@@ -1249,7 +1265,7 @@ int ShootBallW(void)
 	V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 	
 	//自己测的关系
-	rps = 0.01402f * V - 5.457f;
+	rps = 0.01402f * V - 5.457f + 2.6;
 	
 	// 表明射球蓝牙没有收到主控发送的数据
 	if (fabs(rps + g_shootV / 4096) > 0.1)
@@ -1307,6 +1323,23 @@ int ShootBallW(void)
 			pushSignal = 0;
 			resetSignal = 0;
 		}
+		
+		//推球电机位置不变
+		if((g_pushPosition - lastPosition) == 0)
+		{
+			notShoot++;
+			
+			//推球电机5s位置不变，继续前进
+			if(notShoot > 500)
+			{
+				notShoot = 0;
+				success = 1;
+			}
+		}
+		else
+		{
+			notShoot = 0;
+		}
 		lastPosition = g_pushPosition;
 	}
 	
@@ -1323,9 +1356,9 @@ int ShootBallW(void)
 		resetError = 0;
 		PushBallReset();
 	}
-	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)(g_shootV / 4096),(int)rps,(int)g_shootFactV/4096,(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
-	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",ballColor,noBall,success,(int)g_pushPosition,(int)shootNum);
-	return 0;
+	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",ballColor,noBall,success,(int)g_pushPosition,(int)shootNum,(int)resetError,(int)pushError,(int)notShoot);
+	return success;
 }
 /*======================================================================================
    函数定义		：			圆形跑场
@@ -1614,22 +1647,22 @@ int AfterCircle(uint16_t speed)
 	{
 		case 0:
 			StaightCLose(1850, 0, 0, speed);
-			if(Position_t.Y > 2500)
+			if(Position_t.Y > 2400)
 				step++;
 			break;
 		case 1:
 			StaightCLose(0, 4200, 90, speed);
-			if(Position_t.X < -200)
+			if(Position_t.X < -100)
 				step++;
 			break;
 		case 2:
 			StaightCLose(-1900, 0, 180, speed);
-			if(Position_t.Y < 2300)
+			if(Position_t.Y < 2400)
 				step++;
 			break;
 		case 3:
 			StaightCLose(0, 600, -90, speed);
-			if(Position_t.X > 200)
+			if(Position_t.X > 100)
 				step++;
 			break;
 		case 4:
@@ -1711,9 +1744,9 @@ int Escape(void)
 			break;
 		case 1:
 			time++;
-			if (time < 100)
+			if (time < 120)
 			{
-				angClose(-800,aimAngle,100);
+				angClose(-1000,aimAngle,100);
 			}
 			else
 			{
@@ -1798,9 +1831,6 @@ int RunAndShoot(void)
 	else
 	{
 	}
-	
-	
-	
 	//小车当前的速度
 	carVel = RealVel();
 	

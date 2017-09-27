@@ -129,11 +129,11 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	// 	Ainput = 260 * Dangle;
 	if(speed < 1900)
 	{
-		Ainput = 290 * Dangle;
+		Ainput = 260 * Dangle;
 	}
 	else
 	{
-		Ainput = 300 * Dangle;
+		Ainput = 320 * Dangle;
 	}
 
 
@@ -165,7 +165,7 @@ void GoGoGo(float fLine)
 		//第一圈放球区附近跑场
 		case 1:
 		{
-			//先启动1s
+			//先启动3s
 			count++;
 			if(count >= 300)
 			{
@@ -198,14 +198,14 @@ void GoGoGo(float fLine)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(2000, 900, 3, 1))
+			if(sweepYuan(2200, 900, 3, 1))
 				state = 3;
 		}
 		break;
 		
 		//紧随画圆后矩形扫场
 		case 3:
-			if(AfterCircle(2000))
+			if(AfterCircle(2100))
 				state = 4;
 			break;
 		//进行坐标校正
@@ -308,13 +308,15 @@ bool FirstRound(float firstLine)
 	static int state = 1;
   static float speed = 1000;
 	float advance = 0;
+	
 	//第一条目标直线距离铁框太近,就让它贴铁框走
 	advance = 900;
-	speed += 2.5;
+	speed += 10;
 	if(speed > 2000)
 	{
 		speed = 2000;
 	}
+	
 	//第一圈贴框走成都极限条件
 	if(firstLine < 650)
 	{
@@ -326,7 +328,6 @@ bool FirstRound(float firstLine)
 		case 1:
 		{
 			StaightCLose(firstLine, 0, 0, speed);
-			USART_OUT(UART5,(u8*)"%d\r\n",(int)firstLine);
 			if (Position_t.Y >= 3100 + WIDTH / 2 - advance)
         state = 2;
 		} break;
@@ -335,14 +336,14 @@ bool FirstRound(float firstLine)
 		case 2:
 		{
 			StaightCLose(0, 3100 + WIDTH / 2 + 50, 90, speed);
-			if (Position_t.X <= -800 + FIR_ADV)
+			if (Position_t.X <= -700 + FIR_ADV)
 				state = 3;
 		} break;
 
 	//	//左边，目标角度180度
 		case 3:
 		{
-			StaightCLose(-800, 0, 180, FIRST_SPEED);
+			StaightCLose(-700, 0, 180, speed);
 			if (Position_t.Y <= 1200 + FIR_ADV)
 				state = 4;
 		} break;
@@ -350,13 +351,12 @@ bool FirstRound(float firstLine)
 	//	//下边，目标角度-90度
 		case 4:
 		{
-			StaightCLose(0, 1200, -90, FIRST_SPEED);
-
+			StaightCLose(0, 1200, -90, speed);
 			if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
 				return true;
 		} break;
 	}
-
+	USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)state,(int)speed);
 	return false;
 }
 /*======================================================================================
@@ -629,7 +629,7 @@ int CheckPosition(void)
 				{
 					if(aimAngle > 0)
 					{
-						if(Position_t.X < -1400)
+						if(Position_t.X < -1600)
 						{
 							aimAngle = -90;
 							state = 6;
@@ -637,7 +637,7 @@ int CheckPosition(void)
 					}
 					else
 					{
-						if(Position_t.X > 1400)
+						if(Position_t.X > 1600)
 						{
 							aimAngle = 90;
 							state = 6;
@@ -648,7 +648,7 @@ int CheckPosition(void)
 				{
 					if(aimAngle > 90)
 					{
-						if(Position_t.Y < 950)
+						if(Position_t.Y < 750)
 						{
 							aimAngle = 0;
 							state = 6;
@@ -656,7 +656,7 @@ int CheckPosition(void)
 					}
 					else
 					{
-						if(Position_t.Y > 3700)
+						if(Position_t.Y > 3900)
 						{
 							aimAngle = 180;
 							state = 6;
@@ -726,6 +726,7 @@ int CheckPosition(void)
 			}
 			state = 7;
 		break;
+			
 		//转向目标角度
 		case 7:
 		{

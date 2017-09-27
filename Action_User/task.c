@@ -155,7 +155,7 @@ void WalkTask(void)
 	//棍子，发射机构的初始速度
 	CollectBallVelCtr(60);
 	delay_s(5);	
-	ShootCtr(50);
+	ShootCtr(60);
 	
 	//鸣笛
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
@@ -238,13 +238,3 @@ float TwoWheelAngleControl(float targetAng)
 	anglePresent = GetAngleZ();
 	return angleErr * 10.0f;
 }
-//		count++;
-//		if(count>100&&count<110)
-//		{
-//			PushBall();
-//		}
-//		if(count>200&&count<210)
-//		{
-//			count=0;
-//			PushBallReset();
-//		}

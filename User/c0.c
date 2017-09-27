@@ -1797,6 +1797,7 @@ void PathPlan(float camX, float camY)
 		}
 	}
 }
+int ballNumber;
 /*======================================================================================
 函数定义	  ：
 函数参数	  ：    
@@ -1804,14 +1805,28 @@ void PathPlan(float camX, float camY)
                            
 函数返回值  ：	  无
 =======================================================================================*/
-int CountBall(void)
+void CountBall(void)
 {
-	static int ballNumber=0,ballN=0,sum=0,beginSum=0;
+	static int ballN=0,sum=0,beginSum=0,pass=0;
 	ReadActualVel(CAN1, COLLECT_BALL_ID);
-  if(g_gather<=235)
+	if(pass==2)
+	{
+		if(g_gather>240)
+		{
+			pass=0;
+			sum=0;
+		}
+		else 
+		{
+			pass=1;
+		}
+	}	
+  if(g_gather<=235&&g_gather>100&&sum==0)
 	{
 		beginSum = 1;
+		pass=2;
 	}
+
 	if(g_gather>=250)
 	{
 		beginSum = 0;
@@ -1819,15 +1834,15 @@ int CountBall(void)
 		{
 			ballN=1;
 		}
-		else if(sum>230&&sum<=1000)
+		else if(sum>230&&sum<=1200)
 		{
 			ballN=2;
 		}
-		else if(sum>1000&&sum<=1500)
+		else if(sum>1200&&sum<=2000)
 		{
 			ballN=3;
 		}
-		else if(sum>1500)
+		else if(sum>2000)
 		{
 			ballN=4;
 		}
@@ -1837,7 +1852,7 @@ int CountBall(void)
 			sum=0;
 		}
 	}
-	if(beginSum)
+	if(beginSum&&pass)
 	{
 		sum += (250-g_gather);
 	}
@@ -1850,10 +1865,11 @@ int CountBall(void)
 
 	if(ballN)
 	{
-			ballNumber +=ballN;
-			ballN=0;
-		  sum=0;
+		ballNumber +=ballN;
+		ballN=0;
+		sum=0;
 	}
 	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
-	return ballNumber;
+
 }
+
