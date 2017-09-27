@@ -180,24 +180,14 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-<<<<<<< HEAD
+
 		CountBall();
 		//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
-		//test = ballVacant;
-=======
-//		CountBall();
->>>>>>> 9c4974791299664ffab386eae265709f87e99f1d
-		//StaightCLose(0, 0, 0, 1800);
+
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
-<<<<<<< HEAD
-    	
-=======
-//		CountBall();
 //		ShootBallW();
-
 //		RunWithCamera1(2);
->>>>>>> 9c4974791299664ffab386eae265709f87e99f1d
 		if (ifEscape)
 		{
 			//逃逸完成后，ifEscape清零
@@ -208,9 +198,9 @@ void WalkTask(void)
 		}
 		else
  		{
-			RunCamera();
-			carRun=1;
-//			GoGoGo(firstLine);
+//			RunCamera();
+//			carRun=1;
+			GoGoGo(firstLine);
 		}
 		if (stuckCar(100))
 		{
@@ -219,10 +209,6 @@ void WalkTask(void)
 			else
 				ifEscape = 0;
 		}
-<<<<<<< HEAD
-
-=======
->>>>>>> 9c4974791299664ffab386eae265709f87e99f1d
 	}
 }
 

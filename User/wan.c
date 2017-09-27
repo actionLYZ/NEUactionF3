@@ -1648,40 +1648,22 @@ int AfterCircle(uint16_t speed)
 	{
 		case 0:
 			StaightCLose(1850, 0, 0, speed);
-<<<<<<< HEAD
-			if(Position_t.Y > 3100)
-				step++;
-			break;
-		case 1:
-			StaightCLose(0, 4300-POSYSTEM_TO_BACK, 90, speed);
-			if(Position_t.X < -800)
-=======
 			if(Position_t.Y > 2400)
 				step++;
 			break;
 		case 1:
 			StaightCLose(0, 4200, 90, speed);
 			if(Position_t.X < -100)
->>>>>>> 9c4974791299664ffab386eae265709f87e99f1d
 				step++;
 			break;
 		case 2:
 			StaightCLose(-1900, 0, 180, speed);
-<<<<<<< HEAD
 			if(Position_t.Y < 1700)
-				step++;
-			break;
-		case 3:
-			StaightCLose(0, 500, -90, speed);
-			if(Position_t.X > 700)
-=======
-			if(Position_t.Y < 2400)
 				step++;
 			break;
 		case 3:
 			StaightCLose(0, 600, -90, speed);
 			if(Position_t.X > 100)
->>>>>>> 9c4974791299664ffab386eae265709f87e99f1d
 				step++;
 			break;
 		case 4:
@@ -1791,11 +1773,7 @@ int Escape(void)
 			if(time > 100)
 			{
 				time = 0;
-<<<<<<< HEAD
-				step=0;
-=======
 				step = 0;
->>>>>>> 9c4974791299664ffab386eae265709f87e99f1d
 				success = 1;
 			}
 		 break;
