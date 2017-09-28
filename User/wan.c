@@ -515,8 +515,8 @@ int RunWithCamera1(uint8_t circleNum)
 			}
 			angClose(1000,aimAngle,100);
 			
-		  //直行1s
-		  if(count >= 100)
+		  //直行0.8s
+		  if(count >= 80)
 			{
 				count = 0;
 				
@@ -580,7 +580,7 @@ int RunWithCamera1(uint8_t circleNum)
 			break;
 		case 8:
 			CollecMostBall1();
-			if (Position_t.Y < (2200 - circle * CAMERA_DIS))
+			if (Position_t.Y < (1900 - circle * CAMERA_DIS))
 				i++;
 			break;
 		case 9:
@@ -1265,7 +1265,7 @@ int ShootBallW(void)
 	V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 	
 	//自己测的关系
-	rps = 0.01402f * V - 5.457f + 2.6;
+	rps = 0.01402f * V - 5.457f + 2.75;
 	
 	// 表明射球蓝牙没有收到主控发送的数据
 	if (fabs(rps + g_shootV / 4096) > 0.1)
@@ -1282,7 +1282,7 @@ int ShootBallW(void)
 	}
 
   //枪的角度和转速到位,推球
- 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 2.0 && ballColor)
+ 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 1.0 && ballColor)
 	{
 		//位置正常，reset推球电机
 		if(g_pushPosition > 3800)
@@ -1294,20 +1294,19 @@ int ShootBallW(void)
 		else if(g_pushPosition < 200)
 		{
 			PushBall();
-			USART_OUT(UART5,(u8*)"tui\r\n");
 		}
 		
 		//当推球电机的位置在（200-3800）时，认为推球电机位置错误
-		if(g_pushPosition > 2000 && g_pushPosition <= 3800)
-		{
-			resetError++;
-			pushError = 0;
-		}
-		if(g_pushPosition >= 200 && g_pushPosition <= 2000)
-		{
-			pushError++;
-			resetError = 0;
-		}
+//		if(g_pushPosition > 2000)
+//		{
+//			resetError++;
+//			pushError = 0;
+//		}
+//		else 
+//		{
+//			pushError++;
+//			resetError = 0;
+//		}
 		
 		//记录射球的个数
 		if((g_pushPosition - lastPosition) < 0)
@@ -1325,13 +1324,27 @@ int ShootBallW(void)
 			resetSignal = 0;
 		}
 		
-		//推球电机位置不变
+		//CCD识别到球，但推球电机位置不变
 		if((g_pushPosition - lastPosition) == 0)
 		{
 			notShoot++;
 			
-			//推球电机5s位置不变，继续前进
-			if(notShoot > 500)
+			//推球电机2s位置不变
+			if(notShoot > 200 && notShoot < 210)
+			{
+				//给推球电机一个反方向的命令
+				if(g_pushPosition > 2000)
+				{
+					PushBall();
+				}
+				else
+				{
+					PushBallReset();
+				}
+			}
+			
+			//4s依然卡死，继续扫场
+			if(notShoot > 400)
 			{
 				notShoot = 0;
 				success = 1;
@@ -1357,8 +1370,8 @@ int ShootBallW(void)
 		resetError = 0;
 		PushBallReset();
 	}
-	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
-	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",ballColor,noBall,success,(int)g_pushPosition,(int)shootNum,(int)resetError,(int)pushError,(int)notShoot);
+//	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)resetError,(int)pushError,(int)notShoot);
 	return success;
 }
 /*======================================================================================
@@ -1420,13 +1433,13 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
-		  R1 += 300;
+		  R1 += 200;
 		}
 		
 		//否则,缩小扫场
 		else
 		{
-			R1 -= 300;
+			R1 -= 200;
 		}
 		
 		//达到预定圈数,success置1,acceSpeed置0
@@ -1570,8 +1583,8 @@ int stuckCar(uint16_t stuckV)
 		count = 0;
 	}
 	
-	//时间累积到250ms认为车被困
-	if(count >= 25)
+	//时间累积到200ms认为车被困
+	if(count >= 20)
 	{
 		success = 1;
 		count = 0;
@@ -1642,12 +1655,13 @@ int JudgeSide(void)
  =====================================================================================*/
 int AfterCircle(uint16_t speed)
 {
-	static uint8_t step = 0;
+	static uint8_t step = 5;
 	uint8_t success = 0;
+	static float tempx = 0;
 	switch(step)
 	{
 		case 0:
-			StaightCLose(1850, 0, 0, speed);
+			StaightCLose(tempx, 0, 0, speed);
 			if(Position_t.Y > 2400)
 				step++;
 			break;
@@ -1673,6 +1687,12 @@ int AfterCircle(uint16_t speed)
 				step = 0;
 				success = 1;
 			}
+			break;
+			
+			//记录当前的X坐标，以便更好的切换到矩形扫场
+		case 5:
+			tempx = Position_t.X;
+		  step = 0;
 			break;
 	}
 	return success;
@@ -1731,17 +1751,29 @@ GPIO_ResetBits(GPIOE,GPIO_Pin_7);
  =====================================================================================*/
 int Escape(void)
 {
-	static u16 time = 0, step = 0,status = 0;
+	static u16 time = 0, step = 0;
+	static int status = 0;
 	static float aimAngle = 0;
 	u8 success = 0;
 	switch(step)
 	{
 		case 0:
 			status = In_Or_Out();
-		
+		  
 		  //记录当前的角度
 		  aimAngle = Position_t.angle;
-		  step = 1;
+		
+			//车子不在四个死角
+			if(status == 0 || status == -1)
+			{
+				step = 1;
+			}
+			
+			//车子在四个死角
+			else
+			{
+				step = 3;
+			}
 			break;
 		case 1:
 			time++;
@@ -1757,26 +1789,117 @@ int Escape(void)
 			break;
 		case 2:
 			time++;
+		
 			//内圈
 			if(status == 0)
 			{
-				VelCrl(CAN2, 1, 7000);
-				VelCrl(CAN2, 2, -15000);
+				angClose(1000,(aimAngle - 70),100);
 			}
 			
 			//外圈
 			else
 			{
-				VelCrl(CAN2, 1, 15000);
-				VelCrl(CAN2, 2, -7000);
+				angClose(1000,(aimAngle + 70),100);
 			}
-			if(time > 100)
+			if(time > 120)
 			{
 				time = 0;
 				step = 0;
 				success = 1;
 			}
 		 break;
+		case 3:
+			if(status == 1)
+			{
+				//如果偏转角度过大，进入第四步，特殊调整
+				if(fabs(Position_t.angle) > 135)
+				{
+					aimAngle = -90;
+					step = 4;
+				}
+				
+				//否则，返回第一步，正常调整
+				else
+				{
+					step = 1;
+				}
+			}
+			else if(status == 2)
+			{
+				if(Position_t.angle < -45)
+				{
+					aimAngle = 0;
+					step = 4;
+				}
+				else
+				{
+					step = 1;
+				}
+			}
+			else if(status == 3)
+			{
+				if(Position_t.angle < 45)
+				{
+					aimAngle = 90;
+					step = 4;
+				}
+				else
+				{
+					step = 1;
+				}
+			}
+			else
+			{
+				if(Position_t.angle < 135)
+				{
+					aimAngle = 180;
+					step = 4;
+				}
+				else
+				{
+					step = 1;
+				}
+			}
+			break;
+		case 4:
+			time++;
+			angClose(-1200,aimAngle,100);
+		  if(time > 120)
+			{
+				time = 0;
+				
+				//计算下一刻的目标角度
+				if(status == 1)
+				{
+					aimAngle = 0;
+				}
+				else if(status == 2)
+				{
+					aimAngle = 90;
+				}
+				else if(status == 3)
+				{
+					aimAngle = 180;
+				}
+				else
+				{
+					aimAngle = -90;
+				}
+				step = 5;
+			}
+			break;
+		case 5:
+			time++;
+			angClose(1200,aimAngle,120);
+		
+			//转弯1s
+			if(time > 100)
+			{
+				time = 0;
+				step = 0;
+				success = 1;
+			}
+			break;
 	}
 	return success;
 }
@@ -1876,7 +1999,7 @@ int RunAndShoot(void)
 			PushBall();
 		}
 	}
-	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+//	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",ballColor,count,noBall,success,(int)g_pushPosition);
 	return success;
 }

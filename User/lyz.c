@@ -134,7 +134,7 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	}
 	else
 	{
-		Ainput = 320 * Dangle;
+		Ainput = 400 * Dangle;
 	}
 
 
@@ -161,11 +161,11 @@ void GoGoGo(float fLine)
 	static int  state = 1, shootTime = 0, count = 0;             //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
 
-	if(ballNumber>20)
-	{
-		state=4;
-	  ballNumber=0;	
-	}
+//	if(ballNumber>20)
+//	{
+//		state=4;
+//	  ballNumber=0;	
+//	}
 	switch (state)
 	{
 		//第一圈放球区附近跑场
@@ -204,14 +204,14 @@ void GoGoGo(float fLine)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(2200, 900, 3, 1))
+			if(sweepYuan(2000, 900, 3, 1))
 				state = 3;
 		}
 		break;
 		
 		//紧随画圆后矩形扫场
 		case 3:
-			if(AfterCircle(2100))
+			if(AfterCircle(2000))
 				state = 4;
 			break;
 		//进行坐标校正
@@ -233,58 +233,66 @@ void GoGoGo(float fLine)
 			shootStart  = 1;
 			if (ShootBallW())
 			{
-//				state = 7;
+				state = 6;
 
-				shootStart = 0;
-				shootTime++;
-				switch (shootTime)
-				{
-					case 1:
-					{
-						state = 6;
-						if (cameraScheme == 0)
-						{
-							cameraScheme = 1;
-							GPIO_SetBits(GPIOE, GPIO_Pin_4);
-							GPIO_ResetBits(GPIOE, GPIO_Pin_6);
-						}
-						else if (cameraScheme == 1)
-						{
-							cameraScheme = 2;
-							GPIO_SetBits(GPIOE, GPIO_Pin_4);
-							GPIO_SetBits(GPIOE, GPIO_Pin_6);
-						}
-						else if (cameraScheme == 2)
-						{
-							cameraScheme = 3;
-							
-							GPIO_ResetBits(GPIOE, GPIO_Pin_4);
-							GPIO_SetBits(GPIOE, GPIO_Pin_6);
-						}
-						else
-						{
-						}
-					} 
-					break;
+//				shootStart = 0;
+//				shootTime++;
+//				switch (shootTime)
+//				{
+//					case 1:
+//					{
+//						state = 6;
+//						if (cameraScheme == 0)
+//						{
+//							cameraScheme = 1;
+//							GPIO_SetBits(GPIOE, GPIO_Pin_4);
+//							GPIO_ResetBits(GPIOE, GPIO_Pin_6);
+//						}
+//						else if (cameraScheme == 1)
+//						{
+//							cameraScheme = 2;
+//							GPIO_SetBits(GPIOE, GPIO_Pin_4);
+//							GPIO_SetBits(GPIOE, GPIO_Pin_6);
+//						}
+//						else if (cameraScheme == 2)
+//						{
+//							cameraScheme = 3;
+//							
+//							GPIO_ResetBits(GPIOE, GPIO_Pin_4);
+//							GPIO_SetBits(GPIOE, GPIO_Pin_6);
+//						}
+//						else
+//						{
+//						}
+//					} 
+//					break;
 
-					case 2: 
-						state = 7;
-					break;
+//					case 2: 
+//						state = 7;
+//					break;
 
-				default: break;
+//				default: break;
 				}
 	
-			}
-			else
-			{
-			}
+//			}
+//			else
+//			{
+//			}
 		} break;
 
 		case 6: 
 		{
-			carRun      = 1;
+			//先启动3s
+			count++;
+			if(count >= 300)
+			{
+				shootStart  = 0;
+				carRun      = 1;
+				count = 300;
+			}
 			if(RunWithCamera1(2))
 			{
+				count = 0;
 				state = 4;
 			}
 		} break;
@@ -292,7 +300,7 @@ void GoGoGo(float fLine)
 		case 7:
 		{
 			carRun = 1;
-			if (RunEdge())
+			if(RunEdge())
 			{
 				state     = 4;
 				shootTime = 0;

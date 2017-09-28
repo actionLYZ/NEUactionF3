@@ -525,6 +525,7 @@ void First_Scan(void)
 
    函数返回值  ：	  0代表内圈 1代表外圈（以逆时针看，顺时针倒过来）
    =======================================================================================*/
+
 int In_Or_Out(void)
 {
 	int finish = 0;
@@ -532,17 +533,36 @@ int In_Or_Out(void)
 	//将正方形区域分成内外两部分
 	if (Position_t.X > -1200 && Position_t.X < 1200 && Position_t.Y > 1200 && Position_t.Y < 3600)
 	{
-		if (g_plan == -1)
-			finish = 1;
-		if (g_plan == 1)
 			finish = 0;
 	}
+	
+	//一号区域
+	else if(Position_t.X > 1200 && Position_t.Y < 1200)
+	{
+		finish = 1;
+	}
+	
+	//二号区域
+	else if(Position_t.X > 1200 && Position_t.Y > 3600)
+	{
+		finish = 2;
+	}
+	
+	//三号区域
+	else if(Position_t.X < -1200 && Position_t.Y > 3600)
+	{
+		finish = 3;
+	}
+	
+	//四号区域
+	else if(Position_t.X < -1200 && Position_t.Y < 1200)
+	{
+		finish = 4;
+	}
+	
 	else
 	{
-		if (g_plan == -1)
-			finish = 0;
-		if (g_plan == 1)
-			finish = 1;
+			finish = -1;
 	}
 	return finish;
 }
