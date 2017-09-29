@@ -233,53 +233,6 @@ void GoGoGo(float fLine)
 			shootStart  = 1;
 			if (ShootBallW())
 			{
-<<<<<<< HEAD
-				state = 6;
-
-//				shootStart = 0;
-//				shootTime++;
-//				switch (shootTime)
-//				{
-//					case 1:
-//					{
-//						state = 6;
-//						if (cameraScheme == 0)
-//						{
-//							cameraScheme = 1;
-//							GPIO_SetBits(GPIOE, GPIO_Pin_4);
-//							GPIO_ResetBits(GPIOE, GPIO_Pin_6);
-//						}
-//						else if (cameraScheme == 1)
-//						{
-//							cameraScheme = 2;
-//							GPIO_SetBits(GPIOE, GPIO_Pin_4);
-//							GPIO_SetBits(GPIOE, GPIO_Pin_6);
-//						}
-//						else if (cameraScheme == 2)
-//						{
-//							cameraScheme = 3;
-//							
-//							GPIO_ResetBits(GPIOE, GPIO_Pin_4);
-//							GPIO_SetBits(GPIOE, GPIO_Pin_6);
-//						}
-//						else
-//						{
-//						}
-//					} 
-//					break;
-
-//					case 2: 
-//						state = 7;
-//					break;
-
-//				default: break;
-				}
-	
-//			}
-//			else
-//			{
-//			}
-=======
 				state = 7;
 /*
 				shootStart = 0;
@@ -325,7 +278,6 @@ void GoGoGo(float fLine)
 			else
 			{
 			}
->>>>>>> 诗玲
 		} break;
 
 		case 6: 
@@ -347,10 +299,6 @@ void GoGoGo(float fLine)
 
 		case 7:
 		{
-<<<<<<< HEAD
-			carRun = 1;
-			if(RunEdge())
-=======
 			count++;
 			if(count >= 300)
 			{
@@ -359,7 +307,6 @@ void GoGoGo(float fLine)
 				count = 300;
 			}
 			if (RunEdge())
->>>>>>> 诗玲
 			{
 				state     = 4;
 				shootTime = 0;
@@ -894,7 +841,7 @@ int RunCamera(void)
 {
 	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1;
 	static float  cameraX, cameraY;
-	int           finish = 0, circulate,edge;
+	int           finish = 0, circulate;
 	POSITION_T    basePoint;
   cameraScheme = 1;
 	
