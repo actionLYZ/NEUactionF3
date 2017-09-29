@@ -219,3 +219,4 @@ u16 LaserTrigger(void);
 
 //逃逸函数
 int Escape(void);
+

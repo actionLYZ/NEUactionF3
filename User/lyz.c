@@ -372,7 +372,7 @@ bool FirstRound(float firstLine)
 				return true;
 		} break;
 	}
-	USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)state,(int)speed);
+//	USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)state,(int)speed);
 	return false;
 }
 /*======================================================================================
@@ -542,11 +542,12 @@ int CheckPosition(void)
 		case 3:
 		{
 			StaightCLose(tempx, tempy, aimAngle, -1000);
-			//后退时如果被困，则进入状态9
-//			if(stuckCar(100))
-//			{
-//				state = 10;
-//			}
+			
+			//后退时如果球困住，则进入状态9
+			if(stuckCar(10))
+			{
+				state = 9;
+			}
 			//两个行程开关触发,则进入下一次状态进行激光矫正
 			if(SWITCHC2 == 1 && SWITCHC0 == 1)
 			{
@@ -790,6 +791,18 @@ int CheckPosition(void)
 				tempx   = 0, tempy = 0;
 			}
 		} break;
+		case 9:
+			
+			//前进0.2s
+			count++;
+			if(count >= 20)
+			{
+				count = 0;
+				state = 3;
+			}
+			VelCrl(CAN2, 1, 5000);
+			VelCrl(CAN2, 2, -5000);
+			break;
 	}
 	return keepgo;
 }
@@ -1091,7 +1104,7 @@ int LaserCheck(void)
 			{
 				yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - laserGetLeft);
 			}
-			USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",(int)xError,(int)yError,(int)Position_t.X,(int)Position_t.Y,(int)laserGetRight);
+//			USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",(int)xError,(int)yError,(int)Position_t.X,(int)Position_t.Y,(int)laserGetRight);
 			return 1;
 		}
 

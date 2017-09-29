@@ -96,8 +96,8 @@ void angClose(float V, float aimAngle, float Kp)
 	angError  = aimAngle - Position_t.angle;
 	angError  = AvoidOverAngle(angError);
 	angOutput = g_plan * angError * Kp;
-	VelCrl(CAN2, 1, V * SP2PULSE + angOutput);
-	VelCrl(CAN2, 2, -V * SP2PULSE + angOutput);
+	VelCrl(CAN2, 1, V * SP2PULSE + g_plan * angOutput);
+	VelCrl(CAN2, 2, -V * SP2PULSE + g_plan * angOutput);
 }
 /*======================================================================================
    函数定义	  ：		矫正函数
@@ -477,7 +477,7 @@ void CollecMostBall1(void)
 	g_cameraPlan  = 2;
 	aimAngle      = Position_t.angle + g_cameraAng[0];
 	aimAngle      = AvoidOverAngle(aimAngle);
-	USART_OUT(UART5,(u8*)"a%d\r\n",(int)g_cameraAng[0]);
+//	USART_OUT(UART5,(u8*)"a%d\r\n",(int)g_cameraAng[0]);
 	angClose(1200, aimAngle, 120);
 } 
 /*======================================================================================
@@ -593,6 +593,7 @@ int RunWithCamera1(uint8_t circleNum)
 				// 达到预定圈数返回1
 				if(circle == circleNum)
 				{
+					circle = 0;
 					success = 1;
 				}
 			}
@@ -1161,12 +1162,12 @@ extern int ballColor,youqiu;
 extern int ballSpeed,need;
 int ShootBallW(void)
 {
-	static uint16_t noBall = 0, flag = 0, pushError = 0, resetError = 0, notShoot = 0;
+	static uint16_t noBall = 0, flag = 0, notShoot = 0;
   POSXY_T  posShoot = { 0, 0 };
 	int      success = 0;
 	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
 	static int32_t lastPosition = 0;
-	static int8_t pushSignal = 0, resetSignal = 0;
+	static int8_t pushSignal = 0, resetSignal = 0, step = 0;
 	//问询航向电机角度、收球电机速度、推球电机的位置
   ReadActualPos(CAN1, GUN_YAW_ID);
 	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
@@ -1174,204 +1175,173 @@ int ShootBallW(void)
 
 	//计算投球点的坐标
 	posShoot  = ShootPointPos();
-	
-	//球是白球
-	if (ballColor == WHITE)
+	switch(step)
 	{
-		noBall = 0;
-		distance = sqrt((posShoot.X - WHITEX) * (posShoot.X - WHITEX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
+		case 0:
+			//球是白球
+			if (ballColor == WHITE)
+			{
+				noBall = 0;
+				distance = sqrt((posShoot.X - WHITEX) * (posShoot.X - WHITEX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
 
-		//将角度装换成陀螺仪角度坐标系里的角度值
-		aimAngle  = atan2(BALLY - posShoot.Y, WHITEX - posShoot.X);
-		aimAngle  = RADTOANG(aimAngle) - 90;
+				//将角度装换成陀螺仪角度坐标系里的角度值
+				aimAngle  = atan2(BALLY - posShoot.Y, WHITEX - posShoot.X);
+				aimAngle  = RADTOANG(aimAngle) - 90;
 
-		//枪顺时针转为正，逆时针为负
-		aimAngle = AvoidOverAngle(aimAngle);
-		shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2;
-	}
+				//枪顺时针转为正，逆时针为负
+				aimAngle = AvoidOverAngle(aimAngle);
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2;
+			}
 
-	//球是黑球
-	else if (ballColor == BLACK)
-	{
-		noBall = 0;
-		distance = sqrt((posShoot.X - BLACKX) * (posShoot.X - BLACKX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
+			//球是黑球
+			else if (ballColor == BLACK)
+			{
+				noBall = 0;
+				distance = sqrt((posShoot.X - BLACKX) * (posShoot.X - BLACKX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
 
-		//将角度转换成陀螺仪角度坐标系里的角度值
-		aimAngle  = atan2(BALLY - posShoot.Y, BLACKX - posShoot.X);
-		aimAngle  = RADTOANG(aimAngle) - 90;
-		aimAngle  = AvoidOverAngle(aimAngle);
-		shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2;
-	}
-	
-	// 没球,4s内来回拨动一次
-	else if (ballColor == NO)
-	{
-		noBall++;
-		if(noBall > 150 && noBall < 160)
-		{
-			if(g_pushPosition > 2000)
-			{
-				PushBallReset();
+				//将角度转换成陀螺仪角度坐标系里的角度值
+				aimAngle  = atan2(BALLY - posShoot.Y, BLACKX - posShoot.X);
+				aimAngle  = RADTOANG(aimAngle) - 90;
+				aimAngle  = AvoidOverAngle(aimAngle);
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2;
 			}
-			else
-			{
-				PushBall();
-			}
-		}
-		if(noBall > 300 && noBall < 310)
-		{
-			if(g_pushPosition > 2000)
-			{
-				PushBallReset();
-			}
-			else
-			{
-				PushBall();
-			}
-		}
-		if(noBall > 450 && noBall < 460)
-		{
-			if(g_pushPosition > 2000)
-			{
-				PushBallReset();
-			}
-			else
-			{
-				PushBall();
-			}
-		}
-		if(noBall > 600 && noBall < 610)
-		{
-			if(g_pushPosition > 2000)
-			{
-				PushBallReset();
-			}
-			else
-			{
-				PushBall();
-			}
-		}
-		if(noBall > 800)
-		{
-			noBall = 0;
-			
-			//射球完成，shootNum清零
-			shootNum = 1;
-			success = 1;
-		}
-	}
-	
-	//球出射速度(mm/s)与投球点距离篮筐的距离的关系
-	V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
-	
-	//自己测的关系
-	rps = 0.01402f * V - 5.457f + 2.75;
-	
-	// 表明射球蓝牙没有收到主控发送的数据
-	if (fabs(rps + g_shootV / 4096) > 0.1)
-	{
-		  ShootCtr(rps);
-  }
-	
-	//控制发射航向角(30ms发一次)
-	flag++;
-	flag = flag % 3;
-	if(flag == 1)
-	{
-		YawAngleCtr(shootAngle);
-	}
-
-  //枪的角度和转速到位,推球
- 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 1.0 && ballColor)
-	{
-		//位置正常，reset推球电机
-		if(g_pushPosition > 3800)
-		{
-			PushBallReset();
-		}
 		
-		//位置正常，push推球电机
-		else if(g_pushPosition < 200)
-		{
-			PushBall();
-		}
-		
-		//当推球电机的位置在（200-3800）时，认为推球电机位置错误
-//		if(g_pushPosition > 2000)
-//		{
-//			resetError++;
-//			pushError = 0;
-//		}
-//		else 
-//		{
-//			pushError++;
-//			resetError = 0;
-//		}
-		
-		//记录射球的个数
-		if((g_pushPosition - lastPosition) < 0)
-		{
-			resetSignal = 1;
-		}
-		if((g_pushPosition - lastPosition) > 0)
-		{
-			pushSignal = 1;
-		}
-		if(pushSignal && resetSignal)
-		{
-			shootNum++;
-			pushSignal = 0;
-			resetSignal = 0;
-		}
-		
-		//CCD识别到球，但推球电机位置不变
-		if((g_pushPosition - lastPosition) == 0)
-		{
-			notShoot++;
-			
-			//推球电机2s位置不变
-			if(notShoot > 200 && notShoot < 210)
+			// 没球,来回拨动几次
+			else if (ballColor == NO)
 			{
-				//给推球电机一个反方向的命令
-				if(g_pushPosition > 2000)
+				noBall++;
+				if(noBall > 150 && noBall < 160)
 				{
-					PushBall();
+						PushBall();
 				}
-				else
+				if(noBall > 300 && noBall < 310)
+				{		
+						PushBallReset();	
+				}
+				if(noBall > 450 && noBall < 460)
+				{	
+						PushBall();	
+				}
+				if(noBall > 600 && noBall < 610)
+				{					
+						PushBallReset();					
+				}
+				if(noBall > 800)
+				{
+					noBall = 0;
+					
+					//射球完成，shootNum清零
+					shootNum = 1;
+					success = 1;
+				}
+			}
+			
+			//球出射速度(mm/s)与投球点距离篮筐的距离的关系
+			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
+			
+			//自己测的关系
+			rps = 0.01402f * V - 5.457f + 2.75;
+			
+			// 表明射球蓝牙没有收到主控发送的数据
+			if (fabs(rps + g_shootV / 4096) > 0.1)
+			{
+					ShootCtr(rps);
+			}
+			
+			//控制发射航向角(30ms发一次)
+			flag++;
+			flag = flag % 3;
+			if(flag == 1)
+			{
+				YawAngleCtr(shootAngle);
+			}
+
+			//枪的角度和转速到位,推球
+			if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 1.0 && ballColor)
+			{
+				//位置正常，reset推球电机
+				if(g_pushPosition > 3800)
 				{
 					PushBallReset();
 				}
+				
+				//位置正常，push推球电机
+				if(g_pushPosition < 200)
+				{
+					PushBall();
+				}
+				
+				//记录射球的个数
+				if((g_pushPosition - lastPosition) < 0)
+				{
+					resetSignal = 1;
+				}
+				if((g_pushPosition - lastPosition) > 0)
+				{
+					pushSignal = 1;
+				}
+				if(pushSignal && resetSignal)
+				{
+					shootNum++;
+					pushSignal = 0;
+					resetSignal = 0;
+				}
+				
+				//CCD识别到球，但推球电机位置不变
+				if((g_pushPosition - lastPosition) == 0)
+				{
+					notShoot++;
+					
+					//推球电机2s位置不变
+//					if(notShoot > 200 && notShoot < 210)
+//					{
+//						//给推球电机一个反方向的命令
+//						if(g_pushPosition > 2000)
+//						{
+//							PushBall();
+//						}
+//						else
+//						{
+//							PushBallReset();
+//						}
+//					}
+					
+					//2s依然卡死，切换到step = 1;
+					if(notShoot > 200)
+					{
+						notShoot = 0;
+						step = 1;
+					}
+				}
+				else
+				{
+					notShoot = 0;
+				}
+				lastPosition = g_pushPosition;
 			}
+			break;
 			
-			//4s依然卡死，继续扫场
-			if(notShoot > 400)
+		//推球电机卡死，特殊处理的步骤
+		case 1:
+			notShoot++;
+		  if(notShoot > 100 && notShoot < 110)
 			{
-				notShoot = 0;
-				success = 1;
+				PushBall();
 			}
-		}
-		else
-		{
-			notShoot = 0;
-		}
-		lastPosition = g_pushPosition;
-	}
-	
-	//推球装置PushBallReset()指令超过0.5s不起作用
-	if(pushError > 50 )
-	{
-		pushError = 0;
-		PushBall();
-	}
-	
-	//推球装置PushBall()指令超过0.5s不起作用
-	if(resetError > 50)
-	{
-		resetError = 0;
-		PushBallReset();
+			if(notShoot > 200 && notShoot < 210)
+			{
+				PushBallReset();
+			}
+			if(notShoot > 300 && notShoot < 310)
+			{
+				PushBall();
+				notShoot = 0;
+				step = 0;
+			}
+			break;
 	}
 //	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
-	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)resetError,(int)pushError,(int)notShoot);
+//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)resetError,(int)pushError,(int)notShoot);
 	return success;
 }
 /*======================================================================================
@@ -1732,7 +1702,7 @@ GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 		do
 		{
 			laser = Get_Adc_Average(LEFT_LASER, 10);
-			USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",lastLaser,laser,count);
+//			USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",lastLaser,laser,count);
 			if(abs(laser - lastLaser) < 10)
 			{
 				count++;
@@ -1759,10 +1729,7 @@ int Escape(void)
 	{
 		case 0:
 			status = In_Or_Out();
-		  
-		  //记录当前的角度
 		  aimAngle = Position_t.angle;
-		
 			//车子不在四个死角
 			if(status == 0 || status == -1)
 			{
@@ -1903,103 +1870,4 @@ int Escape(void)
 	}
 	return success;
 }
-/*======================================================================================
-   函数定义		：		  逃逸函数
-   函数参数		：		  
-   
-   函数返回值	：	    
- =====================================================================================*/
-int RunAndShoot(void)
-{
-	static uint16_t count = 0, noBall = 0, flag = 0;
-  POSXY_T  posShoot = { 0, 0 };
-	int      success = 0;
-	static double  shootAngle = 0, distance = 2300, aimAngle = 0, V = 0, rps = 0, angleAdjust = 0;
-	float carVel = 0,flyTime = 0, flyDistance = 0;
-	
-	//问询航向电机角度、收球电机速度、推球电机的位置
-  ReadActualPos(CAN1, GUN_YAW_ID);
-	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
-	ReadActualPos(CAN1, PUSH_BALL_ID);
 
-	//计算投球点的坐标
-	posShoot  = ShootPointPos();
-	
-	//球是白球
-	if (ballColor == WHITE)
-	{
-		noBall = 0;
-		distance = sqrt((posShoot.X - g_plan * WHITEX) * (posShoot.X - g_plan * WHITEX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
-    
-		//将角度装换成陀螺仪角度坐标系里的角度值
-		aimAngle  = atan2(BALLY - posShoot.Y, g_plan * WHITEX - posShoot.X);
-		aimAngle  = RADTOANG(aimAngle) - 90;
-
-		//枪顺时针转为正，逆时针为负
-		aimAngle = AvoidOverAngle(aimAngle);
-		shootAngle = AvoidOverAngle(Position_t.angle - aimAngle) + 2;
-	}
-
-	//球是黑球
-	else if (ballColor == BLACK)
-	{
-		noBall = 0;
-		distance = sqrt((posShoot.X - g_plan * BLACKX) * (posShoot.X - g_plan * BLACKX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
-
-		//将角度转换成陀螺仪角度坐标系里的角度值
-		aimAngle  = atan2(BALLY - posShoot.Y, g_plan * BLACKX - posShoot.X);
-		aimAngle  = RADTOANG(aimAngle) - 90;
-		aimAngle  = AvoidOverAngle(aimAngle);
-		shootAngle = AvoidOverAngle(Position_t.angle - aimAngle) + 2;
-	}
-	else
-	{
-	}
-	//小车当前的速度
-	carVel = RealVel();
-	
-	//球的滞空时间、距离
-  flyTime = distance / (V * sin(ANGTORAD(39))); 
-	flyDistance = carVel * flyTime;
-	
-	//球出射速度(mm/s)与投球点距离篮筐的距离的关系(余弦定理)
-	distance = sqrt(distance * distance + flyDistance * flyDistance - 2 * distance * flyDistance * cos(ANGTORAD(shootAngle)));
-	V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
-	rps = 0.01402f * V - 5.457f; 
-	
-	
-	//正弦定理求出运动中角度的调节量
-	angleAdjust = asin(sin(ANGTORAD(fabs(shootAngle))) * flyDistance / distance);
-	angleAdjust = RADTOANG(angleAdjust);
-// 表明射球蓝牙没有收到主控发送的数据
-
-	if (fabs(rps + g_shootV / 4096) > 0.1)
-	{
-		  ShootCtr(rps);
-  }
-//	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)distance);
-	
-	//控制发射航向角(30ms发一次)
-	flag++;
-	flag = flag % 3;
-	if(flag == 1)
-	{
-		YawAngleCtr(shootAngle);
-	}
-
-  //枪的角度和转速到位,推球
- 	if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 2.0 && ballColor)
-	{
-		if(g_pushPosition > 3900)
-		{
-			PushBallReset();
-		}
-		if(g_pushPosition < 100)
-		{
-			PushBall();
-		}
-	}
-//	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
-	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",ballColor,count,noBall,success,(int)g_pushPosition);
-	return success;
-}

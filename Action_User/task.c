@@ -115,7 +115,7 @@ void ConfigTask(void)
 	USART3_Init(115200);
 
 	//蓝牙串口
-	UART5_Init(115200);
+	UART5_Init(921600);
 
 	//驱动器初始化
 	elmo_Init(CAN2);
@@ -155,8 +155,8 @@ void WalkTask(void)
 	
 //	//拉低PE6，拉高PE4的电平，接收球最多区域的角度
 		GPIO_SetBits(GPIOE, GPIO_Pin_4);
-		GPIO_SetBits(GPIOE, GPIO_Pin_6);
-//	g_cameraPlan = 2;
+		GPIO_ResetBits(GPIOE, GPIO_Pin_6);
+		g_cameraPlan = 2;
 	
 	//延时，稳定定位系统
 	delay_s(10);
@@ -188,6 +188,7 @@ void WalkTask(void)
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
 //		ShootBallW();
 //		RunWithCamera1(2);
+		USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y);
 		if (ifEscape)
 		{
 			//逃逸完成后，ifEscape清零

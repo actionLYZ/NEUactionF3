@@ -530,7 +530,7 @@ int In_Or_Out(void)
 {
 	int finish = 0;
   //USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y);
-	//将正方形区域分成内外两部分
+	//内部区域
 	if (Position_t.X > -1200 && Position_t.X < 1200 && Position_t.Y > 1200 && Position_t.Y < 3600)
 	{
 			finish = 0;
@@ -769,7 +769,7 @@ int RunEdge(void)
 		}
 	}
 
-	USART_OUT(UART5,(u8*)"edge  %d\t%d\t\r\n",side,sideTimes,avoidBack);
+//	USART_OUT(UART5,(u8*)"edge  %d\t%d\t\r\n",side,sideTimes,avoidBack);
 	return finish;
 }
 /*======================================================================================
@@ -1949,7 +1949,7 @@ void CountBall(void)
 		ballN=0;
 		sum=0;
 	}
-	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
+//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
 
 }
 
