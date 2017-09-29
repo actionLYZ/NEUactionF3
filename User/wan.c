@@ -96,8 +96,8 @@ void angClose(float V, float aimAngle, float Kp)
 	angError  = aimAngle - Position_t.angle;
 	angError  = AvoidOverAngle(angError);
 	angOutput = g_plan * angError * Kp;
-	VelCrl(CAN2, 1, V * SP2PULSE + g_plan * angOutput);
-	VelCrl(CAN2, 2, -V * SP2PULSE + g_plan * angOutput);
+	VelCrl(CAN2, 1, V * SP2PULSE + angOutput);
+	VelCrl(CAN2, 2, -V * SP2PULSE + angOutput);
 }
 /*======================================================================================
    函数定义	  ：		矫正函数
@@ -172,10 +172,9 @@ void CheckError(void)
 		angClose(-1000, angle, 100);
 
 		//行程开关触发
-		if (SWITCHC2 == 1 && SWITCHC0 == 1)
+		if (SWITCHE2 == 1 && SWITCHC0 == 1)
 			step = 4;
 		break;
-
 	case 4:
 
 		//如果矫正成功

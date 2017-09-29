@@ -199,13 +199,6 @@ void WalkTask(void)
 		else
  		{
 			GoGoGo(firstLine);
-			// count++;
-			// RunCamera();
-			// if(count>=300)
-			// {
-			// 	carRun=1;
-			// 	count=0;
-			// }
 		}
 		if (stuckCar(100,200))
 		{

@@ -226,7 +226,6 @@ void GoGoGo(float fLine)
 			}
 				
 		} break;
-
 		case 5:
 		{
 			carRun      = 0;
@@ -503,7 +502,7 @@ int x1 = 0, x2 = 0, y1 = 0, y2 = 0;
 
 int CheckPosition(void)
 {
-	static int  state = 1, count = 0, side = 0;
+	static int  state = 1, count = 0, side = 0, checkError = 0;
 	static int  tempx = 0, tempy = 0;
 	int         keepgo = 0;
   static float aimAngle = 0;
@@ -550,16 +549,18 @@ int CheckPosition(void)
 		{
 			StaightCLose(tempx, tempy, aimAngle, -1000);
 			
-			//后退时如果球困住，则进入状态9
+			//后退车被困住（被困的条件比较严苛）
 			if(stuckCar(2,500))
 			{
-				if(SWITCHC2 == 0 || SWITCHC0 == 0)
+				//行程开关没有全部触发
+				if(SWITCHE2 == 0 || SWITCHC0 == 0)
 				{
 					state = 9;
 				}
 			}
+			
 			//两个行程开关触发,则进入下一次状态进行激光矫正
-			if(SWITCHC2 == 1 && SWITCHC0 == 1)
+			if(SWITCHE2 == 1 && SWITCHC0 == 1)
 			{
 				count++;
 			}
@@ -658,7 +659,6 @@ int CheckPosition(void)
 					{
 						if(Position_t.X < -1600)
 						{
-							aimAngle = -90;
 							state = 6;
 						}
 					}
@@ -666,7 +666,6 @@ int CheckPosition(void)
 					{
 						if(Position_t.X > 1600)
 						{
-							aimAngle = 90;
 							state = 6;
 						}
 					}
@@ -677,7 +676,6 @@ int CheckPosition(void)
 					{
 						if(Position_t.Y < 750)
 						{
-							aimAngle = 0;
 							state = 6;
 						}
 					}
@@ -685,7 +683,6 @@ int CheckPosition(void)
 					{
 						if(Position_t.Y > 3900)
 						{
-							aimAngle = 180;
 							state = 6;
 						}
 					}
@@ -696,7 +693,6 @@ int CheckPosition(void)
 					{
 						if(Position_t.X > 1400)
 						{
-							aimAngle = 90;
 							state = 6;
 						}
 					}
@@ -704,7 +700,6 @@ int CheckPosition(void)
 					{
 						if(Position_t.X < -1400)
 						{
-							aimAngle = -90;
 							state = 6;
 						}
 					}
@@ -715,7 +710,6 @@ int CheckPosition(void)
 					{
 						if(Position_t.Y < 950)
 						{
-							aimAngle = 0;
 							state = 6;
 						}
 					}
@@ -723,7 +717,6 @@ int CheckPosition(void)
 					{
 						if(Position_t.Y > 3700)
 						{
-							aimAngle = 180;
 							state = 6;
 						}
 					}
@@ -731,7 +724,7 @@ int CheckPosition(void)
 			} 
 			break;
 			
-			//通过坐标判断车距离哪面墙近
+		//通过坐标判断车距离哪面墙近
 		case 6:
 			
 			side = JudgeSide();
@@ -770,7 +763,7 @@ int CheckPosition(void)
 		case 8:
 		{
 			StaightCLose(tempx, tempy, aimAngle, -1000);
-			if(SWITCHC2==1 && SWITCHC0==1)
+			if(SWITCHE2==1 && SWITCHC0==1)
 			{
 				count++;
 			}
@@ -802,15 +795,148 @@ int CheckPosition(void)
 		} break;
 		case 9:
 			
-			//前进1s
+			//前进0.5s
 			count++;
-			if(count >= 100)
+			if(count >= 50)
 			{
+				//记录靠墙不成功次数
+				checkError++;
 				count = 0;
 				state = 3;
 			}
+			
+			//靠墙不成功次数超过3次,转到10状态
+			if(checkError >= 3)
+			{
+				//记录当前距离车最近的墙
+				side = JudgeSide();
+				checkError = 0;
+				state = 10;
+			}
 			VelCrl(CAN2, 1, 10000);
 			VelCrl(CAN2, 2, -10000);
+			break;
+		case 10:
+			if(side == 1)
+			{
+				//计算下一刻的目标角度,下同
+				if(Position_t.X > 0)
+				{
+					aimAngle = -60;
+				}
+				else
+				{
+					aimAngle = 60;
+				}
+			}
+			else if(side == 2)
+			{
+				if(Position_t.Y > 2335.35)
+				{
+					aimAngle = 30;
+				}
+				else
+				{
+					aimAngle = 150;
+				}
+			}
+			else if(side == 3)
+			{
+				if(Position_t.X > 0)
+				{
+					aimAngle = -120;
+				}
+				else
+				{
+					aimAngle =120;
+				}
+			}
+			else
+			{
+				if(Position_t.Y > 2335.35)
+				{
+					aimAngle = -30;
+				}
+				else
+				{
+					aimAngle = -150;
+				}
+			}
+			state = 11;
+			break;
+		case 11:
+			angClose(1800, aimAngle, 250);
+		
+			//判断距离第二面墙1米时准备靠墙
+			if(side == 1)
+			{
+				if(aimAngle > 0)
+				{
+					if(Position_t.X < -1600)
+					{
+						//返回状态1，从新矫正
+						state = 1;
+					}
+				}
+				else
+				{
+					if(Position_t.X > 1600)
+					{
+						state = 1;
+					}
+				}
+			}
+			else if(side == 2)
+			{
+				if(aimAngle > 90)
+				{
+					if(Position_t.Y < 750)
+					{
+						state = 1;
+					}
+				}
+				else
+				{
+					if(Position_t.Y > 3900)
+					{
+						state = 1;
+					}
+				}
+			}
+			else if(side == 3)
+			{
+				if(aimAngle < 0)
+				{
+					if(Position_t.X > 1400)
+					{
+						state = 1;
+					}
+				}
+				else
+				{
+					if(Position_t.X < -1400)
+					{
+						state = 1;
+					}
+				}
+			}
+			else
+			{
+				if(aimAngle < -90)
+				{
+					if(Position_t.Y < 950)
+					{
+						state = 1;
+					}
+				}
+				else
+				{
+					if(Position_t.Y > 3700)
+					{
+						state = 1;
+					}
+				}
+			}
 			break;
 	}
 	return keepgo;
@@ -1075,77 +1201,257 @@ void TurnAngle(float angel, int speed)
    =======================================================================================*/
 int LaserCheck(void)
 {
-	int laserGetRight = 0, laserGetLeft = 0;
-	GPIO_SetBits(GPIOE,GPIO_Pin_7);
+	int laserGetRight = 0, laserGetLeft = 0, side = 0;
+	static u8 step = 0, left = 1, right = 1;
 	laserGetRight = Get_Adc_Average(RIGHT_LASER, 20);
 	laserGetLeft  = Get_Adc_Average(LEFT_LASER, 20);
-	GPIO_ResetBits(GPIOE,GPIO_Pin_7);
-	
-	//如果激光被挡，返回 0
-	if (laserGetRight + laserGetLeft < 4700)
-	{	
-		x1  = getPosition_t.X;
-		y1  = getPosition_t.Y;
-		
-		return 0;		
-	}
-	
-	//没有被挡，返回
-	else
+	switch(step)
 	{
-		//靠的墙是Y=0
-		if (Position_t.angle < 45 && Position_t.angle > -45)
-		{
-			angleError  += Position_t.angle;  //纠正角度坐标
-			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetRight);
-			yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError)));
-			return 1;
-		}
+		case 0:
 
-		//靠X=g_plan * 2400的墙
-		else if (Position_t.angle < 135 && Position_t.angle > 45)
-		{
-			angleError  += Position_t.angle - 90;
-			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - 64.65);
+			//如果激光被挡,进入step = 2
+			if (laserGetRight + laserGetLeft < 4700)
+			{	
+				x1  = getPosition_t.X;
+				y1  = getPosition_t.Y;
+				step = 2;
+			}
 			
-			//逆时针用右激光
-			if(g_plan == 1)
+			//没有被挡,step = 1, 开始矫正
+			else
 			{
-				yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - laserGetRight);
+				step = 1;
+			}
+			break;
+		case 1:
+			
+			//靠的墙是Y=0
+			if (Position_t.angle < 45 && Position_t.angle > -45)
+			{
+				angleError  += Position_t.angle;  //纠正角度坐标
+				
+				//右侧没有被挡
+				if(right)
+				{
+					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetRight);
+				}
+				else if(left)
+				{
+					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (laserGetLeft - 2400);
+				}
+				
+				//左右侧激光都有问题，则返回0
+				else
+				{
+					//置1，为了下次激光矫正时left right 初始值为1
+					right = 1;
+					left = 1;
+					return 0;
+				}
+				yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError)));
+				
+				//置1，为了下次激光矫正时left right 初始值为1
+				right = 1;
+				left = 1;
+				return 1;
+			}
+
+			//靠X=g_plan * 2400的墙
+			else if (Position_t.angle < 135 && Position_t.angle > 45)
+			{
+				angleError  += Position_t.angle - 90;
+				xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - 64.65);
+				
+				//逆时针用右激光
+				if(g_plan == 1)
+				{
+					if(right)
+					{
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - laserGetRight);
+					}
+					else if(left)
+					{
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetLeft - 64.65);
+					}
+					else
+					{
+						right = 1;
+						left = 1;
+						return 0;
+					}
+				}
+				else
+				{
+					if(right)
+					{
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetRight - 64.65);
+					}
+					else if(left)
+					{
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - laserGetLeft);
+					}
+					else
+					{
+						right = 1;
+						left = 1;
+						return 0;
+					}
+				}
+				right = 1;
+				left = 1;
+				return 1;
+			}
+
+			//靠Y=4800的墙
+			else if (Position_t.angle > 135 && Position_t.angle < -135)
+			{
+				angleError  += Position_t.angle - 180;
+				angleError  = AvoidOverAngle(angleError);
+				if(right)
+				{
+					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (laserGetRight - 2400);
+				}
+				else if(left)
+				{
+					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetLeft);
+				}
+				else
+				{
+					right = 1;
+					left = 1;
+					return 0;
+				}
+				yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - 64.65);
+				right = 1;
+				left = 1;
+				return 1;
+			}
+
+			//靠X=-g_plan * 2400的墙
+			else
+			{
+				angleError  += Position_t.angle + 90;
+				xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (-2400 + 64.65);
+				if(g_plan == 1)
+				{
+					if(right)
+					{
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetRight - 64.65);
+					}
+					else if(left)
+					{
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 -laserGetLeft);
+					}
+					else
+					{
+						right = 1;
+						left = 1;
+						return 0;
+					}
+				}
+				else
+				{
+					if(right)
+					{
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 -laserGetRight);
+					}
+					else if(left)
+					{
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetLeft - 64.65);
+					}
+					else
+					{
+						right = 1;
+						left = 1;
+						return 0;
+					}
+				}
+				right = 1;
+				left = 1;
+				return 1;
+			}
+			break;
+		case 2:
+			
+		  //判断在哪面墙
+			side = JudgeSide();
+		  if(side == 1)
+			{	
+				//误差超过300mm，认为右侧被挡
+				if(fabs(Position_t.X - (g_plan * (2400 - laserGetRight))) > 200)
+				{
+					right = 0;
+				}
+				
+				//左侧被挡
+				if(fabs(Position_t.X - (g_plan * (laserGetLeft - 2400))) > 200)
+				{
+					left = 0;
+				}
+			}
+			else if(side == 2)
+			{
+				if(g_plan == 1)
+				{
+					if(fabs(Position_t.Y - (4800 - 64.65 - laserGetRight)) > 200)
+					{
+						right = 0;
+					}
+					if(fabs(Position_t.Y - (laserGetLeft - 64.65)) > 200)
+					{
+						left = 0;
+					}
+				}
+				else
+				{
+					if(fabs(Position_t.Y - (laserGetRight - 64.65)) > 200)
+					{
+						right = 0;
+					}
+					if(fabs(Position_t.Y - (4800 - 64.65 - laserGetLeft)) > 200)
+					{
+						left = 0;
+					}
+				}
+			}
+			else if(side == 3)
+			{
+				if(fabs(Position_t.X - (g_plan * (laserGetRight - 2400))) > 200)
+				{
+					right = 0;
+				}
+				if(fabs(Position_t.X - (g_plan * (2400 - laserGetLeft))) > 200)
+				{
+					left = 0;
+				}
 			}
 			else
 			{
-				yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - laserGetLeft);
+				if(g_plan == 1)
+				{
+					if(fabs(Position_t.Y - (laserGetRight - 64.65)) > 200)
+					{
+						right = 0;
+					}
+					if(fabs(Position_t.Y - (4800 - 64.65 - laserGetLeft)) > 200)
+					{
+						left = 0;
+					}
+				}
+				else
+				{
+					if(fabs(Position_t.Y - (4800 - 64.65 - laserGetRight)) > 200)
+					{
+						right = 0;
+					}
+					if(fabs(Position_t.Y - (laserGetLeft - 64.65)) > 200)
+					{
+						left = 0;
+					}
+				}
 			}
-//			USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",(int)xError,(int)yError,(int)Position_t.X,(int)Position_t.Y,(int)laserGetRight);
-			return 1;
-		}
-
-		//靠Y=4800的墙
-		else if (Position_t.angle > 135 && Position_t.angle < -135)
-		{
-			angleError  += Position_t.angle - 180;
-			angleError  = AvoidOverAngle(angleError);
-			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetLeft);
-			yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - 64.65);
-			return 1;
-		}
-
-		//靠X=-g_plan * 2400的墙
-		else
-		{
-			angleError  += Position_t.angle + 90;
-			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (-2400 + 64.65);
-			if(g_plan == 1)
-			{
-				yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetRight - 64.65);
-			}
-			else
-			{
-				yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetLeft - 64.65);
-			}
-			return 1;
-		}
+			step = 1;
+			break;
 	}
 }
 	
