@@ -203,7 +203,7 @@ void ShootCtr(float rps);
 int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status);
 
 //用轮子返回的脉冲数判断车是否被困
-int stuckCar(uint16_t stuckV);
+int stuckCar(uint16_t stuckV, uint16_t time);
 
 //读取当前车的速度（mm/s,以陀螺仪为参考）
 float RealVel(void);

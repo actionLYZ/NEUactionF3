@@ -327,7 +327,7 @@ bool FirstRound(float firstLine)
 	
 	//第一条目标直线距离铁框太近,就让它贴铁框走
 	advance = 900;
-	speed += 10;
+	speed += 5;
 	if(speed > 2000)
 	{
 		speed = 2000;
@@ -544,9 +544,12 @@ int CheckPosition(void)
 			StaightCLose(tempx, tempy, aimAngle, -1000);
 			
 			//后退时如果球困住，则进入状态9
-			if(stuckCar(10))
+			if(stuckCar(2,500))
 			{
-				state = 9;
+				if(SWITCHC2 == 0 || SWITCHC0 == 0)
+				{
+					state = 9;
+				}
 			}
 			//两个行程开关触发,则进入下一次状态进行激光矫正
 			if(SWITCHC2 == 1 && SWITCHC0 == 1)
@@ -787,21 +790,20 @@ int CheckPosition(void)
 					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (-2400 + 64.65);
 				}
 				keepgo  = 1;
-				state   = 2;
 				tempx   = 0, tempy = 0;
 			}
 		} break;
 		case 9:
 			
-			//前进0.2s
+			//前进1s
 			count++;
-			if(count >= 20)
+			if(count >= 100)
 			{
 				count = 0;
 				state = 3;
 			}
-			VelCrl(CAN2, 1, 5000);
-			VelCrl(CAN2, 2, -5000);
+			VelCrl(CAN2, 1, 10000);
+			VelCrl(CAN2, 2, -10000);
 			break;
 	}
 	return keepgo;

@@ -159,11 +159,11 @@ void WalkTask(void)
 		g_cameraPlan = 2;
 	
 	//延时，稳定定位系统
-	delay_s(10);
+	delay_s(12);
 	
 	//棍子，发射机构的初始速度
 	CollectBallVelCtr(60);
-	delay_s(5);	
+	delay_s(3);	
 	ShootCtr(60);
 	
 	//鸣笛
@@ -183,7 +183,6 @@ void WalkTask(void)
 
 //		CountBall();
 		//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
-
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
 //		ShootBallW();
@@ -201,7 +200,7 @@ void WalkTask(void)
  		{
 			GoGoGo(firstLine);
 		}
-		if (stuckCar(100))
+		if (stuckCar(100,200))
 		{
 			if (carRun)
 				ifEscape = 1;

@@ -1240,7 +1240,7 @@ int ShootBallW(void)
 			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 			
 			//自己测的关系
-			rps = 0.01402f * V - 5.457f + 2.75;
+			rps = 0.01402f * V - 5.457f + 2.8;
 			
 			// 表明射球蓝牙没有收到主控发送的数据
 			if (fabs(rps + g_shootV / 4096) > 0.1)
@@ -1529,11 +1529,11 @@ float RealVel(void)
 }
 /*======================================================================================
    函数定义		：		  利用轮子返回的当前转速判断车是否卡住
-   函数参数		：		  设定的认为车子被困的速度
+   函数参数		：		  设定的认为车子被困的速度,反应时间
 
    函数返回值	：	    如果车被卡,返回1
  =====================================================================================*/
-int stuckCar(uint16_t stuckV)
+int stuckCar(uint16_t stuckV, uint16_t time)
 {
 	static float V = 0;
 	static uint8_t count = 0;
@@ -1553,8 +1553,8 @@ int stuckCar(uint16_t stuckV)
 		count = 0;
 	}
 	
-	//时间累积到200ms认为车被困
-	if(count >= 20)
+	//时间累积到time ms认为车被困
+	if(count >= (time/10))
 	{
 		success = 1;
 		count = 0;
