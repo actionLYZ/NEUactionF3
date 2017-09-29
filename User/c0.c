@@ -495,28 +495,28 @@ void First_Scan(void)
 	}
 	switch (area)
 	{
-	case 1:
-	{
-		ClLineAngle(0, cameraSpeed);
-	} break;
+		case 1:
+		{
+			ClLineAngle(0, cameraSpeed);
+		} break;
 
-	case 2:
-	{
-		ClLineAngle(90, cameraSpeed);
-	} break;
+		case 2:
+		{
+			ClLineAngle(90, cameraSpeed);
+		} break;
 
-	case 3:
-	{
-		ClLineAngle(180, cameraSpeed);
-	} break;
+		case 3:
+		{
+			ClLineAngle(180, cameraSpeed);
+		} break;
 
-	case 4:
-	{
-		ClLineAngle(-90, cameraSpeed);
-	} break;
+		case 4:
+		{
+			ClLineAngle(-90, cameraSpeed);
+		} break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 }
 /*======================================================================================
@@ -618,28 +618,28 @@ void New_Route(int down, int right, int up, int left)
 		side = 1;
 	switch (side)
 	{
-	case 1:
-	{
-		ClLine(0, -240 + down * 480, -90, cameraSpeed);
-	} break;
+		case 1:
+		{
+			ClLine(0, -240 + down * 480, -90, cameraSpeed);
+		} break;
 
-	case 2:
-	{
-		ClLine(240 + right * 480, 0, 0, cameraSpeed);
-	} break;
+		case 2:
+		{
+			ClLine(240 + right * 480, 0, 0, cameraSpeed);
+		} break;
 
-	case 3:
-	{
-		ClLine(0, 3120 + up * 480, 90, cameraSpeed);
-	} break;
+		case 3:
+		{
+			ClLine(0, 3120 + up * 480, 90, cameraSpeed);
+		} break;
 
-	case 4:
-	{
-		ClLine(-2640 + left * 480, 0, 180, cameraSpeed);
-	} break;
+		case 4:
+		{
+			ClLine(-2640 + left * 480, 0, 180, cameraSpeed);
+		} break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 }
 /*======================================================================================
@@ -868,9 +868,10 @@ int ScanTrace(int a[10][10])
 	if (yes == 0)
 	{
 		for (m = 0; m < 10; m++)
+		{
 			for (n = 0; n < 10; n++)
 				a[m][n] = 0;
-
+		}
 		return 1;
 	}
 	else

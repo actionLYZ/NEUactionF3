@@ -115,7 +115,7 @@ void ConfigTask(void)
 	USART3_Init(115200);
 
 	//蓝牙串口
-	UART5_Init(115200);
+	UART5_Init(921600);
 
 	//驱动器初始化
 	elmo_Init(CAN2);
@@ -136,7 +136,7 @@ void ConfigTask(void)
 }
 
 //看车是在跑，还是在矫正、射球
-int carRun = 1,ifEscape = 0, count = 0;
+int carRun = 0,ifEscape = 0, count = 0;
 
 /********************************测试********************/
 extern float blindTime;
@@ -198,9 +198,15 @@ void WalkTask(void)
 		}
 		else
  		{
+			count++;
 			RunCamera();
-			carRun=1;
-//			GoGoGo(firstLine);
+			if(count>=300)
+			{
+				carRun=1;
+				count=0;
+			}
+			
+//	  		GoGoGo(firstLine);
 		}
 		if (stuckCar(100))
 		{

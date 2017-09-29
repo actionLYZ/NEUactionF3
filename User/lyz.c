@@ -818,15 +818,19 @@ int RunCamera(void)
 {
 	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1;
 	static float  cameraX, cameraY;
-	int           finish = 0, circulate;
+	int           finish = 0, circulate,edge;
 	POSITION_T    basePoint;
-   cameraScheme = 1;
+  cameraScheme = 1;
+	
 	//到边界要拐弯了
-	if (fabs(Position_t.X) > 2000 || Position_t.Y < 400 || Position_t.Y > 4400)
+	if (fabs(Position_t.X) > 1900 || Position_t.Y < 500 || Position_t.Y > 4300)
 		haveBall = 0;
-
+	//到达中间危险区域的标志
+  if(fabs(Position_t.X)<800&&Position_t.Y>1300&&Position_t.Y<3500)
+		haveBall = 0;
+	
 	//一环连一环 上部分是偶数则加一 下部分是奇数则加一 让stagger(错开)等于一
-	if (Position_t.X > -115 && Position_t.X < -85 && Position_t.Y < 1700)
+	if (Position_t.Y < 1700)
 	{
 		if (((int)(run / 2) + (int)(run / 2)) != run)
 		{
@@ -834,7 +838,7 @@ int RunCamera(void)
 			stagger = 1;
 		}
 	}
-	if (Position_t.X > -115 && Position_t.X < -85 && Position_t.Y > 3100)
+	if (Position_t.Y > 3100)
 	{
 		if (((int)(run / 2) + (int)(run / 2)) == run)
 			run++;
@@ -857,148 +861,148 @@ int RunCamera(void)
 		down    = Least_H(traceS[0], traceS[1], traceS[2]);
 		up      = Least_H(traceS[7], traceS[8], traceS[9]);
 	}
+	USART_OUT(UART5,(u8*)"trace %d\t%d\t%d\t%d\r\n",left,right,down,up);
 	switch (cameraScheme)
 	{
-	case 1:
-	{
-		
-		if (go)
-		{
-			go = 0;
-			if (arr_number == 0)
-			{
-				haveBall = 0;
-			}
-			else
-			{
-				haveBall  = 1;
-				cameraX   = Position_t.X - CAMERATOGYRO * sin(Position_t.angle);
-				cameraY   = Position_t.Y + CAMERATOGYRO * cos(Position_t.angle);
-				ballAngle = AvoidOverAngle(Position_t.angle + bestAngle);
-				USART_OUT(UART5,(u8*)"bestangle%d\r\n",bestAngle);
-			}
-		}
-		switch (haveBall)
-		{
-		case 0:
-		{
-			if (run < 2)
-				First_Scan();
-			else
-				New_Route(down, right, up, left);
-		} break;
-
 		case 1:
 		{
-			StaightCLose(cameraX, cameraY, ballAngle, cameraSpeed);
-		} break;
-
-		default:
-			break;
-		}
-	} break;
-
-	case 2:
-	{
-		cameraX = Position_t.X - CAMERATOGYRO * sin(Position_t.angle);
-		cameraY = Position_t.Y + CAMERATOGYRO * cos(Position_t.angle);
-		if (go == 1)
-		{
-			go = 0;
-			if (gone == 1)
+			if (go)
 			{
-				basePoint.X     = cameraX;
-				basePoint.Y     = cameraY;
-				basePoint.angle = Position_t.angle;
-			}
-			//判断是否已走过该区域，继续扫面下一个区域
-			if (P2P(cameraX, cameraY, basePoint.X, basePoint.Y) >= 1900 || Position_t.angle >= basePoint.angle + 25 || Position_t.angle <= basePoint.angle - 25)
-				gone = 1;
-			else
-				gone = 0;
-		}
-		if (go == 1 && gone == 1)
-		{
-			if (arr_number == 0)
-			{
-				haveBall = 0;
-			}
-			else
-			{
-				haveBall = 1;
-				PathPlan(cameraX, cameraY);
-				ClearRingBuffer();
-				for(circulate=0;circulate<bestSum;circulate++)
+				go = 0;
+				if (arr_number == 0)
 				{
-					bestTra[circulate].point.x = bestTraX[circulate];
-					bestTra[circulate].point.y = bestTraY[circulate];
-				}	    
-			}
-		}
-		switch (haveBall)
-		{
-		case 0:
-		{
-			if (run < 2)
-				First_Scan();
-			else
-				New_Route(down, right, up, left);
-		} break;
-
-		case 1:
-		{
-				InputPoints2RingBuffer(bestTra,bestSum);
-				CaculatePath();
-				PathFollowing(1);		
-		} break;
-
-		default:
-			break;
-		}
-	} break;
-
-	case 3:
-	{
-		if (go)
-		{
-			go = 0;
-			if (arr_number == 0)
-			{
-				haveBall = 0;
-			}
-			else
-			{
-				haveBall  = 1;
-				cameraX   = Position_t.X - CAMERATOGYRO * sin(Position_t.angle);
-				cameraY   = Position_t.Y + CAMERATOGYRO * cos(Position_t.angle);
-				if (Vehicle_Width(nearestDis, nearestAngle))
-					ballAngle = AvoidOverAngle(Position_t.angle);
+					haveBall = 0;
+				}
 				else
-					ballAngle = AvoidOverAngle(Position_t.angle + nearestAngle);
+				{
+					haveBall  = 1;
+					cameraX   = Position_t.X - CAMERATOGYRO * sin(Position_t.angle);
+					cameraY   = Position_t.Y + CAMERATOGYRO * cos(Position_t.angle);
+					ballAngle = AvoidOverAngle(Position_t.angle + bestAngle);
+					USART_OUT(UART5,(u8*)"bestangle%d\r\n",bestAngle);
+				}
 			}
-		}
-		switch (haveBall)
-		{
-		case 0:
-		{
-			if (run < 2)
-				First_Scan();
-			else
-				New_Route(down, right, up, left);
+			switch (haveBall)
+			{
+				case 0:
+				{
+					if (run < 2)
+						First_Scan();
+					else
+						New_Route(down, right, up, left);
+				} break;
+
+				case 1:
+				{
+						StaightCLose(cameraX, cameraY, ballAngle, cameraSpeed);					
+				} break;
+
+				default:
+					break;
+				}
 		} break;
 
-		case 1:
+		case 2:
 		{
-			StaightCLose(cameraX, cameraY, ballAngle, cameraSpeed);
+			cameraX = Position_t.X - CAMERATOGYRO * sin(Position_t.angle);
+			cameraY = Position_t.Y + CAMERATOGYRO * cos(Position_t.angle);
+			if (go == 1)
+			{
+				go = 0;
+				if (gone == 1)
+				{
+					basePoint.X     = cameraX;
+					basePoint.Y     = cameraY;
+					basePoint.angle = Position_t.angle;
+				}
+				//判断是否已走过该区域，继续扫面下一个区域
+				if (P2P(cameraX, cameraY, basePoint.X, basePoint.Y) >= 1900 || Position_t.angle >= basePoint.angle + 25 || Position_t.angle <= basePoint.angle - 25)
+					gone = 1;
+				else
+					gone = 0;
+			}
+			if (go == 1 && gone == 1)
+			{
+				if (arr_number == 0)
+				{
+					haveBall = 0;
+				}
+				else
+				{
+					haveBall = 1;
+					PathPlan(cameraX, cameraY);
+					ClearRingBuffer();
+					for(circulate=0;circulate<bestSum;circulate++)
+					{
+						bestTra[circulate].point.x = bestTraX[circulate];
+						bestTra[circulate].point.y = bestTraY[circulate];
+					}	    
+				}
+			}
+			switch (haveBall)
+			{
+			case 0:
+			{
+				if (run < 2)
+					First_Scan();
+				else
+					New_Route(down, right, up, left);
+			} break;
+
+			case 1:
+			{
+					InputPoints2RingBuffer(bestTra,bestSum);
+					CaculatePath();
+					PathFollowing(1);
+			} break;
+
+			default:
+				break;
+			}
+		} break;
+
+		case 3:
+		{
+			if (go)
+			{
+				go = 0;
+				if (arr_number == 0)
+				{
+					haveBall = 0;
+				}
+				else
+				{
+					haveBall  = 1;
+					cameraX   = Position_t.X - CAMERATOGYRO * sin(Position_t.angle);
+					cameraY   = Position_t.Y + CAMERATOGYRO * cos(Position_t.angle);
+					if (Vehicle_Width(nearestDis, nearestAngle))
+						ballAngle = AvoidOverAngle(Position_t.angle);
+					else
+						ballAngle = AvoidOverAngle(Position_t.angle + nearestAngle);
+				}
+			}
+			switch (haveBall)
+			{
+				case 0:
+				{
+					if (run < 2)
+						First_Scan();
+					else
+						New_Route(down, right, up, left);
+				} break;
+
+				case 1:
+				{
+					StaightCLose(cameraX, cameraY, ballAngle, cameraSpeed);
+				} break;
+
+				default:
+					break;
+			}
 		} break;
 
 		default:
 			break;
-		}
-	} break;
-
-	default:
-		break;
 	}
 	return finish;
 }
