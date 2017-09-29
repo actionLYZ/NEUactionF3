@@ -495,28 +495,28 @@ void First_Scan(void)
 	}
 	switch (area)
 	{
-	case 1:
-	{
-		ClLineAngle(0, cameraSpeed);
-	} break;
+		case 1:
+		{
+			ClLineAngle(0, cameraSpeed);
+		} break;
 
-	case 2:
-	{
-		ClLineAngle(90, cameraSpeed);
-	} break;
+		case 2:
+		{
+			ClLineAngle(90, cameraSpeed);
+		} break;
 
-	case 3:
-	{
-		ClLineAngle(180, cameraSpeed);
-	} break;
+		case 3:
+		{
+			ClLineAngle(180, cameraSpeed);
+		} break;
 
-	case 4:
-	{
-		ClLineAngle(-90, cameraSpeed);
-	} break;
+		case 4:
+		{
+			ClLineAngle(-90, cameraSpeed);
+		} break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 }
 /*======================================================================================
@@ -638,28 +638,28 @@ void New_Route(int down, int right, int up, int left)
 		side = 1;
 	switch (side)
 	{
-	case 1:
-	{
-		ClLine(0, -240 + down * 480, -90, cameraSpeed);
-	} break;
+		case 1:
+		{
+			ClLine(0, -240 + down * 480, -90, cameraSpeed);
+		} break;
 
-	case 2:
-	{
-		ClLine(240 + right * 480, 0, 0, cameraSpeed);
-	} break;
+		case 2:
+		{
+			ClLine(240 + right * 480, 0, 0, cameraSpeed);
+		} break;
 
-	case 3:
-	{
-		ClLine(0, 3120 + up * 480, 90, cameraSpeed);
-	} break;
+		case 3:
+		{
+			ClLine(0, 3120 + up * 480, 90, cameraSpeed);
+		} break;
 
-	case 4:
-	{
-		ClLine(-2640 + left * 480, 0, 180, cameraSpeed);
-	} break;
+		case 4:
+		{
+			ClLine(-2640 + left * 480, 0, 180, cameraSpeed);
+		} break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 }
 /*======================================================================================
@@ -702,71 +702,147 @@ int RunEdge(void)
 	}
   if(sideTimes==1&&avoidBack==0)
 	{
-		switch(side)
+		if(g_plan==1)
 		{
-			case 1:
+			switch(side)
 			{
-				ClLineAngle(-90,1000);
-				if(Position_t.angle>-95&&Position_t.angle<-85)
+				case 1:
 				{
-					avoidBack=1;
-				}
-			}break;
-			case 2:
-			{
-				ClLineAngle(0,1000);
-				if(fabs(Position_t.angle)<5)
+					ClLineAngle(-90,1000);
+					if(Position_t.angle>-95&&Position_t.angle<-85)
+					{
+						avoidBack=1;
+					}
+				}break;
+				case 2:
 				{
-					avoidBack=1;
-				}
-			}break;
-			case 3:
-			{
-				ClLineAngle(90,1000);
-				if(Position_t.angle>85&&Position_t.angle<95)
+					ClLineAngle(0,1000);
+					if(fabs(Position_t.angle)<5)
+					{
+						avoidBack=1;
+					}
+				}break;
+				case 3:
 				{
-          avoidBack=1;
-				}
-			}break;
-			case 4:
-			{
-				ClLineAngle(180,1000);
-				if(fabs(Position_t.angle)>175)
+					ClLineAngle(90,1000);
+					if(Position_t.angle>85&&Position_t.angle<95)
+					{
+						avoidBack=1;
+					}
+				}break;
+				case 4:
 				{
-					avoidBack=1;
-				}
-			}break;
-			default:
-				break;
+					ClLineAngle(180,1000);
+					if(fabs(Position_t.angle)>175)
+					{
+						avoidBack=1;
+					}
+				}break;
+				default:
+					break;
+			}	
+ 
 		}
+    else
+		{
+			switch(side)
+			{
+				case 1:
+				{
+					TurnAngle(90,1000);
+					if(Position_t.angle<95&&Position_t.angle>85)
+					{
+						avoidBack=1;
+					}
+				}break;
+				case 2:
+				{
+					TurnAngle(0,1000);
+					if(fabs(Position_t.angle)<5)
+					{
+						avoidBack=1;
+					}
+				}break;
+				case 3:
+				{
+					TurnAngle(-90,1000);
+					if(Position_t.angle<-85&&Position_t.angle>-95)
+					{
+						avoidBack=1;
+					}
+				}break;
+				case 4:
+				{
+					TurnAngle(180,1000);
+					if(fabs(Position_t.angle)>175)
+					{
+						avoidBack=1;
+					}
+				}break;
+				default:
+					break;
+			}				
+		}				
 	}
 	if(avoidBack)
 	{
-		switch (side)
+		if(g_plan==1)
 		{
-		case 1:
-		{
-			ClLine(0, 245-POSYSTEM_TO_BACK, -90, 1000);
-		} break;
+			switch (side)
+			{
+				case 1:
+				{
+					ClLine(0, 245-POSYSTEM_TO_BACK, -90, 1000);
+				} break;
 
-		case 2:
-		{
-			ClLine(2155, 0, 0, 1000);
-		} break;
+				case 2:
+				{
+					ClLine(2155, 0, 0, 1000);
+				} break;
 
-		case 3:
-		{
-			ClLine(0, 4555-POSYSTEM_TO_BACK, 90, 1000);
-		} break;
+				case 3:
+				{
+					ClLine(0, 4555-POSYSTEM_TO_BACK, 90, 1000);
+				} break;
 
-		case 4:
-		{
-			ClLine(-2250, 0, 180, 1000);
-		} break;
+				case 4:
+				{
+					ClLine(-2250, 0, 180, 1000);
+				} break;
 
-		default:
-			break;
+				default:
+					break;
+			}			
 		}
+		else
+		{
+			switch (side)
+			{
+				case 1:
+				{
+					ClLine(0, 245-POSYSTEM_TO_BACK, 90, 1000);
+				} break;
+
+				case 2:
+				{
+					ClLine(2155, 0, 0, 1000);
+				} break;
+
+				case 3:
+				{
+					ClLine(0, 4555-POSYSTEM_TO_BACK, -90, 1000);
+				} break;
+
+				case 4:
+				{
+					ClLine(-2250, 0, 180, 1000);
+				} break;
+
+				default:
+					break;
+			}			
+		}
+
 	}
 
 //	USART_OUT(UART5,(u8*)"edge  %d\t%d\t\r\n",side,sideTimes,avoidBack);
@@ -812,9 +888,10 @@ int ScanTrace(int a[10][10])
 	if (yes == 0)
 	{
 		for (m = 0; m < 10; m++)
+		{
 			for (n = 0; n < 10; n++)
 				a[m][n] = 0;
-
+		}
 		return 1;
 	}
 	else

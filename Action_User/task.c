@@ -136,7 +136,11 @@ void ConfigTask(void)
 }
 
 //看车是在跑，还是在矫正、射球
+<<<<<<< HEAD
 int carRun = 0, ifEscape = 0, count = 0;
+=======
+int carRun = 0,ifEscape = 0, count = 0;
+>>>>>>> 诗玲
 
 /********************************测试********************/
 extern float blindTime;
@@ -154,9 +158,15 @@ void WalkTask(void)
 	os_err = os_err;
 	
 //	//拉低PE6，拉高PE4的电平，接收球最多区域的角度
+<<<<<<< HEAD
 		GPIO_SetBits(GPIOE, GPIO_Pin_4);
 		GPIO_ResetBits(GPIOE, GPIO_Pin_6);
 		g_cameraPlan = 2;
+=======
+							GPIO_SetBits(GPIOE, GPIO_Pin_4);
+							GPIO_ResetBits(GPIOE, GPIO_Pin_6);
+//	g_cameraPlan = 2;
+>>>>>>> 诗玲
 	
 	//延时，稳定定位系统
 	delay_s(12);
@@ -198,7 +208,19 @@ void WalkTask(void)
 		}
 		else
  		{
+<<<<<<< HEAD
 			GoGoGo(firstLine);
+=======
+			count++;
+			RunCamera();
+			if(count>=300)
+			{
+				carRun=1;
+				count=0;
+			}
+			
+//	  		GoGoGo(firstLine);
+>>>>>>> 诗玲
 		}
 		if (stuckCar(100,200))
 		{
