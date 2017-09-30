@@ -161,11 +161,11 @@ void GoGoGo(float fLine)
 	static int  state = 1, shootTime = 0, count = 0;             //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
 
-//	if(ballNumber>20)
-//	{
-//		state=4;
-//	  ballNumber=0;	
-//	}
+	if(ballNumber>20)
+	{
+		state=4;
+	  ballNumber=0;	
+	}
 	switch (state)
 	{
 		//第一圈放球区附近跑场
@@ -218,6 +218,7 @@ void GoGoGo(float fLine)
 		case 4:
 		{
 			carRun = 0;
+			count=0;
 			if (CheckPosition())
 			{
 				state = 5;
@@ -233,17 +234,17 @@ void GoGoGo(float fLine)
 			shootStart  = 1;
 			if (ShootBallW())
 			{
-				state = 7;
-/*
+//				state = 7;
+
 				shootStart = 0;
 				shootTime++;
 				switch (shootTime)
 				{
-					case 1:
+					case 2:
 					{
 						state = 6;
 						if (cameraScheme == 0)
-						{
+						{						
 							cameraScheme = 1;
 							GPIO_SetBits(GPIOE, GPIO_Pin_4);
 							GPIO_ResetBits(GPIOE, GPIO_Pin_6);
@@ -267,13 +268,13 @@ void GoGoGo(float fLine)
 					} 
 					break;
 
-					case 2: 
+					case 1: 
 						state = 7;
 					break;
 
 				default: break;
 				}
-	*/
+
 			}
 			else
 			{
@@ -290,7 +291,7 @@ void GoGoGo(float fLine)
 				carRun      = 1;
 				count = 300;
 			}
-			if(RunWithCamera1(2))
+			if(RunCamera())
 			{
 				count = 0;
 				state = 4;
@@ -309,11 +310,21 @@ void GoGoGo(float fLine)
 			if (RunEdge())
 			{
 				state     = 4;
-				shootTime = 0;
+				//shootTime = 0;
 				count = 0;
 			}
 		} break;
 		
+		case 8:
+		{
+			 count++;
+			 RunWithCamera1(2);
+			 if(count>=300)
+			 {
+			 	carRun=1;
+			 	count=0;
+			 }
+		}
 		default:
 			break;
 	}
@@ -846,7 +857,7 @@ int RunCamera(void)
   cameraScheme = 1;
 	
 	//到边界要拐弯了
-	if (fabs(Position_t.X) > 1900 || Position_t.Y < 500 || Position_t.Y > 4300)
+	if (fabs(Position_t.X) > 1700 || Position_t.Y < 700 || Position_t.Y > 4100)
 		haveBall = 0;
 	//到达中间危险区域的标志
   if(fabs(Position_t.X)<800&&Position_t.Y>1300&&Position_t.Y<3500)
@@ -917,7 +928,8 @@ int RunCamera(void)
 
 				case 1:
 				{
-						StaightCLose(cameraX, cameraY, ballAngle, cameraSpeed);					
+						StaightCLose(cameraX, cameraY, ballAngle, cameraSpeed);	
+            //angClose(1000,bestAngle,100);					
 				} break;
 
 				default:

@@ -22,6 +22,7 @@
 //转圈时提前量
 #define AD_MID_SP               (700)
 #define AD_HIGH_SP              (1000)
+#define AD_CAMERA               (900)
 
 //高度
 #define BASKE_HEIGHT            (600.0f)
@@ -30,7 +31,7 @@
 #define BALL_WEIGHT             (0.046f) //高尔夫球的重量（单位：kg）
 #define PF(a)    ((a) * (a))
 
-#define cameraSpeed (1000)
+#define cameraSpeed (1200)
 
 //宏定义电机转一圈的脉冲数
 #define COUNT_PER_ROUND         (4096.0f)

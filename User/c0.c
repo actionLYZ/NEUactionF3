@@ -450,12 +450,12 @@ PolarCoo_t Closer_Point(int8_t a[20], uint8_t b[20], int sum)
 Coo_t Zoning(float X, float Y)
 {
 	Coo_t wirte;
-	int   m = 1, o = 1;
+	int   m = 0, o = 0;
 
-	while ((X - m * 480) > -2400)
+	while ((X - (m+1) * 480) > -2400)
 		m++;
 	wirte.hor = m;
-	while ((Y - o * 480) > 0)
+	while ((Y - (o+1) * 480) > 0)
 		o++;
 	wirte.ver = o;
 	return wirte;
@@ -518,6 +518,7 @@ void First_Scan(void)
 		default:
 			break;
 	}
+	USART_OUT(UART5,(u8*)"area%d\r\n",area);
 }
 /*======================================================================================
    函数定义	  ：    将场地分成内外，用于逃逸
@@ -627,40 +628,55 @@ int Least_S(int a1[10], int a2[10], int a3[10], int a4[10])
 void New_Route(int down, int right, int up, int left)
 {
 	static int side = 1;
+	if(g_plan==1)
+	{
+		if (Position_t.Y < 1700 && Position_t.X > (220 + right * 480 - AD_CAMERA))
+			side = 2;
+		else if (Position_t.X > 300 && Position_t.Y > (3100 + up * 480 - AD_CAMERA))
+			side = 3;
+		else if (Position_t.Y > 3100 && Position_t.X < (-2520 + left * 480 + AD_CAMERA))
+			side = 4;
+		else if (Position_t.X < -300 && Position_t.Y < (-220 + down * 480 + AD_CAMERA))
+			side = 1;
+	}
+  if(g_plan==-1)
+	{
+		if (Position_t.Y > 3100 && Position_t.X > (220 + right * 480 - AD_CAMERA))
+			side = 2;
+		if (Position_t.X < -300 && Position_t.Y > (3100 + up * 480 - AD_CAMERA))
+			side = 3;
+		if (Position_t.Y < 1700 && Position_t.X < (-2520 + left * 480 + AD_CAMERA))
+			side = 4;
+		if (Position_t.X > 300 && Position_t.Y < (-220 + down * 480 + AD_CAMERA))
+			side = 1;
+	}
 
-	if (side == 1 && Position_t.X > (240 + right * 480 - AD_MID_SP))
-		side = 2;
-	if (side == 2 && Position_t.Y > (3120 + up * 480 - AD_MID_SP))
-		side = 3;
-	if (side == 3 && Position_t.X < (-2640 + left * 480 + AD_MID_SP))
-		side = 4;
-	if (side == 4 && Position_t.Y < (-240 + down * 480 + AD_MID_SP))
-		side = 1;
 	switch (side)
 	{
 		case 1:
 		{
-			ClLine(0, -240 + down * 480, -90, cameraSpeed);
+			ClLine(0, -220 + down * 480, -90, cameraSpeed);
 		} break;
 
 		case 2:
 		{
-			ClLine(240 + right * 480, 0, 0, cameraSpeed);
+			ClLine(220 + right * 480, 0, 0, cameraSpeed);
 		} break;
 
 		case 3:
 		{
-			ClLine(0, 3120 + up * 480, 90, cameraSpeed);
+			ClLine(0, 3100 + up * 480, 90, cameraSpeed);
 		} break;
 
 		case 4:
 		{
-			ClLine(-2640 + left * 480, 0, 180, cameraSpeed);
+			ClLine(-2520 + left * 480, 0, 180, cameraSpeed);
 		} break;
 
 		default:
 			break;
 	}
+	USART_OUT(UART5,(u8*)"side%d\r\n",side);
 }
 /*======================================================================================
    函数定义	  ：    扫四条边缘(一圈)
@@ -2026,7 +2042,7 @@ void CountBall(void)
 		ballN=0;
 		sum=0;
 	}
-//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
 
 }
 
