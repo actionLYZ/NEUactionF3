@@ -492,7 +492,6 @@ bool  RunRectangle(int length, int wide, float speed)
 	}
 	return false;
 }
-int x1 = 0, x2 = 0, y1 = 0, y2 = 0;
 /*======================================================================================
    函数定义		：			坐标校正(考虑了顺逆时针)
    函数参数		：			无
@@ -550,17 +549,17 @@ int CheckPosition(void)
 			StaightCLose(tempx, tempy, aimAngle, -1000);
 			
 			//后退车被困住（被困的条件比较严苛）
-			if(stuckCar(2,500))
+			if(stuckCar(2,50))
 			{
 				//行程开关没有全部触发
-				if(SWITCHE2 == 0 || SWITCHC0 == 0)
+				if(SWITCHC2 == 0 || SWITCHC0 == 0)
 				{
 					state = 9;
 				}
 			}
 			
 			//两个行程开关触发,则进入下一次状态进行激光矫正
-			if(SWITCHE2 == 1 && SWITCHC0 == 1)
+			if(SWITCHC2 == 1 && SWITCHC0 == 1)
 			{
 				count++;
 			}
@@ -574,13 +573,15 @@ int CheckPosition(void)
 		//激光校正
 		case 4:
 		{
-			if (LaserCheck())
+			if (LaserCheck() == 1)
 			{
 				keepgo  = 1;
 				state   = 1;
 				tempx   = 0, tempy = 0;
 			}
-			else
+			
+			//矫正失败
+			else if(LaserCheck() == 0)
 			{
 				
 				//矫正失败，继续矫正
@@ -805,8 +806,8 @@ int CheckPosition(void)
 				state = 3;
 			}
 			
-			//靠墙不成功次数超过3次,转到10状态
-			if(checkError >= 3)
+			//靠墙不成功次数超过2次,转到10状态
+			if(checkError >= 2)
 			{
 				//记录当前距离车最近的墙
 				side = JudgeSide();
@@ -1197,11 +1198,11 @@ void TurnAngle(float angel, int speed)
 /*======================================================================================
    函数定义		：			利用激光矫正坐标
    函数参数		：			无
-   函数返回值	：			矫正成功返回1，失败返回0
+   函数返回值	：			矫正成功返回1，失败返回0,还在矫正返回2
    =======================================================================================*/
 int LaserCheck(void)
 {
-	int laserGetRight = 0, laserGetLeft = 0, side = 0;
+	int laserGetRight = 0, laserGetLeft = 0, side = 0, success = 2;
 	static u8 step = 0, left = 1, right = 1;
 	laserGetRight = Get_Adc_Average(RIGHT_LASER, 20);
 	laserGetLeft  = Get_Adc_Average(LEFT_LASER, 20);
@@ -1212,8 +1213,6 @@ int LaserCheck(void)
 			//如果激光被挡,进入step = 2
 			if (laserGetRight + laserGetLeft < 4700)
 			{	
-				x1  = getPosition_t.X;
-				y1  = getPosition_t.Y;
 				step = 2;
 			}
 			
@@ -1246,14 +1245,18 @@ int LaserCheck(void)
 					//置1，为了下次激光矫正时left right 初始值为1
 					right = 1;
 					left = 1;
-					return 0;
+					
+					//左右侧都被挡，succese置0
+					success = 0;
+					//return 0;
 				}
 				yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError)));
 				
-				//置1，为了下次激光矫正时left right 初始值为1
+				//right left置1，为了下次激光矫正时left right 初始值为1
 				right = 1;
 				left = 1;
-				return 1;
+				success = 1;
+				//return 1;
 			}
 
 			//靠X=g_plan * 2400的墙
@@ -1277,7 +1280,8 @@ int LaserCheck(void)
 					{
 						right = 1;
 						left = 1;
-						return 0;
+						success = 0;
+						//return 0;
 					}
 				}
 				else
@@ -1294,12 +1298,14 @@ int LaserCheck(void)
 					{
 						right = 1;
 						left = 1;
-						return 0;
+						success = 0;
+						//return 0;
 					}
 				}
 				right = 1;
 				left = 1;
-				return 1;
+				success = 1;
+//				return 1;
 			}
 
 			//靠Y=4800的墙
@@ -1319,12 +1325,14 @@ int LaserCheck(void)
 				{
 					right = 1;
 					left = 1;
-					return 0;
+					success = 0;
+					//return 0;
 				}
 				yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - 64.65);
 				right = 1;
 				left = 1;
-				return 1;
+				success = 1;
+				//return 1;
 			}
 
 			//靠X=-g_plan * 2400的墙
@@ -1346,7 +1354,8 @@ int LaserCheck(void)
 					{
 						right = 1;
 						left = 1;
-						return 0;
+						success = 0;
+						//return 0;
 					}
 				}
 				else
@@ -1363,12 +1372,14 @@ int LaserCheck(void)
 					{
 						right = 1;
 						left = 1;
-						return 0;
+						success = 0;
+						//return 0;
 					}
 				}
 				right = 1;
 				left = 1;
-				return 1;
+				success = 1;
+				//return 1;
 			}
 			break;
 		case 2:
@@ -1453,8 +1464,8 @@ int LaserCheck(void)
 			step = 1;
 			break;
 	}
+	return success;
 }
-	
 
 //角度变换函数
 float Angel2PI(float angel)

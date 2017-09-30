@@ -1229,7 +1229,7 @@ int ShootBallW(void)
 				{
 					noBall = 0;
 					
-					//射球完成，shootNum清零
+					//射球完成，shootNum置1
 					shootNum = 1;
 					success = 1;
 				}
@@ -1287,7 +1287,7 @@ int ShootBallW(void)
 				}
 				
 				//CCD识别到球，但推球电机位置不变
-				if((g_pushPosition - lastPosition) == 0)
+				if(abs(g_pushPosition - lastPosition) < 2)
 				{
 					notShoot++;
 					
@@ -1305,8 +1305,8 @@ int ShootBallW(void)
 //						}
 //					}
 					
-					//2s依然卡死，切换到step = 1;
-					if(notShoot > 200)
+					//1s依然卡死，切换到step = 1;
+					if(notShoot > 100)
 					{
 						notShoot = 0;
 						step = 1;
