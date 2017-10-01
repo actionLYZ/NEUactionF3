@@ -476,7 +476,7 @@ void CollecMostBall1(void)
 	g_cameraPlan  = 2;
 	aimAngle      = Position_t.angle + g_cameraAng[0];
 	aimAngle      = AvoidOverAngle(aimAngle);
-//	USART_OUT(UART5,(u8*)"a%d\r\n",(int)g_cameraAng[0]);
+	USART_OUT(UART5,(u8*)"a%d\r\n",(int)g_cameraAng[0]);
 	angClose(1200, aimAngle, 120);
 } 
 /*======================================================================================
@@ -1166,7 +1166,8 @@ int ShootBallW(void)
 	int      success = 0;
 	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
 	static int32_t lastPosition = 0;
-	static int8_t pushSignal = 0, resetSignal = 0, step = 0;
+	static int8_t step = 0;
+	
 	//问询航向电机角度、收球电机速度、推球电机的位置
   ReadActualPos(CAN1, GUN_YAW_ID);
 	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
@@ -1177,6 +1178,7 @@ int ShootBallW(void)
 	switch(step)
 	{
 		case 0:
+			
 			//球是白球
 			if (ballColor == WHITE)
 			{
@@ -1208,29 +1210,34 @@ int ShootBallW(void)
 			// 没球,来回拨动几次
 			else if (ballColor == NO)
 			{
+				USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)noBall,(int)success);
 				noBall++;
-				if(noBall > 150 && noBall < 160)
+				if(noBall > 120 && noBall < 130)
 				{
 						PushBall();
 				}
-				if(noBall > 300 && noBall < 310)
+				if(noBall > 240 && noBall < 250)
 				{		
 						PushBallReset();	
 				}
-				if(noBall > 450 && noBall < 460)
+				if(noBall > 360 && noBall < 370)
 				{	
 						PushBall();	
 				}
-				if(noBall > 600 && noBall < 610)
+				if(noBall > 480 && noBall < 490)
 				{					
 						PushBallReset();					
 				}
-				if(noBall > 800)
+				if(noBall > 600 && noBall < 610)
+				{	
+						PushBall();	
+				}
+				if(noBall > 1000)
 				{
 					noBall = 0;
 					
-					//射球完成，shootNum置1
-					shootNum = 1;
+					//射球完成，shootNum置0
+					shootNum = 0;
 					success = 1;
 				}
 			}
@@ -1254,86 +1261,63 @@ int ShootBallW(void)
 			{
 				YawAngleCtr(shootAngle);
 			}
-
+			
+		  //记录射球的个数
+			if(fabs(rps + g_shootFactV / 4096) > 4)
+			{
+				shootNum++;
+			}
+			
 			//枪的角度和转速到位,推球
-			if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 1.0 && ballColor)
+			if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 2.0f && fabs(rps + g_shootFactV / 4096) < 2 && ballColor)
 			{
 				//位置正常，reset推球电机
-				if(g_pushPosition > 3800)
+				if(g_pushPosition > 3200)
 				{
 					PushBallReset();
 				}
 				
 				//位置正常，push推球电机
-				if(g_pushPosition < 200)
+				if(g_pushPosition < 800)
 				{
 					PushBall();
 				}
+			}
+			
+			//判断球是否卡死
+			if(abs(g_pushPosition - lastPosition) < 5 )
+			{
+				notShoot++;
 				
-				//记录射球的个数
-				if((g_pushPosition - lastPosition) < 0)
-				{
-					resetSignal = 1;
-				}
-				if((g_pushPosition - lastPosition) > 0)
-				{
-					pushSignal = 1;
-				}
-				if(pushSignal && resetSignal)
-				{
-					shootNum++;
-					pushSignal = 0;
-					resetSignal = 0;
-				}
-				
-				//CCD识别到球，但推球电机位置不变
-				if(abs(g_pushPosition - lastPosition) < 2)
-				{
-					notShoot++;
-					
-					//推球电机2s位置不变
-//					if(notShoot > 200 && notShoot < 210)
-//					{
-//						//给推球电机一个反方向的命令
-//						if(g_pushPosition > 2000)
-//						{
-//							PushBall();
-//						}
-//						else
-//						{
-//							PushBallReset();
-//						}
-//					}
-					
-					//1s依然卡死，切换到step = 1;
-					if(notShoot > 100)
-					{
-						notShoot = 0;
-						step = 1;
-					}
-				}
-				else
+				//0.2s依然卡死，切换到step = 1;
+				if(notShoot > 20)
 				{
 					notShoot = 0;
+					step = 1;
 				}
-				lastPosition = g_pushPosition;
 			}
+			else
+			{
+				notShoot = 0;
+			}
+			lastPosition = g_pushPosition;
 			break;
 			
 		//推球电机卡死，特殊处理的步骤
 		case 1:
 			notShoot++;
-		  if(notShoot > 100 && notShoot < 110)
+			if(g_pushPosition >= 2000)
 			{
 				PushBall();
 			}
-			if(notShoot > 200 && notShoot < 210)
+			else
 			{
 				PushBallReset();
 			}
-			if(notShoot > 300 && notShoot < 310)
+			
+			//连续发10次命令
+			if(notShoot >= 10)
 			{
-				PushBall();
 				notShoot = 0;
 				step = 0;
 			}
@@ -1341,6 +1325,8 @@ int ShootBallW(void)
 	}
 //	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
 //	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)resetError,(int)pushError,(int)notShoot);
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)step,(int)notShoot,(int)ballColor,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)shootNum);
+//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
 	return success;
 }
 /*======================================================================================
@@ -1402,13 +1388,13 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
-		  R1 += 200;
+		  R1 += 350;
 		}
 		
 		//否则,缩小扫场
 		else
 		{
-			R1 -= 200;
+			R1 -= 350;
 		}
 		
 		//达到预定圈数,success置1,acceSpeed置0
@@ -1743,7 +1729,7 @@ int Escape(void)
 			break;
 		case 1:
 			time++;
-			if (time < 120)
+			if (time < 80)
 			{
 				angClose(-1000,aimAngle,100);
 			}
@@ -1869,4 +1855,83 @@ int Escape(void)
 	}
 	return success;
 }
-
+/*======================================================================================
+   函数定义		：	检测车是否被平移	  
+   函数参数		：		  
+   
+   函数返回值	：	被平移返回1，否则返回0    
+ =====================================================================================*/
+int IfTranslate(float distance)
+{
+	static u8 step = 0, side = 0, count = 0;
+	static float firstx = 0, firsty = 0, lastx = 0, lasty = 0;
+	u8 success = 0;
+	switch(step)
+	{
+		case 0:
+			
+		  //判断在哪面墙
+			side = JudgeSide();
+		  step = 1;
+			break;
+		case 1:
+			
+		  //第一或第三面墙
+			if(side == 1 || side == 3)
+			{
+				//Y坐标基本不变，X坐标持续增大，认为被平移了
+				if(fabs(Position_t.Y -firsty) < 200 && fabs(Position_t.X - lastx) > 0.3)
+				{
+					count++;
+				}
+				else
+				{
+					count = 0;
+				}
+				
+				//1s后，进入下一步
+				if(count > 100)
+				{
+					step = 3;
+				}
+			}
+	
+			//其他的墙
+			else
+			{
+				//X坐标基本不变，X坐标持续增大，认为被平移了
+				if(fabs(Position_t.X -firstx) < 200 && fabs(Position_t.Y - lasty) > 0.3)
+				{
+					count++;
+				}
+				else
+				{
+					count = 0;
+				}
+				
+				//1s后，进入下一步
+				if(count > 100)
+				{
+					step = 3;
+				}
+			}
+			break;
+		case 3:
+			
+		  //平移距离大于distance，认为被平移太远了
+			if(side == 1 || side == 3)
+			{
+				if(fabs(Position_t.X - firstx) > distance)
+					success = 1;
+			}
+			else
+			{
+				if(fabs(Position_t.Y - firsty) > distance)
+					success = 1;
+			}
+			break;
+	}
+	lastx = Position_t.X;
+	lasty = Position_t.Y;
+	return success;
+}

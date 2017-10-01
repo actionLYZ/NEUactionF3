@@ -204,14 +204,14 @@ void GoGoGo(float fLine)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(2000, 900, 3, 1))
+			if(sweepYuan(1500, 900, 3, 1))
 				state = 3;
 		}
 		break;
 		
 		//紧随画圆后矩形扫场
 		case 3:
-			if(AfterCircle(2000))
+			if(AfterCircle(1500))
 				state = 4;
 			break;
 		//进行坐标校正
@@ -232,7 +232,7 @@ void GoGoGo(float fLine)
 			shootStart  = 1;
 			if (ShootBallW())
 			{
-				state = 7;
+				state = 6;
 /*
 				shootStart = 0;
 				shootTime++;
@@ -646,6 +646,12 @@ int CheckPosition(void)
 					}
 				}
 			}
+			
+			//如果车在死角，两侧激光测距均超出激光测距范围，则进入state12
+			else if(LaserCheck() == 3)
+			{
+				state = 12;
+			}
 		} break;
 
 		//继续矫正,前进
@@ -764,7 +770,7 @@ int CheckPosition(void)
 		case 8:
 		{
 			StaightCLose(tempx, tempy, aimAngle, -1000);
-			if(SWITCHE2==1 && SWITCHC0==1)
+			if(SWITCHC2==1 && SWITCHC0==1)
 			{
 				count++;
 			}
@@ -936,6 +942,49 @@ int CheckPosition(void)
 					{
 						state = 1;
 					}
+				}
+			}
+			break;
+		case 12:
+			
+			//判断车在哪面墙
+			side = JudgeSide();
+		
+			//记录当前的角度值
+			aimAngle = Position_t.angle;
+		  state = 13;
+			break;
+		case 13:
+			angClose(1500,aimAngle,150);
+		  
+			//在第一面墙激光不能用时
+		  if(side == 1)
+			{
+				if(Position_t.Y > 1000)
+				{
+					//state置1，重新矫正
+					state = 1;
+				}
+			}
+			else if(side == 2)
+			{
+				if(Position_t.X < 1400)
+				{
+					state = 1;
+				}
+			}
+			else if(side == 3)
+			{
+				if(Position_t.Y < 3800)
+				{
+					state = 1;
+				}
+			}
+			else
+			{
+				if(Position_t.X > -1400)
+				{
+					state = 1;
 				}
 			}
 			break;
@@ -1198,7 +1247,7 @@ void TurnAngle(float angel, int speed)
 /*======================================================================================
    函数定义		：			利用激光矫正坐标
    函数参数		：			无
-   函数返回值	：			矫正成功返回1，失败返回0,还在矫正返回2
+   函数返回值	：			矫正失败返回0, 成功返回1，还在矫正返回2，车在死角，超出激光测量范围返回3
    =======================================================================================*/
 int LaserCheck(void)
 {
@@ -1227,7 +1276,7 @@ int LaserCheck(void)
 			//靠的墙是Y=0
 			if (Position_t.angle < 45 && Position_t.angle > -45)
 			{
-				angleError  += Position_t.angle;  //纠正角度坐标
+				angleError += Position_t.angle;  //纠正角度坐标
 				
 				//右侧没有被挡
 				if(right)
@@ -1309,7 +1358,7 @@ int LaserCheck(void)
 			}
 
 			//靠Y=4800的墙
-			else if (Position_t.angle > 135 && Position_t.angle < -135)
+			else if (Position_t.angle > 135 || Position_t.angle < -135)
 			{
 				angleError  += Position_t.angle - 180;
 				angleError  = AvoidOverAngle(angleError);
@@ -1384,6 +1433,11 @@ int LaserCheck(void)
 			break;
 		case 2:
 			
+		//两侧激光值均小于600，说明车在死角，距离都超出了激光的测量范围，此时函数返回数值3
+			if(laserGetRight < 650 && laserGetLeft < 650)
+			{
+				success = 3;
+			}
 		  //判断在哪面墙
 			side = JudgeSide();
 		  if(side == 1)
