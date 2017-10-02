@@ -358,19 +358,21 @@ int Mas(int number1, int number2, int number3)
 {
 	int mas;
 
-	if (number1 == 0 && number2 == 0 && number3 == 0)
-	{
-		mas = 0;
-	}
-	else
+//	if (number1 == 0 && number2 == 0 && number3 == 0)
+//	{
+//		mas = 0;
+//	}
+//	else
 	{
 		mas = (number1 > number2) ? number1 : number2;
 		mas = (mas > number3) ? mas : number3;
-		if (mas == number1)
-			mas = 1;
+
 		if (mas == number2)
 			mas = 2;
-		if (mas == number3)
+
+		else if (mas == number1)
+			mas = 1;
+		else if (mas == number3)
 			mas = 3;
 	}
 	return mas;
@@ -387,22 +389,24 @@ int Mas2(int number1, int number2, int number3, int number4)
 {
 	int mas;
 
-	if (number1 == 0 && number2 == 0 && number3 == 0 && number4)
-	{
-		mas = 0;
-	}
-	else
+//	if (number1 == 0 && number2 == 0 && number3 == 0 && number4)
+//	{
+//		mas = 0;
+//	}
+//	else
 	{
 		mas = (number1 > number2) ? number1 : number2;
 		mas = (mas > number3) ? mas : number3;
 		mas = (mas > number4) ? mas : number4;
-		if (mas == number1)
-			mas = 1;
-		if (mas == number2)
-			mas = 2;
+
+
 		if (mas == number3)
 			mas = 3;
-		if (mas == number4)
+		else if (mas == number2)
+			mas = 2;
+		else if (mas == number1)
+			mas = 1;		
+		else if (mas == number4)
 			mas = 4;
 	}
 	return mas;
@@ -447,16 +451,51 @@ PolarCoo_t Closer_Point(int8_t a[20], uint8_t b[20], int sum)
                   Y            点的Y坐标
    函数返回值  ：	  含有对应横竖的第几个格子的结构体
    =======================================================================================*/
-Coo_t Zoning(float X, float Y)
+ Coo_t Zoning(float X, float Y)
 {
 	Coo_t wirte;
-	int   m = 1, o = 1;
-
-	while ((X - m * 480) > -2400)
-		m++;
+	int   m = 0, o = 0;
+  if(fabs(X)<1800)
+	{
+		while ((X - (m+1) * 480) > -2400)
+			m++;
+		
+	}
+  else
+	{
+		if(X>=1800)
+		{
+			m=9;
+		}
+		if(X<=-1800)
+		{
+			m=0;
+		}
+	}
 	wirte.hor = m;
-	while ((Y - o * 480) > 0)
-		o++;
+	if(Y<600)
+	{
+		o=0;
+	}
+	else if(Y>=600&&Y<1700)
+	{
+		while ((Y - (o+1) * 480) > 160)
+			o++;
+	}
+  else if(Y>=1700&&Y<3240)
+	{
+		while ((Y - (o+1) * 480) > 0)
+			o++;
+	}
+	else if(Y>=3240&&Y<4200)
+	{
+		while ((Y - (o+1) * 480) > -120)
+			o++;
+	}
+	else if(Y>=4200)
+	{
+		o=9;
+	}
 	wirte.ver = o;
 	return wirte;
 }
@@ -484,7 +523,7 @@ void First_Scan(void)
 	}
 	if (g_plan == 1)
 	{
-		if (Position_t.X > 275 && Position_t.Y < 3100)
+		if (Position_t.X >= 275 && Position_t.Y < 3100)
 			area = 1;
 		else if (Position_t.X > -275 && Position_t.Y >= 3100)
 			area = 2;
@@ -518,6 +557,7 @@ void First_Scan(void)
 		default:
 			break;
 	}
+	USART_OUT(UART5,(u8*)"area%d\r\n",area);
 }
 /*======================================================================================
    函数定义	  ：    将场地分成内外，用于逃逸
@@ -624,43 +664,217 @@ int Least_S(int a1[10], int a2[10], int a3[10], int a4[10])
                     left          正方形左面四条线中哪条是要走的
    函数返回值  ：	  无
    =======================================================================================*/
-void New_Route(int down, int right, int up, int left)
+void New_Route(int dow, int righ, int u, int lef)
 {
-	static int side = 1;
-
-	if (side == 1 && Position_t.X > (240 + right * 480 - AD_MID_SP))
-		side = 2;
-	if (side == 2 && Position_t.Y > (3120 + up * 480 - AD_MID_SP))
-		side = 3;
-	if (side == 3 && Position_t.X < (-2640 + left * 480 + AD_MID_SP))
-		side = 4;
-	if (side == 4 && Position_t.Y < (-240 + down * 480 + AD_MID_SP))
-		side = 1;
-	switch (side)
+	static int side = 1,aim=0,notyet=0,area;
+	if(g_plan==1)
 	{
-		case 1:
+		if (Position_t.Y < 1700 )
 		{
-			ClLine(0, -240 + down * 480, -90, cameraSpeed);
-		} break;
-
-		case 2:
+			if(righ!=4)
+			{
+				if(Position_t.X > (240 + righ * 480 - AD_CAMERA))
+				{
+					side = 2;notyet=0;					
+					aim=240 + righ * 480;
+				}
+				else 
+				{
+					if(Position_t.X<=300)
+					{
+						area=1;notyet=1;
+					}
+				}
+			}
+			else
+			{
+				if(Position_t.X > (80 + righ * 480 - AD_CAMERA))
+				{
+					side = 2;notyet=0;
+					aim=80 + righ * 480;
+				}
+				else
+				{
+					if(Position_t.X<=300)
+					{
+						area=1;notyet=1;
+					}
+				}
+			}
+		}
+			
+		if (Position_t.X > 300 )
 		{
-			ClLine(240 + right * 480, 0, 0, cameraSpeed);
-		} break;
-
-		case 3:
+			if(u!=3)
+			{
+				if(Position_t.Y > (3000 + u * 480 - AD_CAMERA))
+				{
+					side = 3;notyet=0;
+					aim=3000 + u * 480;
+				}
+				else 
+				{
+					if(Position_t.Y<=3100)
+					{
+						area=2;notyet=1;
+					}
+				}
+			}
+			else 
+			{
+				if(Position_t.Y > (2900 + u * 480 - AD_CAMERA))
+				{
+					side = 3;notyet=0;
+					aim=2900 + u * 480;
+				}
+				else 
+				{
+					if(Position_t.Y<=3100)
+					{
+						area=2;notyet=1;
+					}
+				}
+			}
+		}
+			
+		if (Position_t.Y > 3100 )
 		{
-			ClLine(0, 3120 + up * 480, 90, cameraSpeed);
-		} break;
-
-		case 4:
+			if(lef!=1)
+			{
+				if(Position_t.X < (-2640 + lef * 480 + AD_CAMERA))
+				{
+					side = 4;notyet=0;
+					aim=-2640 + lef * 480;
+				}
+				else 
+				{
+					if(Position_t.X>=-300)
+					{
+						area=3;notyet=1;
+					}
+				}
+			}
+			else 
+			{
+				if(Position_t.X < (-2400 + lef * 480 + AD_CAMERA))
+				{
+					side = 4;notyet=0;
+					aim=-2400 + lef * 480;
+				}
+				else 
+				{
+					if(Position_t.X>=-300)
+					{
+						area=3;notyet=1;
+					}
+				}				
+			}
+		}
+			
+		if (Position_t.X < -300 )
 		{
-			ClLine(-2640 + left * 480, 0, 180, cameraSpeed);
-		} break;
-
-		default:
-			break;
+			if(dow!=1)
+			{
+				if(Position_t.Y < (-80 + dow * 480 + AD_CAMERA))
+				{
+					side = 1;notyet=0;
+					aim=-80 + dow * 480;
+				}
+				else
+				{
+					if(Position_t.Y>=1700)
+					{
+						area=4;notyet=1;
+					}
+				}
+			}
+			else 
+			{
+				if(Position_t.Y < ( dow * 480 + AD_CAMERA))
+				{
+					side = 1;notyet=0;
+					aim=dow * 480;
+				}
+				else
+				{
+					if(Position_t.Y>=1700)
+					{
+						area=4;notyet=1;
+					}
+				}
+			}
+		}
+			
 	}
+//  if(g_plan==-1)
+//	{
+//		if (Position_t.Y > 3100 && Position_t.X > (220 + righ * 480 - AD_CAMERA))
+//			side = 2;
+//		if (Position_t.X < -300 && Position_t.Y > (3100 + u * 480 - AD_CAMERA))
+//			side = 3;
+//		if (Position_t.Y < 1700 && Position_t.X < (-2520 + lef * 480 + AD_CAMERA))
+//			side = 4;
+//		if (Position_t.X > 300 && Position_t.Y < (-220 + dow * 480 + AD_CAMERA))
+//			side = 1;
+//	}
+  if(notyet==0)
+  {
+		switch (side)
+		{
+			case 1:
+			{
+				ClLine(0, aim, -90, cameraSpeed);
+			} break;
+
+			case 2:
+			{
+				ClLine(aim, 0, 0, cameraSpeed);
+			} break;
+
+			case 3:
+			{
+				ClLine(0, aim, 90, cameraSpeed);
+			} break;
+
+			case 4:
+			{
+				ClLine(aim, 0, 180, cameraSpeed);
+			} break;
+
+			default:
+				break;
+		}
+  }
+  else
+	{
+		switch (area)
+		{
+			case 1:
+			{
+				ClLineAngle(-90, cameraSpeed);
+			} break;
+
+			case 2:
+			{
+				ClLineAngle(0, cameraSpeed);
+			} break;
+
+			case 3:
+			{
+				ClLineAngle(90, cameraSpeed);
+			} break;
+
+			case 4:
+			{
+				ClLineAngle(180, cameraSpeed);
+			} break;
+
+			default:
+				break;
+		}
+	}
+	
+	USART_OUT(UART5,(u8*)"side %d aim %d d%d r%d u%d l%d\r\n",side,aim,dow,righ,u,lef);
 }
 /*======================================================================================
    函数定义	  ：    扫四条边缘(一圈)
@@ -2026,7 +2240,7 @@ void CountBall(void)
 		ballN=0;
 		sum=0;
 	}
-//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
 
 }
 

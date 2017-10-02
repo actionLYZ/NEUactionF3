@@ -220,6 +220,7 @@ void GoGoGo(float fLine)
 		case 4:
 		{
 			carRun = 0;
+			count=0;
 			if (CheckPosition())
 			{
 				state = 5;
@@ -251,12 +252,17 @@ void GoGoGo(float fLine)
 			
 			if (ShootBallW())
 			{
+<<<<<<< HEAD
 				//state = 6;
+=======
+//				state = 7;
+>>>>>>> 741b51b249730930ad4773fd2246d50f857e8b40
 
 				shootStart = 0;
 				shootTime++;
 				switch (shootTime)
 				{
+<<<<<<< HEAD
 					case 5:
 					{
 						state = 6;
@@ -269,11 +275,13 @@ void GoGoGo(float fLine)
 					{
 						state = 6;
 					}break;
+=======
+>>>>>>> 741b51b249730930ad4773fd2246d50f857e8b40
 					case 2:
 					{
 						state = 6;
 						if (cameraScheme == 0)
-						{
+						{						
 							cameraScheme = 1;
 							GPIO_SetBits(GPIOE, GPIO_Pin_4);
 							GPIO_ResetBits(GPIOE, GPIO_Pin_6);
@@ -298,12 +306,20 @@ void GoGoGo(float fLine)
 					break;
 
 					case 1: 
+<<<<<<< HEAD
 						state = 6;
+=======
+						state = 7;
+>>>>>>> 741b51b249730930ad4773fd2246d50f857e8b40
 					break;
 
 				default: break;
 				}
+<<<<<<< HEAD
 	
+=======
+
+>>>>>>> 741b51b249730930ad4773fd2246d50f857e8b40
 			}
 			else
 			{
@@ -320,7 +336,7 @@ void GoGoGo(float fLine)
 				carRun      = 1;
 				count = 300;
 			}
-			if(RunWithCamera1(2))
+			if(RunCamera())
 			{
 				count = 0;
 				state = 4;
@@ -330,20 +346,30 @@ void GoGoGo(float fLine)
 		case 7:
 		{
 			count++;
-			if(count >= 300)
+			if(count >= 500)
 			{
 				shootStart  = 0;
 				carRun      = 1;
-				count = 300;
+				count = 500;
 			}
 			if (RunEdge())
 			{
 				state     = 4;
-				shootTime = 0;
+				//shootTime = 0;
 				count = 0;
 			}
 		} break;
 		
+		case 8:
+		{
+			 count++;
+			 RunWithCamera1(2);
+			 if(count>=300)
+			 {
+			 	carRun=1;
+			 	count=0;
+			 }
+		}
 		default:
 			break;
 	}
@@ -585,7 +611,7 @@ int CheckPosition(void)
 				//行程开关没有全部触发
 				if(SWITCHC2 == 0 || SWITCHC0 == 0)
 				{
-					state = 9;
+					state = 4;
 				}
 			}
 			
@@ -1046,18 +1072,13 @@ Pose_t bestTra[20] = {0};
 
 int RunCamera(void)
 {
-	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1;
+	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1,border=0,porm=0,chuqu=0,edge[4]={0};
 	static float  cameraX, cameraY;
 	int           finish = 0, circulate;
 	POSITION_T    basePoint;
   cameraScheme = 1;
 	
-	//到边界要拐弯了
-	if (fabs(Position_t.X) > 1900 || Position_t.Y < 500 || Position_t.Y > 4300)
-		haveBall = 0;
-	//到达中间危险区域的标志
-  if(fabs(Position_t.X)<800&&Position_t.Y>1300&&Position_t.Y<3500)
-		haveBall = 0;
+  g_plan=1;
 	
 	//一环连一环 上部分是偶数则加一 下部分是奇数则加一 让stagger(错开)等于一
 	if (Position_t.Y < 1700)
@@ -1091,7 +1112,7 @@ int RunCamera(void)
 		down    = Least_H(traceS[0], traceS[1], traceS[2]);
 		up      = Least_H(traceS[7], traceS[8], traceS[9]);
 	}
-	USART_OUT(UART5,(u8*)"trace %d\t%d\t%d\t%d\r\n",left,right,down,up);
+	USART_OUT(UART5,(u8*)"trace %d\t%d\t%d\t%d\r\n",down,right,up,left);
 	switch (cameraScheme)
 	{
 		case 1:
@@ -1101,32 +1122,157 @@ int RunCamera(void)
 				go = 0;
 				if (arr_number == 0)
 				{
-					haveBall = 0;
+					haveBall = 0;porm=0;
 				}
 				else
 				{
 					haveBall  = 1;
+					if(bestAngle>0)
+					{
+						porm=1;
+					}
+					else if(bestAngle<0)
+					{
+						porm=-1;
+					}
 					cameraX   = Position_t.X - CAMERATOGYRO * sin(Position_t.angle);
 					cameraY   = Position_t.Y + CAMERATOGYRO * cos(Position_t.angle);
 					ballAngle = AvoidOverAngle(Position_t.angle + bestAngle);
-					USART_OUT(UART5,(u8*)"bestangle%d\r\n",bestAngle);
+					USART_OUT(UART5,(u8*)"bestangle %d\r\n",bestAngle);
 				}
 			}
+			
+			//到边界要拐弯了
+			if (fabs(Position_t.X) >= 1500 || Position_t.Y <= 900 || Position_t.Y >= 3900)
+			{
+				if(chuqu==0)
+				{
+					haveBall = 0;
+					if(run>2)
+					{
+						border=1;
+						if(edge[0]==1&&edge[1]==1&&edge[2]==1&&edge[3]==1)
+						{
+							border=0;
+						}					
+					}
+				}				
+			}
+			else
+			{
+				border=0;
+				chuqu=0;
+			}
+			//到达中间危险区域的标志
+			if(fabs(Position_t.X)<800&&Position_t.Y>1300&&Position_t.Y<3500)
+				haveBall = 0;
 			switch (haveBall)
 			{
 				case 0:
 				{
-					if (run < 2)
-						First_Scan();
+					if(border==0)
+					{
+						if (run < 2)
+							First_Scan();
+						else
+							New_Route(down, right, up, left);
+					}
 					else
-						New_Route(down, right, up, left);
+					{
+						if(Position_t.Y<=1100&&Position_t.X<1300)
+						{
+							edge[1]=1;
+              switch(porm)
+							{
+								case 0:
+								{
+									StaightCLose(0, 450, -90, cameraSpeed);
+								}break;
+								case 1:
+								{
+									chuqu=1;
+								}break;
+								case -1:
+								{
+									StaightCLose(0, 300, -90, cameraSpeed);
+								}break;
+								default:
+								 break;
+							}
+						}
+						if(Position_t.X>=1300&&Position_t.Y<3600)
+						{
+							edge[2]=1;
+              switch(porm)
+							{
+								case 0:
+								{
+									StaightCLose(1950, 0, 0, cameraSpeed);
+								}break;
+								case 1:
+								{
+									chuqu=1;
+								}break;
+								case -1:
+								{
+									StaightCLose(2100, 0, 0, cameraSpeed);
+								}break;
+								default:
+								 break;
+							}							
+						}
+						if(Position_t.Y>=3600&&Position_t.X>-1200)
+						{
+							edge[3]=1;
+              switch(porm)
+							{
+								case 0:
+								{
+									StaightCLose(0, 4200, 90, cameraSpeed);
+								}break;
+								case 1:
+								{
+									chuqu=1;
+								}break;
+								case -1:
+								{
+									StaightCLose(0, 4400, 90, cameraSpeed);
+								}break;
+								default:
+								 break;
+							}							
+						}
+						if(Position_t.X<=-1200&&Position_t.Y>1100)
+						{
+							edge[0]=1;
+							switch(porm)
+							{
+								case 0:
+								{
+									StaightCLose(-1800, 0, 180, cameraSpeed);
+								}break;
+								case 1:
+								{
+									chuqu=1;
+								}break;
+								case -1:
+								{
+									StaightCLose(-2000, 0, 180, cameraSpeed);
+								}break;
+								default:
+								 break;
+							}
+						}
+					}
+
 				} break;
 
 				case 1:
 				{
-						StaightCLose(cameraX, cameraY, ballAngle, cameraSpeed);					
+					StaightCLose(cameraX, cameraY, ballAngle, cameraSpeed);	
+          //angClose(cameraSpeed,bestAngle,100);	
+     					
 				} break;
-
 				default:
 					break;
 				}
@@ -1169,6 +1315,12 @@ int RunCamera(void)
 					}	    
 				}
 			}
+				//到边界要拐弯了
+	if (fabs(Position_t.X) > 1700 || Position_t.Y < 700 || Position_t.Y > 4100)
+		haveBall = 0;
+	//到达中间危险区域的标志
+  if(fabs(Position_t.X)<800&&Position_t.Y>1300&&Position_t.Y<3500)
+		haveBall = 0;
 			switch (haveBall)
 			{
 			case 0:
@@ -1211,6 +1363,12 @@ int RunCamera(void)
 						ballAngle = AvoidOverAngle(Position_t.angle + nearestAngle);
 				}
 			}
+				//到边界要拐弯了
+	if (fabs(Position_t.X) > 1700 || Position_t.Y < 700 || Position_t.Y > 4100)
+		haveBall = 0;
+	//到达中间危险区域的标志
+  if(fabs(Position_t.X)<800&&Position_t.Y>1300&&Position_t.Y<3500)
+		haveBall = 0;
 			switch (haveBall)
 			{
 				case 0:
@@ -1339,6 +1497,7 @@ int LaserCheck(void)
 				//return 1;
 			}
 
+<<<<<<< HEAD
 			//靠X=g_plan * 2400的墙
 			else if (Position_t.angle < 135 && Position_t.angle > 45)
 			{
@@ -1387,6 +1546,17 @@ int LaserCheck(void)
 				success = 1;
 //				return 1;
 			}
+=======
+		//靠Y=4800的墙
+		else if (Position_t.angle > 135 || Position_t.angle < -135)
+		{
+			angleError  += Position_t.angle - 180;
+			angleError  = AvoidOverAngle(angleError);
+			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetLeft);
+			yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - 64.65);
+			return 1;
+		}
+>>>>>>> 741b51b249730930ad4773fd2246d50f857e8b40
 
 			//靠Y=4800的墙
 			else if (Position_t.angle > 135 || Position_t.angle < -135)
