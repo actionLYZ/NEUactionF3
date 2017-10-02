@@ -28,6 +28,7 @@ extern int32_t     g_rightPulse ;
 extern int32_t     g_leftPulse ;
 extern float       firstLine;
 extern int ballNumber;
+extern int32_t     g_pushPosition;
 /*================================================函数定义区==============================================*/
 
 
@@ -160,6 +161,7 @@ void GoGoGo(float fLine)
 {
 	static int  state = 1, shootTime = 0, count = 0;             //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
+	static int32_t lastPosition = 0, notMove = 0;
 
 //	if(ballNumber>20)
 //	{
@@ -204,14 +206,14 @@ void GoGoGo(float fLine)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(1500, 900, 3, 1))
+			if(sweepYuan(2200, 900, 3, 1))
 				state = 3;
 		}
 		break;
 		
 		//紧随画圆后矩形扫场
 		case 3:
-			if(AfterCircle(1500))
+			if(AfterCircle(2200))
 				state = 4;
 			break;
 		//进行坐标校正
@@ -230,15 +232,44 @@ void GoGoGo(float fLine)
 		{
 			carRun      = 0;
 			shootStart  = 1;
-			if (ShootBallW())
+			
+			//检测是否被卡死
+			if(abs(g_pushPosition - lastPosition) < 10)
+			{
+				notMove++;
+			}
+			else
+			{
+				notMove = 0;
+			}
+			
+			//6s不动，切换下一状态
+			if(notMove > 600)
 			{
 				state = 6;
-/*
+			}
+			
+			if (ShootBallW())
+			{
+				//state = 6;
+
 				shootStart = 0;
 				shootTime++;
 				switch (shootTime)
 				{
-					case 1:
+					case 5:
+					{
+						state = 6;
+					}break;
+					case 4:
+					{
+						state = 6;
+					}break;
+					case 3:
+					{
+						state = 6;
+					}break;
+					case 2:
 					{
 						state = 6;
 						if (cameraScheme == 0)
@@ -266,13 +297,13 @@ void GoGoGo(float fLine)
 					} 
 					break;
 
-					case 2: 
-						state = 7;
+					case 1: 
+						state = 6;
 					break;
 
 				default: break;
 				}
-	*/
+	
 			}
 			else
 			{
@@ -339,7 +370,7 @@ bool FirstRound(float firstLine)
 		speed = 2000;
 	}
 	
-	//第一圈贴框走成都极限条件
+	//第一圈贴框走成功极限条件
 	if(firstLine < 650)
 	{
 		firstLine = 550;
@@ -1433,11 +1464,12 @@ int LaserCheck(void)
 			break;
 		case 2:
 			
-		//两侧激光值均小于600，说明车在死角，距离都超出了激光的测量范围，此时函数返回数值3
+			//两侧激光值均小于600，说明车在死角，距离都超出了激光的测量范围，此时函数返回数值3
 			if(laserGetRight < 650 && laserGetLeft < 650)
 			{
 				success = 3;
 			}
+			
 		  //判断在哪面墙
 			side = JudgeSide();
 		  if(side == 1)

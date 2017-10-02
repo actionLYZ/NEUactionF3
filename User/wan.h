@@ -218,5 +218,5 @@ int AfterCircle(uint16_t speed);
 u16 LaserTrigger(void);
 
 //逃逸函数
-int Escape(void);
+int Escape(u16 back,u16 turn);
 

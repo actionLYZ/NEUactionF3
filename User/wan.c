@@ -476,8 +476,8 @@ void CollecMostBall1(void)
 	g_cameraPlan  = 2;
 	aimAngle      = Position_t.angle + g_cameraAng[0];
 	aimAngle      = AvoidOverAngle(aimAngle);
-	USART_OUT(UART5,(u8*)"a%d\r\n",(int)g_cameraAng[0]);
-	angClose(1200, aimAngle, 120);
+//	USART_OUT(UART5,(u8*)"a%d\r\n",(int)g_cameraAng[0]);
+	angClose(1000, aimAngle, 200);
 } 
 /*======================================================================================
    函数定义		：			利用摄像头收集球最多的区域的小球,基本走形回字形
@@ -490,6 +490,11 @@ int RunWithCamera1(uint8_t circleNum)
 	static uint8_t  circle  = 0;
   uint8_t success = 0;
 	float aimAngle = 0;
+	
+	//拉低PE6，拉高PE4的电平，接收球最多区域的角度
+	GPIO_SetBits(GPIOE, GPIO_Pin_4);
+	GPIO_ResetBits(GPIOE, GPIO_Pin_6);
+	g_cameraPlan = 2;
 	//USART_OUT(UART5,(u8*)"X%d\ti%d\r\n",(int)Position_t.X,(int)i);
 	switch (i)
 	{
@@ -514,8 +519,8 @@ int RunWithCamera1(uint8_t circleNum)
 			}
 			angClose(1000,aimAngle,100);
 			
-		  //直行0.8s
-		  if(count >= 80)
+		  //直行0.6s
+		  if(count >= 60)
 			{
 				count = 0;
 				
@@ -589,9 +594,10 @@ int RunWithCamera1(uint8_t circleNum)
 				i = 2;
 				circle++;
 				
-				// 达到预定圈数返回1
+				// 达到预定圈数返回1，然后各种清零
 				if(circle == circleNum)
 				{
+					i = 0;
 					circle = 0;
 					success = 1;
 				}
@@ -1165,8 +1171,8 @@ int ShootBallW(void)
   POSXY_T  posShoot = { 0, 0 };
 	int      success = 0;
 	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
-	static int32_t lastPosition = 0;
-	static int8_t step = 0;
+	static int32_t lastPosition = 0, notMove = 0;
+	static int8_t step = 0, ifCount = 0;
 	
 	//问询航向电机角度、收球电机速度、推球电机的位置
   ReadActualPos(CAN1, GUN_YAW_ID);
@@ -1210,7 +1216,7 @@ int ShootBallW(void)
 			// 没球,来回拨动几次
 			else if (ballColor == NO)
 			{
-				USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)noBall,(int)success);
+//				USART_OUT(UART5,(u8*)"n%d\t%d\r\n",(int)noBall,(int)success);
 				noBall++;
 				if(noBall > 120 && noBall < 130)
 				{
@@ -1237,6 +1243,8 @@ int ShootBallW(void)
 					noBall = 0;
 					
 					//射球完成，shootNum置0
+					notMove = 0;
+					step = 0;
 					shootNum = 0;
 					success = 1;
 				}
@@ -1263,9 +1271,17 @@ int ShootBallW(void)
 			}
 			
 		  //记录射球的个数
-			if(fabs(rps + g_shootFactV / 4096) > 4)
+			if(fabs(rps + (g_shootFactV / 4096)) < 1)
 			{
-				shootNum++;
+				ifCount = 1;
+			}
+			if(ifCount)
+			{
+				if(rps + (g_shootFactV / 4096) > 2.7)
+				{
+					shootNum++;
+					ifCount = 0;
+				}
 			}
 			
 			//枪的角度和转速到位,推球
@@ -1300,12 +1316,14 @@ int ShootBallW(void)
 			{
 				notShoot = 0;
 			}
+			
+//			USART_OUT(UART5,(u8*)"l%d\t%d\t%d\r\n",(int)g_pushPosition,(int)lastPosition,(int)notMove);
 			lastPosition = g_pushPosition;
 			break;
 			
 		//推球电机卡死，特殊处理的步骤
 		case 1:
-			notShoot++;
+			notMove++;
 			if(g_pushPosition >= 2000)
 			{
 				PushBall();
@@ -1316,16 +1334,16 @@ int ShootBallW(void)
 			}
 			
 			//连续发10次命令
-			if(notShoot >= 10)
+			if(notMove >= 10)
 			{
-				notShoot = 0;
+				notMove = 0;
 				step = 0;
 			}
 			break;
 	}
 //	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
-//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)resetError,(int)pushError,(int)notShoot);
-	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)step,(int)notShoot,(int)ballColor,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)shootNum);
+//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
 //	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
 	return success;
 }
@@ -1409,7 +1427,7 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 	disError = sqrt((Position_t.X - 0) * (Position_t.X - 0) + (Position_t.Y - 2335.35) * (Position_t.Y - 2335.35)) - R1;
 	
 	//距离P调节系数
-	disOutput = g_plan * disError * 10;
+	disOutput = g_plan * disError * 15;
 
 	//目标角度与小车位置到圆心的角度相同
 	aimAng = atan2(Position_t.Y - 2335.35,Position_t.X - 0) * 180.0 / PI;
@@ -1428,7 +1446,7 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 	angError = aimAng - Position_t.angle;
 	
 	//角度P调节系数
-	angOutput = g_plan * angError * 200;
+	angOutput = g_plan * angError * 350;
 	
 	VelCrl(CAN2, 1,V1+disOutput+angOutput);
 	VelCrl(CAN2, 2,-V2+disOutput+angOutput);
@@ -1700,11 +1718,11 @@ GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 }
 /*======================================================================================
    函数定义		：		  逃逸函数
-   函数参数		：		  
-   
+   函数参数		：		  back	后退时间
+											turn	转弯时间
    函数返回值	：	    
  =====================================================================================*/
-int Escape(void)
+int Escape(u16 back,u16 turn)
 {
 	static u16 time = 0, step = 0;
 	static int status = 0;
@@ -1715,6 +1733,7 @@ int Escape(void)
 		case 0:
 			status = In_Or_Out();
 		  aimAngle = Position_t.angle;
+		
 			//车子不在四个死角
 			if(status == 0 || status == -1)
 			{
@@ -1728,8 +1747,10 @@ int Escape(void)
 			}
 			break;
 		case 1:
+			
+			//后退
 			time++;
-			if (time < 80)
+			if (time < back)
 			{
 				angClose(-1000,aimAngle,100);
 			}
@@ -1742,18 +1763,18 @@ int Escape(void)
 		case 2:
 			time++;
 		
-			//内圈
+			//内圈转弯
 			if(status == 0)
 			{
 				angClose(1000,(aimAngle - 70),100);
 			}
 			
-			//外圈
+			//外圈转弯
 			else
 			{
 				angClose(1000,(aimAngle + 70),100);
 			}
-			if(time > 120)
+			if(time > turn)
 			{
 				time = 0;
 				step = 0;
@@ -1802,7 +1823,7 @@ int Escape(void)
 			}
 			else
 			{
-				if(Position_t.angle < 135)
+				if(Position_t.angle < 135 && Position_t.angle > 45)
 				{
 					aimAngle = 180;
 					step = 4;
@@ -1816,7 +1837,7 @@ int Escape(void)
 		case 4:
 			time++;
 			angClose(-1200,aimAngle,100);
-		  if(time > 120)
+		  if(time > turn)
 			{
 				time = 0;
 				
@@ -1844,8 +1865,8 @@ int Escape(void)
 			time++;
 			angClose(1200,aimAngle,120);
 		
-			//转弯1s
-			if(time > 100)
+			//转弯
+			if(time > turn)
 			{
 				time = 0;
 				step = 0;

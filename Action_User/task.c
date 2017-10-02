@@ -57,6 +57,7 @@ void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);
 
 int     g_camera = 0;     //摄像头收到的数
+int     escapeCount = 0, hitNum = 0;
 int     sweepingScheme = 0, blockTime = 0;
 int jiguang1, jiguang2;
 extern int32_t g_gather;
@@ -136,7 +137,7 @@ void ConfigTask(void)
 }
 
 //看车是在跑，还是在矫正、射球
-int carRun = 0, ifEscape = 0, count = 0;
+int carRun = 0, ifEscape = 0, countTime = 0, ifEscape2 = 0;
 
 /********************************测试********************/
 extern float blindTime;
@@ -190,25 +191,76 @@ void WalkTask(void)
 //		ShootBallW(); 
 //		RunWithCamera1(2);
 //		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
-		if (ifEscape)
+		
+		//普通避障
+		if(ifEscape)
 		{
+			carRun = 0;
+			
+			//开始逃逸计时
+			escapeCount = 1;
+			
 			//逃逸完成后，ifEscape清零
-			if(Escape())
+			if(Escape(100,120))
 			{
 				ifEscape = 0;
 			}
 		}
+		
+		//连续撞击后切换到此模式，大幅度避障
+		else if(ifEscape2)
+		{
+			carRun = 0;
+			
+			//更大幅度的避障
+			if(Escape(120,160))
+			{
+				ifEscape2 = 0;
+			}
+		}
 		else
  		{
+			carRun = 1;
+//			RunWithCamera1(2);
 			GoGoGo(firstLine);
 		}
-		if (stuckCar(200,200))
+		
+		//开始逃逸计时
+		if(escapeCount)
 		{
-			if (carRun)
-				ifEscape = 1;
+			countTime++;
+			
+			//6s之内
+			if(countTime < 600)
+			{
+				//撞击次数超过2次
+				if(hitNum >= 2)
+				{
+					//ifEscape2置1，开启2阶段逃逸
+					ifEscape2 = 1;
+					ifEscape = 0;
+				}
+			}
 			else
-				ifEscape = 0;
+			{
+				//各种清零
+				escapeCount = 0;
+				countTime = 0;
+				hitNum = 0;
+			}
 		}
+		
+		//车跑时才判断是否被困
+		if(carRun)
+		{
+			if (stuckCar(200,200))
+			{
+				//记录撞击次数
+				hitNum++;
+				ifEscape = 1;
+			}
+		}
+		USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",(int)ifEscape,(int)ifEscape2,(int)hitNum,(int)escapeCount,(int)countTime);
 //		finishShoot++;
 //		if(finishShoot==100)
 //		{

@@ -48,7 +48,7 @@ float GetPosy(void);
 	
 extern float photoElectricityCount;//光电门数到的球数	
 	
-#define C0
+#define WAN
 #ifdef __cplusplus
 }
 #endif
