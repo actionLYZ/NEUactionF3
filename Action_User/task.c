@@ -220,7 +220,6 @@ void WalkTask(void)
 		}
 		else
  		{
-			carRun = 1;
 //			RunWithCamera1(2);
 			GoGoGo(firstLine);
 //			count++;

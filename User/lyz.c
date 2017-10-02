@@ -29,6 +29,7 @@ extern int32_t     g_leftPulse ;
 extern float       firstLine;
 extern int ballNumber;
 extern int32_t     g_pushPosition;
+extern uint8_t     shootNum;  
 /*================================================函数定义区==============================================*/
 
 
@@ -159,15 +160,16 @@ extern int carRun;
    =======================================================================================*/
 void GoGoGo(float fLine)
 {
-	static int  state = 1, shootTime = 0, count = 0;             //应该执行的状态
+	static int  state = 1, shootTime = 0, count = 0,full=0;             //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
 	static int32_t lastPosition = 0, notMove = 0;
 
-//	if(ballNumber>20)
-//	{
-//		state=4;
-//	  ballNumber=0;	
-//	}
+	if(ballNumber>20&&full==0)
+	{
+		state=4;
+	  full=1;	
+	}
+	
 	switch (state)
 	{
 		//第一圈放球区附近跑场
@@ -245,17 +247,18 @@ void GoGoGo(float fLine)
 			}
 			
 			//6s不动，切换下一状态
-			if(notMove > 600)
+			if (notMove > 600)
 			{
 				state = 6;
 			}
 			
 			if (ShootBallW())
-			{
-				//state = 6;
-
+			{			
 				shootStart = 0;
-				shootTime++;
+				if(full==0)
+				{
+					shootTime++;
+				}				
 				switch (shootTime)
 				{
 					case 2:
@@ -289,10 +292,19 @@ void GoGoGo(float fLine)
 					case 1: 
 						state = 7;
 					break;
-
+					case 0: 
+					{
+						state = 7;
+						shootTime=1;
+					}						
+					break;
 				default: break;
 				}
-	
+	       
+				//球数等于进的减去射出去的
+        ballNumber=ballNumber-shootNum;
+				shootNum=0;
+				full=0;
 			}
 			else
 			{
