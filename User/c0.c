@@ -451,16 +451,51 @@ PolarCoo_t Closer_Point(int8_t a[20], uint8_t b[20], int sum)
                   Y            点的Y坐标
    函数返回值  ：	  含有对应横竖的第几个格子的结构体
    =======================================================================================*/
-Coo_t Zoning(float X, float Y)
+ Coo_t Zoning(float X, float Y)
 {
 	Coo_t wirte;
 	int   m = 0, o = 0;
-
-	while ((X - (m+1) * 480) > -2400)
-		m++;
+  if(fabs(X)<1800)
+	{
+		while ((X - (m+1) * 480) > -2400)
+			m++;
+		
+	}
+  else
+	{
+		if(X>=1800)
+		{
+			m=9;
+		}
+		if(X<=-1800)
+		{
+			m=0;
+		}
+	}
 	wirte.hor = m;
-	while ((Y - (o+1) * 480) > 0)
-		o++;
+	if(Y<600)
+	{
+		o=0;
+	}
+	else if(Y>=600&&Y<1700)
+	{
+		while ((Y - (o+1) * 480) > 160)
+			o++;
+	}
+  else if(Y>=1700&&Y<3240)
+	{
+		while ((Y - (o+1) * 480) > 0)
+			o++;
+	}
+	else if(Y>=3240&&Y<4200)
+	{
+		while ((Y - (o+1) * 480) > -120)
+			o++;
+	}
+	else if(Y>=4200)
+	{
+		o=9;
+	}
 	wirte.ver = o;
 	return wirte;
 }
