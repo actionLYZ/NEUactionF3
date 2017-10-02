@@ -722,7 +722,7 @@ void USART2_IRQHandler(void)
 
 		if (best)
 		{
-			if(camera == 0xDA)
+			if(camera == 0xDA||camera == 0)
 			{
 				arr_number = 0;
 			}

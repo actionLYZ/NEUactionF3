@@ -51,7 +51,7 @@ int32_t     g_collectVel = 0;         //记录收球棍子的速度
 int32_t     g_pushPosition = 0;       //推球装置的位置
 u16         firstLine = 0;            //记录第一圈的目标直线
 uint8_t     circleFlag = 0;           //画圆标志位
-uint8_t     shootNum = 1;             //记录射球的个数
+uint8_t     shootNum = 0;             //记录射球的个数
 extern float             angleError, xError , yError ;
 void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);
@@ -164,7 +164,7 @@ void WalkTask(void)
 	//棍子，发射机构的初始速度
 	CollectBallVelCtr(60);
 	delay_s(3);	
-	ShootCtr(60);
+	ShootCtr(70);
 	
 	//鸣笛
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
@@ -181,13 +181,13 @@ void WalkTask(void)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
 
-//		CountBall();
+		CountBall();
 		//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
 //		ShootBallW();
 //		RunWithCamera1(2);
-		USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y);
+//		USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y);
 		if (ifEscape)
 		{
 			//逃逸完成后，ifEscape清零
@@ -199,13 +199,14 @@ void WalkTask(void)
 		else
  		{
 			GoGoGo(firstLine);
-			// count++;
-			// RunCamera();
-			// if(count>=300)
-			// {
-			// 	carRun=1;
-			// 	count=0;
-			// }
+//			count++;
+//			 RunCamera();
+//			 if(count>=300)
+//			 {
+//			 	carRun=1;
+//			 	count=0;
+//			 }
+
 		}
 		if (stuckCar(100,200))
 		{
