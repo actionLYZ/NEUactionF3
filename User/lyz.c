@@ -252,31 +252,12 @@ void GoGoGo(float fLine)
 			
 			if (ShootBallW())
 			{
-<<<<<<< HEAD
 				//state = 6;
-=======
-//				state = 7;
->>>>>>> 741b51b249730930ad4773fd2246d50f857e8b40
 
 				shootStart = 0;
 				shootTime++;
 				switch (shootTime)
 				{
-<<<<<<< HEAD
-					case 5:
-					{
-						state = 6;
-					}break;
-					case 4:
-					{
-						state = 6;
-					}break;
-					case 3:
-					{
-						state = 6;
-					}break;
-=======
->>>>>>> 741b51b249730930ad4773fd2246d50f857e8b40
 					case 2:
 					{
 						state = 6;
@@ -306,20 +287,12 @@ void GoGoGo(float fLine)
 					break;
 
 					case 1: 
-<<<<<<< HEAD
-						state = 6;
-=======
 						state = 7;
->>>>>>> 741b51b249730930ad4773fd2246d50f857e8b40
 					break;
 
 				default: break;
 				}
-<<<<<<< HEAD
 	
-=======
-
->>>>>>> 741b51b249730930ad4773fd2246d50f857e8b40
 			}
 			else
 			{
@@ -1497,7 +1470,6 @@ int LaserCheck(void)
 				//return 1;
 			}
 
-<<<<<<< HEAD
 			//靠X=g_plan * 2400的墙
 			else if (Position_t.angle < 135 && Position_t.angle > 45)
 			{
@@ -1546,17 +1518,6 @@ int LaserCheck(void)
 				success = 1;
 //				return 1;
 			}
-=======
-		//靠Y=4800的墙
-		else if (Position_t.angle > 135 || Position_t.angle < -135)
-		{
-			angleError  += Position_t.angle - 180;
-			angleError  = AvoidOverAngle(angleError);
-			xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetLeft);
-			yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - 64.65);
-			return 1;
-		}
->>>>>>> 741b51b249730930ad4773fd2246d50f857e8b40
 
 			//靠Y=4800的墙
 			else if (Position_t.angle > 135 || Position_t.angle < -135)

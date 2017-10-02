@@ -1343,11 +1343,7 @@ int ShootBallW(void)
 	}
 //	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
 //	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);
-<<<<<<< HEAD
 	USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
-=======
-//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
->>>>>>> 741b51b249730930ad4773fd2246d50f857e8b40
 //	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
 	return success;
 }
@@ -1756,11 +1752,7 @@ int Escape(u16 back,u16 turn)
 			
 			//后退
 			time++;
-<<<<<<< HEAD
 			if (time < back)
-=======
-			if (time < 100)
->>>>>>> 741b51b249730930ad4773fd2246d50f857e8b40
 			{
 				angClose(-1000,aimAngle,100);
 			}
