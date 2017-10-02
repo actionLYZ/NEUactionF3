@@ -165,7 +165,7 @@ void UART4_Init(uint32_t BaudRate)
 }
 void USART1_Init(uint32_t BaudRate)
 {
-    GPIO_InitTypeDef 	GPIO_InitStructure;
+  GPIO_InitTypeDef 	GPIO_InitStructure;
 	USART_InitTypeDef   USART_InitStructure;
 	NVIC_InitTypeDef 	NVIC_InitStructure;
 	
@@ -191,7 +191,7 @@ void USART1_Init(uint32_t BaudRate)
 	USART_InitStructure.USART_Parity = USART_Parity_No;//无奇偶校验位
 	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;//无硬件数据流控制
 	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;	//收发模式
-    USART_Init(USART1, &USART_InitStructure); //初始化串口1
+  USART_Init(USART1, &USART_InitStructure); //初始化串口1
 	
 	USART_ClearFlag(USART1, USART_FLAG_TC);
 	
@@ -204,12 +204,12 @@ void USART1_Init(uint32_t BaudRate)
 	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器
 
 	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);//开启相关中断
-    USART_Cmd(USART1, ENABLE);  //使能串口1 	
+  USART_Cmd(USART1, ENABLE);  //使能串口1 	
 
 }
 void USART2_Init(uint32_t BaudRate)
 {
-    GPIO_InitTypeDef 	GPIO_InitStructure;
+  GPIO_InitTypeDef 	GPIO_InitStructure;
 	USART_InitTypeDef   USART_InitStructure;
 	NVIC_InitTypeDef 	NVIC_InitStructure;
 	

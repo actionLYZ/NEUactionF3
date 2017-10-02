@@ -87,17 +87,97 @@ void GPIO_Init_Pins(GPIO_TypeDef *GPIOx,
 void KeyInit(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;//普通输入模式
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100M
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;//普通输入模式
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100M
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;//上拉
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
 }
 
 void LEDInit(void)
 {
+
+	
 }
 
 void BeepInit(void)
 {
-}
+	GPIO_InitTypeDef  GPIO_InitStructure;
 
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+  
+ 
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
+  GPIO_Init(GPIOE, &GPIO_InitStructure);
+	
+  GPIO_ResetBits(GPIOE,GPIO_Pin_7);  
+}
+void NumTypeInit(void)
+{
+	GPIO_InitTypeDef  GPIO_InitStructure;
+
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+  
+ 
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4|GPIO_Pin_6;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
+  GPIO_Init(GPIOE, &GPIO_InitStructure);
+	
+  //GPIO_ResetBits(GPIOE,GPIO_Pin_7);
+}
+//行程开关初始化 PA0/PC0
+void LimitSwitch(void)
+{
+	GPIO_InitTypeDef  GPIO_InitStructure;
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+	//C0
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_2;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
+	
+  GPIO_ResetBits(GPIOC,GPIO_Pin_0 | GPIO_Pin_2);
+}
+void CameraInit(void)
+{
+ GPIO_InitTypeDef GPIO_InitStructure;
+ RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE,ENABLE);
+ GPIO_InitStructure.GPIO_Pin=GPIO_Pin_4|GPIO_Pin_6;
+ GPIO_InitStructure.GPIO_Mode=GPIO_Mode_OUT;//普通输出模式
+ GPIO_InitStructure.GPIO_OType=GPIO_OType_PP;//推挽输出
+ GPIO_InitStructure.GPIO_Speed=GPIO_Speed_100MHz;//100MHz
+ GPIO_InitStructure.GPIO_PuPd=GPIO_PuPd_DOWN;//下拉
+ GPIO_Init(GPIOE,&GPIO_InitStructure);//初始化GPIO
+}
 void PhotoelectricityInit(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
+	
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8; 
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP; 
+  GPIO_Init(GPIOE, &GPIO_InitStructure);
 }
+
+

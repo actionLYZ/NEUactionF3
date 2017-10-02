@@ -1,17 +1,17 @@
 /**
-  ******************************************************************************
-  * @file    .h
-  * @author  ACTION_2017
-  * @version V0.0.0._alpha
-  * @date    2017//
-  * @brief   This file contains all the functions prototypes for 
-  *          
-  ******************************************************************************
-  * @attention
-  *
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file    .h
+ * @author  ACTION_2017
+ * @version V0.0.0._alpha
+ * @date    2017//
+ * @brief   This file contains all the functions prototypes for
+ *
+ ******************************************************************************
+ * @attention
+ *
+ *
+ ******************************************************************************
+ */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MOVEBASE_H
@@ -25,39 +25,39 @@
 
 /* Exported types ------------------------------------------------------------*/
 
-/** 
-  * @brief  
-  */
+/**
+ * @brief
+ */
 
 
- 
+
 /* Exported constants --------------------------------------------------------*/
 
 
 
-/** @defgroup 
-  * @{
-  */
+/** @defgroup
+ * @{
+ */
 
-//#define 
+//#define
 
 //电机旋转一周的脉冲数
-#define COUNTS_PER_ROUND (4096)
+#define COUNTS_PER_ROUND    (4096)
 //轮子直径（单位：mm）
-#define WHEEL_DIAMETER (106.8f)
+#define WHEEL_DIAMETER      (120.0f)
 //调试小车车长（单位：mm）
-#define LENGTH (500.0f)
+#define LENGTH              (492.0f)
 //调试小车车宽(单位：mm)
-#define WIDTH (403.0f)
+#define WIDTH               (490.0f)
 //轮子宽度（单位：mm）
-#define WHEEL_WIDTH (46.0f)
+#define WHEEL_WIDTH         (40.0f)
 //两个轮子中心距离（单位：mm）
-#define WHEEL_TREAD (355.4f)
+#define WHEEL_TREAD         (434.0f)
 
 
 /**
-  * @}
-  */
+ * @}
+ */
 
 
 /* Exported macro ------------------------------------------------------------*/
@@ -72,4 +72,3 @@
 
 
 /************************ (C) COPYRIGHT NEU_ACTION_2017 *****END OF FILE****/
-
