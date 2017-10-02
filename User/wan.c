@@ -1168,6 +1168,7 @@ int ShootBallW(void)
 	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
 	static int32_t lastPosition = 0;
 	static int8_t pushSignal = 0, resetSignal = 0, step = 0;
+	
 	//问询航向电机角度、收球电机速度、推球电机的位置
   ReadActualPos(CAN1, GUN_YAW_ID);
 	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
@@ -1178,6 +1179,7 @@ int ShootBallW(void)
 	switch(step)
 	{
 		case 0:
+			
 			//球是白球
 			if (ballColor == WHITE)
 			{
@@ -1213,7 +1215,7 @@ int ShootBallW(void)
 				if(noBall > 150 && noBall < 160)
 				{
 						PushBall();
-				}
+				} 
 				if(noBall > 300 && noBall < 310)
 				{		
 						PushBallReset();	
@@ -1230,8 +1232,8 @@ int ShootBallW(void)
 				{
 					noBall = 0;
 					
-					//射球完成，shootNum清零
-					shootNum = 1;
+					//射球完成，shootNum置1
+					//shootNum = 1;
 					success = 1;
 				}
 			}
@@ -1282,43 +1284,28 @@ int ShootBallW(void)
 				}
 				if(pushSignal && resetSignal)
 				{
-					shootNum++;
+					//shootNum++;
 					pushSignal = 0;
 					resetSignal = 0;
-				}
-				
-				//CCD识别到球，但推球电机位置不变
-				if((g_pushPosition - lastPosition) == 0)
-				{
-					notShoot++;
-					
-					//推球电机2s位置不变
-//					if(notShoot > 200 && notShoot < 210)
-//					{
-//						//给推球电机一个反方向的命令
-//						if(g_pushPosition > 2000)
-//						{
-//							PushBall();
-//						}
-//						else
-//						{
-//							PushBallReset();
-//						}
-//					}
-					
-					//2s依然卡死，切换到step = 1;
-					if(notShoot > 200)
-					{
-						notShoot = 0;
-						step = 1;
-					}
-				}
-				else
+				}	
+			}
+			
+			//判断球是否卡死
+			if(abs(g_pushPosition - lastPosition) < 2)
+			{
+				notShoot++;
+				//0.2s依然卡死，切换到step = 1;
+				if(notShoot > 20)
 				{
 					notShoot = 0;
+					step = 1;
 				}
-				lastPosition = g_pushPosition;
 			}
+			else
+			{
+				notShoot = 0;
+			}
+			lastPosition = g_pushPosition;
 			break;
 			
 		//推球电机卡死，特殊处理的步骤
@@ -1332,7 +1319,7 @@ int ShootBallW(void)
 			{
 				PushBallReset();
 			}
-			if(notShoot > 300 && notShoot < 310)
+			if(notShoot > 300)
 			{
 				PushBall();
 				notShoot = 0;
@@ -1340,10 +1327,19 @@ int ShootBallW(void)
 			}
 			break;
 	}
+	//记录射球的个数
+	if(fabs(rps + g_shootFactV / 4096) > 4)
+	{
+		shootNum++;
+	}
+  USART_OUT(UART5,(u8*)"shootNum %d\t%d\r\n",(int)(rps + g_shootFactV / 4096),shootNum);
 //	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
 //	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)resetError,(int)pushError,(int)notShoot);
+//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",(int)step,(int)notShoot,(int)g_pushPosition,(int)lastPosition,(int)ballColor);
+//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
 	return success;
 }
+
 /*======================================================================================
    函数定义		：			圆形跑场
    函数参数		：		  V                跑场速度
@@ -1744,7 +1740,7 @@ int Escape(void)
 			break;
 		case 1:
 			time++;
-			if (time < 80)
+			if (time < 100)
 			{
 				angClose(-1000,aimAngle,100);
 			}
