@@ -1958,3 +1958,30 @@ int IfTranslate(float distance)
 	lasty = Position_t.Y;
 	return success;
 }
+/*======================================================================================
+   函数定义		：	检测车转弯过程中角度是否变化	  
+   函数参数		：		  
+   
+   函数返回值	：	转弯时被卡返回1    
+ =====================================================================================*/
+int AngleStuck(void)
+{
+	int success = 0;
+	static float lastAngle = 0;
+	static u16 count = 0;
+	if(fabs(Position_t.angle - lastAngle) < 0.1)
+	{
+		count++;
+		if(count > 20)
+		{
+			count = 0;
+			success = 1;
+		}
+	}
+	else
+	{
+		count = 0;
+	}
+	lastAngle = Position_t.angle;
+	return success;
+}

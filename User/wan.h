@@ -220,3 +220,7 @@ u16 LaserTrigger(void);
 //逃逸函数
 int Escape(u16 back,u16 turn);
 
+//检测角度是否被卡
+int AngleStuck(void);
+
+

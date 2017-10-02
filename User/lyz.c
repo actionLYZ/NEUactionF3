@@ -531,8 +531,8 @@ bool  RunRectangle(int length, int wide, float speed)
 
 int CheckPosition(void)
 {
-	static int  state = 1, count = 0, side = 0, checkError = 0;
-	static int  tempx = 0, tempy = 0;
+	static int  state = 1, count = 0, side = 0, checkError = 0, lastState = 0;
+	static int  tempx = 0, tempy = 0, time = 0;
 	int         keepgo = 0;
   static float aimAngle = 0;
 	switch (state)
@@ -564,6 +564,14 @@ int CheckPosition(void)
 		case 2:
 		{
 			TurnAngle(aimAngle, 5000);
+			
+			//角度被卡
+			if(AngleStuck())
+			{
+				aimAngle = Position_t.angle;
+				lastState = 2;
+				state = 14;
+			}
 			if (fabs(Position_t.angle - aimAngle) <= 15)
 			{
 				//记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
@@ -577,14 +585,14 @@ int CheckPosition(void)
 		case 3:
 		{
 			StaightCLose(tempx, tempy, aimAngle, -1000);
-			
+			USART_OUT(UART5,(u8*)"C1%d\tC2%d\t%d\r\n",(int)SWITCHC0,(int)SWITCHC2,(int)count);
 			//后退车被困住（被困的条件比较严苛）
-			if(stuckCar(2,50))
+			if(stuckCar(2,100))
 			{
 				//行程开关没有全部触发
 				if(SWITCHC2 == 0 || SWITCHC0 == 0)
 				{
-					state = 4;
+//					state = 9;
 				}
 			}
 			
@@ -788,6 +796,14 @@ int CheckPosition(void)
 		case 7:
 		{
 			TurnAngle(aimAngle, 5000);
+			
+			//角度被卡
+			if(AngleStuck())
+			{
+				aimAngle = Position_t.angle;
+				lastState = 7;
+				state = 14;
+			}
 			if (fabs(Position_t.angle - aimAngle) <5)
 			{
 				tempx = Position_t.X;       //记录当前坐标用于闭环后退，防止角度被撞歪后开环后退不准
@@ -1017,6 +1033,15 @@ int CheckPosition(void)
 					state = 1;
 				}
 			}
+			break;
+		case 14:
+			time++;
+		  if(time > 100)
+			{
+				time = 0;
+				state = lastState;
+			}
+			angClose(-1000,aimAngle,100);
 			break;
 	}
 	return keepgo;
