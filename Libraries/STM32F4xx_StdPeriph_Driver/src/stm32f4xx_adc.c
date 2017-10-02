@@ -323,7 +323,7 @@ void ADC_StructInit(ADC_InitTypeDef* ADC_InitStruct)
   ADC_InitStruct->ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
 
   /* Initialize the ADC_ExternalTrigConv member */
- // ADC_InitStruct->ADC_ExternalTrigConv = ADC_ExternalTrigConv_T1_CC1;
+  ADC_InitStruct->ADC_ExternalTrigConv = ADC_ExternalTrigConv_T1_CC1;
 
   /* Initialize the ADC_DataAlign member */
   ADC_InitStruct->ADC_DataAlign = ADC_DataAlign_Right;
@@ -1777,9 +1777,9 @@ u16 Get_Adc(u8 ch)
 	 
 	while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC ));//等待转换结束
 	if(ch == 14)//右侧激光
-		dis = ADC_GetConversionValue(ADC1) * 0.9451 + 383.7;
+		dis = ADC_GetConversionValue(ADC1) * 0.9403 + 435.445;
 	else if(ch == 15)
-		dis = ADC_GetConversionValue(ADC1) * 0.9445 + 380.2;
+		dis = ADC_GetConversionValue(ADC1) * 0.9389 + 428.6595;
 	return dis;	//返回最近一次ADC1规则组的转换结果
 }
 
@@ -1794,22 +1794,22 @@ u16 Get_Adc_Average(u8 ch,int times)
 	return temp_val/times;
 } 
 
-void BEEP_Init(void)
-{   
-  GPIO_InitTypeDef  GPIO_InitStructure;
+//void BEEP_Init(void)
+//{   
+//  GPIO_InitTypeDef  GPIO_InitStructure;
 
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);//使能GPIOE时钟
-  
-  //初始化蜂鸣器对应引脚GPIOF8
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//普通输出模式
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
-  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;//下拉
-  GPIO_Init(GPIOE, &GPIO_InitStructure);//初始化GPIO
-	
-  GPIO_ResetBits(GPIOE,GPIO_Pin_7);  //蜂鸣器对应引脚GPIOE7拉低， 
-}
+//  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);//使能GPIOE时钟
+//  
+//  //初始化蜂鸣器对应引脚GPIOF8
+//  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
+//  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//普通输出模式
+//  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
+//  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
+//  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_DOWN;//下拉
+//  GPIO_Init(GPIOE, &GPIO_InitStructure);//初始化GPIO
+//	
+//  GPIO_ResetBits(GPIOE,GPIO_Pin_7);  //蜂鸣器对应引脚GPIOE7拉低， 
+//}
 
 
 

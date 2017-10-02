@@ -57,3 +57,6 @@ MDK-ARM/Obj/
 MDK-ARM/DebugConfig/
 *.uvoptx
 *.TMP
+MDK-ARM/JLinkLog.txt
+
+*.rej
