@@ -191,93 +191,27 @@ void WalkTask(void)
 //		ShootBallW(); 
 //		RunWithCamera1(2);
 //		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
-		
-		//普通避障
-		if(ifEscape)
-		{
-			carRun = 0;
-			
-			//开始逃逸计时
-			escapeCount = 1;
-			
-			//逃逸完成后，ifEscape清零
-			if(Escape(100,120))
+			if (ifEscape)
 			{
-				ifEscape = 0;
-			}
-		}
-		
-		//连续撞击后切换到此模式，大幅度避障
-		else if(ifEscape2)
-		{
-			carRun = 0;
-			
-			//更大幅度的避障
-			if(Escape(120,160))
-			{
-				ifEscape2 = 0;
-			}
-		}
-		else
- 		{
-//			RunWithCamera1(2);
-			GoGoGo(firstLine);
-//			count++;
-//			 RunCamera();
-//			 if(count>=300)
-//			 {
-//			 	carRun=1;
-//			 	count=0;
-//			 }
-
-		}
-		
-		//开始逃逸计时
-		if(escapeCount)
-		{
-			countTime++;
-			
-			//6s之内
-			if(countTime < 600)
-			{
-				//撞击次数超过2次
-				if(hitNum >= 2)
+				//逃逸完成后，ifEscape清零
+				if(Escape())
 				{
-					//ifEscape2置1，开启2阶段逃逸
-					ifEscape2 = 1;
 					ifEscape = 0;
 				}
 			}
 			else
 			{
-				//各种清零
-				escapeCount = 0;
-				countTime = 0;
-				hitNum = 0;
+				GoGoGo(firstLine);
 			}
-		}
-		
-		//车跑时才判断是否被困
-		if(carRun)
-		{
-			if (stuckCar(200,200))
+			if (stuckCar(100,200))
 			{
-				//记录撞击次数
-				hitNum++;
-				ifEscape = 1;
+				if (carRun)
+					ifEscape = 1;
+				else
+					ifEscape = 0;
 			}
-		}
-		USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",(int)ifEscape,(int)ifEscape2,(int)hitNum,(int)escapeCount,(int)countTime);
-//		finishShoot++;
-//		if(finishShoot==100)
-//		{
-//			PushBall();
-//		}
-//		if(finishShoot==200)
-//		{
-//			finishShoot=0;
-//			PushBallReset();
-//		}
+		
+
 	}
 }
 
