@@ -101,7 +101,7 @@ void ConfigTask(void)
 	LimitSwitch();        //行程开关初始化
 	NumTypeInit();        //摄像头高低电平拉数据PE4 PE6初始化
 	BufferZizeInit(400);  //控制卡初始化
-
+  CameraInit();
 	//CAN初始化
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
 	CAN_Config(CAN2, 500, GPIOB, GPIO_Pin_5, GPIO_Pin_6);
@@ -137,7 +137,7 @@ void ConfigTask(void)
 }
 
 //看车是在跑，还是在矫正、射球
-int carRun = 0, ifEscape = 0, countTime = 0, ifEscape2 = 0;
+int carRun = 0, ifEscape = 0, countTime = 0, ifEscape2 = 0,leftlaser=2400,rightlaser=2400,triggertime=0,fighting=0;
 
 /********************************测试********************/
 extern float blindTime;
@@ -155,10 +155,10 @@ void WalkTask(void)
 	os_err = os_err;
 	
 //	//拉低PE6，拉高PE4的电平，接收球最多区域的角度
-		GPIO_SetBits(GPIOE, GPIO_Pin_4);
-		GPIO_ResetBits(GPIOE, GPIO_Pin_6);
+		GPIO_SetBits(GPIOE, GPIO_Pin_1);
+		GPIO_ResetBits(GPIOE, GPIO_Pin_0);
 		g_cameraPlan = 2;
-	
+
 	//延时，稳定定位系统
 	delay_s(12);
 	
@@ -166,7 +166,7 @@ void WalkTask(void)
 	CollectBallVelCtr(60);
 	delay_s(3);	
 	ShootCtr(70);
-	
+
 //	//鸣笛
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
 	
@@ -182,10 +182,18 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-//		right = Get_Adc_Average(RIGHT_LASER, 20);
-//		left  = Get_Adc_Average(LEFT_LASER, 20);
+		rightlaser = Get_Adc_Average(RIGHT_LASER, 20);
+		leftlaser  = Get_Adc_Average(LEFT_LASER, 20);
+		if(leftlaser<1000||rightlaser<1000)
+		{
+			triggertime++;
+		}
+		if(triggertime>=200)
+		{
+			fighting=1;
+		}
 //    USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
-//		CountBall();
+		CountBall();
 		//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
@@ -196,6 +204,8 @@ void WalkTask(void)
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
 		
 		//普通避障
+		USART_OUT(UART5,(u8*)"TLY       %d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+//普通避障
 		if(ifEscape)
 		{
 			carRun = 0;
@@ -262,17 +272,9 @@ void WalkTask(void)
 				ifEscape = 1;
 			}
 		}
-		USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",(int)ifEscape,(int)ifEscape2,(int)hitNum,(int)escapeCount,(int)countTime);
-//		finishShoot++;
-//		if(finishShoot==100)
-//		{
-//			PushBall();
-//		}
-//		if(finishShoot==200)
-//		{
-//			finishShoot=0;
-//			PushBallReset();
-//		}
+
+	
+
 	}
 }
 

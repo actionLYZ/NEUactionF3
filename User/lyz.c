@@ -29,6 +29,7 @@ extern int32_t     g_leftPulse ;
 extern float       firstLine;
 extern int ballNumber;
 extern int32_t     g_pushPosition;
+extern uint8_t     shootNum;  
 /*================================================函数定义区==============================================*/
 
 
@@ -151,7 +152,7 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 		VelCrl(CAN2, 2, -(int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
 	}
 }
-extern int carRun;
+extern int carRun,fighting;
 /*======================================================================================
    函数定义	：		开始跑场
    函数参数	：		方案：暂定1为逆时针(右侧激光触发)，-1为顺时针(左侧激光触发)
@@ -159,15 +160,16 @@ extern int carRun;
    =======================================================================================*/
 void GoGoGo(float fLine)
 {
-	static int  state = 1, shootTime = 0, count = 0;             //应该执行的状态
+	static int  state = 1, shootTime = 0, count = 0,full=0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
 	static int32_t lastPosition = 0, notMove = 0;
 
-//	if(ballNumber>20)
+//	if(ballNumber>25&&full==0)
 //	{
 //		state=4;
-//	  ballNumber=0;	
+//	  full=1;
 //	}
+	
 	switch (state)
 	{
 		//第一圈放球区附近跑场
@@ -247,19 +249,28 @@ void GoGoGo(float fLine)
 			}
 			
 			//6s不动，切换下一状态
-			if(notMove > 600)
+			if (notMove > 600)
 			{
-				state = 6;
+				state = 7;
 			}
-			
-			if (ShootBallW())
-			{
-				//state = 6;
 
+			if (ShootBallW())
+			{			
 				shootStart = 0;
-				shootTime++;
+				if(full==0)
+				{
+					shootTime++;
+				}
 				switch (shootTime)
 				{
+					case 4:
+					{
+						state = 6;
+					}
+					case 3:
+					{
+						state = 6;
+					}
 					case 2:
 					{
 						state = 6;
@@ -291,10 +302,19 @@ void GoGoGo(float fLine)
 					case 1: 
 						state = 7;
 					break;
-
+					case 0: 
+					{
+						state = 7;
+						shootTime=1;
+					}break;						
+					
 				default: break;
 				}
-	
+	       
+				//球数等于进的减去射出去的
+        ballNumber=ballNumber-shootNum;
+				shootNum=0;
+				full=0;
 			}
 			else
 			{
@@ -348,6 +368,7 @@ void GoGoGo(float fLine)
 		default:
 			break;
 	}
+	USART_OUT(UART5,(u8*)"gogogostate %d\r\n",state);
 }
 
 /*======================================================================================
@@ -374,7 +395,7 @@ bool FirstRound(float firstLine)
 	//第一圈贴框走成功极限条件
 	if(firstLine < 650)
 	{
-		firstLine = 550;
+		firstLine = 570;
 	}
 	switch (state)
 	{
@@ -397,7 +418,14 @@ bool FirstRound(float firstLine)
 	//	//左边，目标角度180度
 		case 3:
 		{
-			StaightCLose(-700, 0, 180, speed);
+			if(fighting==0)
+			{
+        StaightCLose(-700, 0, 180, speed);
+			}
+			else if(fighting==1)
+			{
+				StaightCLose(-650, 0, 180, speed);
+			}
 			if (Position_t.Y <= 1200 + FIR_ADV)
 				state = 4;
 		} break;
@@ -1120,12 +1148,16 @@ Pose_t bestTra[20] = {0};
 
 int RunCamera(void)
 {
-	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1,border=0,porm=0,chuqu=0,edge[4]={0};
+	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1,border=0,porm=0,chuqu=0,edge[4]={0},cameratime=0;
 	static float  cameraX, cameraY;
 	int           finish = 0, circulate;
 	POSITION_T    basePoint;
   cameraScheme = 1;
-	
+	cameratime++;
+	if(cameratime>=6000)
+	{
+		finish = 1;
+	}
   g_plan=1;
 	
 	//一环连一环 上部分是偶数则加一 下部分是奇数则加一 让stagger(错开)等于一

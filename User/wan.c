@@ -1238,23 +1238,24 @@ int ShootBallW(void)
 				{	
 						PushBall();	
 				}
-				if(noBall > 500)
+				if(noBall > 300)
 				{
 					noBall = 0;
 					
 					//射球完成，shootNum置0
 					notMove = 0;
 					step = 0;
-					shootNum = 0;
+//					shootNum = 0;
 					success = 1;
 				}
 			}
-			
+		
 			//球出射速度(mm/s)与投球点距离篮筐的距离的关系
 			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 			
 			//自己测的关系
 			rps = 0.01402f * V - 5.457f + 2.8;
+		
 			
 			// 表明射球蓝牙没有收到主控发送的数据
 			if (fabs(rps + g_shootV / 4096) > 0.1)
@@ -1299,7 +1300,7 @@ int ShootBallW(void)
 					PushBall();
 				}
 			}
-			
+		
 			//判断球是否卡死
 			if(abs(g_pushPosition - lastPosition) < 5 )
 			{
@@ -1340,10 +1341,11 @@ int ShootBallW(void)
 				step = 0;
 			}
 			break;
+		
 	}
 //	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
 //	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);
-	USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
+//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
 //	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
 	return success;
 }
@@ -1687,7 +1689,7 @@ u16 LaserTrigger(void)
 	{
 		g_plan = IfStart();
 	}while(g_plan == 0);
-GPIO_ResetBits(GPIOE,GPIO_Pin_7);
+  GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	//等待激光值稳定
 	if(g_plan == 1)
 	{
@@ -1878,6 +1880,8 @@ int Escape(u16 back,u16 turn)
 	}
 	return success;
 }
+
+
 /*======================================================================================
    函数定义		：	检测车是否被平移	  
    函数参数		：		  
