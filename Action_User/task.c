@@ -198,7 +198,7 @@ void WalkTask(void)
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
 //		ShootBallW(); 
 //		RunWithCamera1(2);
-//		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+		USART_OUT(UART5,(u8*)"TLY       %d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 //普通避障
 		if(ifEscape)
 		{

@@ -190,12 +190,13 @@ void ClLine(float aimX, float aimY, float lineAngle, int speed)
 		angleD    = 30;
 		distantP  = 15;
 	}
-	else
+	else if(speed >=2000)
 	{
-		angleP    = 280;
-		angleD    = 50;
-		distantP  = 20;
+		angleP    = 400;
+		angleD    = 0;
+		distantP  = 15;		
 	}
+
 	if (fabs(lineAngle) <= 0.0001)
 	{
 		distant = aimX - Position_t.X;
@@ -890,19 +891,19 @@ int RunEdge(void)
 	
   if(!ifEscape)
 	{
-		if (Position_t.X >= 1450&&Position_t.Y<3800&&side!=2)
+		if (Position_t.X >= 600&&Position_t.Y<3000&&side!=2)
 		{
 			side = 2;sideTimes++;
 		}
-		if (Position_t.Y >= 3800&&Position_t.X>1450&&side!=3)
+		if (Position_t.Y >= 3000&&Position_t.X>-600&&side!=3)
 		{
 			side = 3;sideTimes++;
 		}
-		if (Position_t.X <= -1450&&Position_t.Y>950&&side!=4)
+		if (Position_t.X <= -600&&Position_t.Y>1800&&side!=4)
 		{
 			side = 4;sideTimes++;
 		}
-		if (Position_t.Y <= 950&&Position_t.X<1450&&side!=1)
+		if (Position_t.Y <= 1800&&Position_t.X<600&&side!=1)
 		{
 			side = 1;sideTimes++;
 		}
@@ -1006,22 +1007,22 @@ int RunEdge(void)
 			{
 				case 1:
 				{
-					ClLine(0, 245-POSYSTEM_TO_BACK, -90, 1000);
+					ClLine(0, 245-POSYSTEM_TO_BACK, -90, 2000);
 				} break;
 
 				case 2:
 				{
-					ClLine(2155, 0, 0, 1000);
+					ClLine(2155, 0, 0, 2000);
 				} break;
 
 				case 3:
 				{
-					ClLine(0, 4555-POSYSTEM_TO_BACK, 90, 1000);
+					ClLine(0, 4555-POSYSTEM_TO_BACK, 90, 2000);
 				} break;
 
 				case 4:
 				{
-					ClLine(-2250, 0, 180, 1000);
+					ClLine(-2250, 0, 180, 2000);
 				} break;
 
 				default:

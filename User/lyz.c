@@ -261,6 +261,14 @@ void GoGoGo(float fLine)
 				}
 				switch (shootTime)
 				{
+					case 4:
+					{
+						state = 6;
+					}
+					case 3:
+					{
+						state = 6;
+					}
 					case 2:
 					{
 						state = 6;
@@ -385,7 +393,7 @@ bool FirstRound(float firstLine)
 	//第一圈贴框走成功极限条件
 	if(firstLine < 650)
 	{
-		firstLine = 550;
+		firstLine = 570;
 	}
 	switch (state)
 	{
@@ -414,7 +422,7 @@ bool FirstRound(float firstLine)
 			}
 			else if(fighting==1)
 			{
-				StaightCLose(-580, 0, 180, speed);
+				StaightCLose(-650, 0, 180, speed);
 			}
 			if (Position_t.Y <= 1200 + FIR_ADV)
 				state = 4;
@@ -1138,12 +1146,16 @@ Pose_t bestTra[20] = {0};
 
 int RunCamera(void)
 {
-	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1,border=0,porm=0,chuqu=0,edge[4]={0};
+	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1,border=0,porm=0,chuqu=0,edge[4]={0},cameratime=0;
 	static float  cameraX, cameraY;
 	int           finish = 0, circulate;
 	POSITION_T    basePoint;
   cameraScheme = 1;
-	
+	cameratime++;
+	if(cameratime>=6000)
+	{
+		finish = 1;
+	}
   g_plan=1;
 	
 	//一环连一环 上部分是偶数则加一 下部分是奇数则加一 让stagger(错开)等于一
