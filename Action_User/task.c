@@ -107,7 +107,7 @@ void ConfigTask(void)
 	NumTypeInit();        //摄像头高低电平拉数据PE4 PE6初始化
 	NOTE JudgeState("控制卡初始化");
 	BufferZizeInit(400);  //控制卡初始化
-	NOTE JudgeState("CAN初始化");
+	NOTE JudgeState("控制卡初始化");
 	//CAN初始化
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
 	CAN_Config(CAN2, 500, GPIOB, GPIO_Pin_5, GPIO_Pin_6);
@@ -129,7 +129,7 @@ void ConfigTask(void)
 	elmo_Enable(CAN2, 1);
 	elmo_Enable(CAN2, 2);
 
-	NOTE JudgeState("收球电机初始化");
+	JudgeState("控制卡初始化");
 	//收球电机初始化
 	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000, 50000);
 
@@ -162,7 +162,7 @@ void WalkTask(void)
 
 	os_err = os_err;
 	
-//	//拉低PE6，拉高PE4的电平，接收球最多区域的角度
+	//拉低PE6，拉高PE4的电平，接收球最多区域的角度
 		GPIO_SetBits(GPIOE, GPIO_Pin_4);
 		GPIO_ResetBits(GPIOE, GPIO_Pin_6);
 		g_cameraPlan = 2;
@@ -178,7 +178,7 @@ void WalkTask(void)
 	
 //	//鸣笛
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
-	NOTE JudgeState("等待激光触发....");
+	JudgeState("等待激光触发");
 	//激光触发
   firstLine = LaserTrigger();
 	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)g_plan,(int)firstLine);

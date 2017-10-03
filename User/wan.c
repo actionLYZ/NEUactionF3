@@ -1630,6 +1630,7 @@ int JudgeSide(void)
  =====================================================================================*/
 int AfterCircle(uint16_t speed)
 {
+	
 	static uint8_t step = 5;
 	uint8_t success = 0;
 	static float tempx = 0;
