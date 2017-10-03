@@ -155,10 +155,10 @@ void WalkTask(void)
 	os_err = os_err;
 	
 //	//拉低PE6，拉高PE4的电平，接收球最多区域的角度
-		GPIO_SetBits(GPIOE, GPIO_Pin_0);
 		GPIO_SetBits(GPIOE, GPIO_Pin_1);
+		GPIO_ResetBits(GPIOE, GPIO_Pin_0);
 		g_cameraPlan = 2;
-	
+/*	
 	//延时，稳定定位系统
 	delay_s(12);
 	
@@ -166,7 +166,7 @@ void WalkTask(void)
 	CollectBallVelCtr(60);
 	delay_s(3);	
 	ShootCtr(70);
-	
+*/	
 //	//鸣笛
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
 	
