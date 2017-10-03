@@ -1254,7 +1254,7 @@ int ShootBallW(void)
 			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 			
 			//自己测的关系
-			rps = 0.01402f * V - 5.457f + 2.8;
+			rps = 0.01402f * V - 5.457f + 3.2;
 			
 			// 表明射球蓝牙没有收到主控发送的数据
 			if (fabs(rps + g_shootV / 4096) > 0.1)

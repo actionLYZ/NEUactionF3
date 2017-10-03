@@ -16,6 +16,7 @@
 #include "stm32f4xx_gpio.h"
 #include "MotionCard.h"
 #include "stdlib.h"
+#include "string.h"
 
 /*==============================================全局变量声明区============================================*/
 extern POSITION_T Position_t;     //校正后定位
@@ -29,8 +30,23 @@ extern int32_t     g_leftPulse ;
 extern float       firstLine;
 extern int ballNumber;
 extern int32_t     g_pushPosition;
+extern char				g_carState[50];						//存储小车状态
 /*================================================函数定义区==============================================*/
 
+/*======================================================================================
+   函数定义	：		判断小车状态并输出日志
+   函数参数	：		即将进入的状态
+	 其他：当小车已经处于此状态时，不输出当前状态
+   =======================================================================================*/
+void JudgeState(char state[])
+{
+	//如果当前状态不为state
+	if(strcmp(g_carState,state))
+	{
+		NOTE USART_OUT(UART5,(u8*)"%s:\t%s\r\n",__TIME__,state);
+	}
+	strcpy(g_carState,state);
+}
 
 /*======================================================================================
    函数定义	：		通过激光判断是否开始
@@ -1692,3 +1708,5 @@ float Angel2PI(float angel)
 	res = PI * (angel) / 180;
 	return res;
 }
+
+

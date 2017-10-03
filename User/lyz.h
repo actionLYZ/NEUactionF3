@@ -19,7 +19,7 @@ int RunCamera(void);                                                  //利用�
 int LaserCheck(void);                                                 //激光矫正,矫正成功返回true,不成功返回false
 float Angel2PI(float angel);                                          //将角度转换为PI
 void InputArr(char[], unsigned char[], int);                          //输出两个数组
-
+void JudgeState(char[]);																							//判断当前小车状态
 /*=====================================================宏定义区域===================================================*/
 #define STUCK_TIME      0.8                                         //判断卡住时长(s)
 #define FIRST_SPEED     1000                                        //第一圈速度
@@ -36,4 +36,6 @@ void InputArr(char[], unsigned char[], int);                          //输出�
 #define SWITCHE2        (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_2))  //PE2 行程开关
 #define SWITCHC0        (GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_0))  //PC0 行程开关
 #define SWITCHC2        (GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_2))  //PC2 行程开关
+#define NOTE																										//日志注释
+#define POS_NOTE				/##/																				//坐标注释
 /*=====================================================结构体定义===================================================*/

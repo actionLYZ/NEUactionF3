@@ -18,7 +18,8 @@
 #include "moveBase.h"
 #include "c0.h"
 #include "MotionCard.h"
-
+#include "time.h"
+#include "string.h"
 /*=====================================================信号量定义===================================================*/
 
 OS_EXT INT8U  OSCPUUsage;
@@ -29,6 +30,7 @@ static OS_STK WalkTaskStk[Walk_TASK_STK_SIZE];
 /*=====================================================全局变量声明===================================================*/
 
 //uint8_t g_camera = 0;					     //摄像头收到的数
+char				g_carState[50] = "";			//存储小车状态
 int8_t      g_cameraAng[50] = { 0 };  //存储摄像头接受到的角度
 uint8_t     g_cameraDis[50] = { 0 };  //存储摄像头接受到的距离
 int8_t      g_cameraFin     = 0;      //摄像头接收到0xc9置1
@@ -95,13 +97,17 @@ void ConfigTask(void)
 
 	//1ms定时器用于控制WalkTask周期
 	TIM_Init(TIM2, 99, 839, 0, 0);
+	NOTE JudgeState("初始化adc端口");
 	AdcInit();            //初始化adc端口
+	NOTE JudgeState("初始化蜂鸣器端口");
 	BeepInit();           //初始化蜂鸣器端口
-//	BEEP_Init();
+	NOTE JudgeState("行程开关初始化");
 	LimitSwitch();        //行程开关初始化
+	NOTE JudgeState("摄像头初始化");
 	NumTypeInit();        //摄像头高低电平拉数据PE4 PE6初始化
+	NOTE JudgeState("控制卡初始化");
 	BufferZizeInit(400);  //控制卡初始化
-
+	NOTE JudgeState("CAN初始化");
 	//CAN初始化
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
 	CAN_Config(CAN2, 500, GPIOB, GPIO_Pin_5, GPIO_Pin_6);
@@ -123,12 +129,14 @@ void ConfigTask(void)
 	elmo_Enable(CAN2, 1);
 	elmo_Enable(CAN2, 2);
 
-
+	NOTE JudgeState("收球电机初始化");
 	//收球电机初始化
 	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000, 50000);
 
 	VelCrl(CAN2, 1, 0);
 	VelCrl(CAN2, 2, 0);
+	
+	NOTE JudgeState("光电门初始化");
 	
 	//光电门初始化
 	PhotoelectricityInit();
@@ -159,9 +167,10 @@ void WalkTask(void)
 		GPIO_ResetBits(GPIOE, GPIO_Pin_6);
 		g_cameraPlan = 2;
 	
+	NOTE JudgeState("正在等待定位系统稳定....");
 	//延时，稳定定位系统
 	delay_s(12);
-	
+	NOTE JudgeState("初始化棍子，发射结构....");
 	//棍子，发射机构的初始速度
 	CollectBallVelCtr(60);
 	delay_s(3);	
@@ -169,11 +178,11 @@ void WalkTask(void)
 	
 //	//鸣笛
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
-	
+	NOTE JudgeState("等待激光触发....");
 	//激光触发
   firstLine = LaserTrigger();
-	USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)g_plan,(int)firstLine);
-	
+	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)g_plan,(int)firstLine);
+	NOTE JudgeState("激光触发");
 	//关蜂鸣器
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	finishShoot=1;
@@ -195,6 +204,7 @@ void WalkTask(void)
 		//普通避障
 		if(ifEscape)
 		{
+			NOTE JudgeState("开始逃逸");
 			carRun = 0;
 			
 			//开始逃逸计时
@@ -203,6 +213,7 @@ void WalkTask(void)
 			//逃逸完成后，ifEscape清零
 			if(Escape(100,120))
 			{
+				NOTE JudgeState("逃逸成功！");
 				ifEscape = 0;
 			}
 		}
@@ -212,6 +223,7 @@ void WalkTask(void)
 		{
 			carRun = 0;
 			
+			NOTE JudgeState("进行更大幅度逃逸！");
 			//更大幅度的避障
 			if(Escape(120,160))
 			{
@@ -220,7 +232,6 @@ void WalkTask(void)
 		}
 		else
  		{
-			carRun = 1;
 //			RunWithCamera1(2);
 			GoGoGo(firstLine);
 //			count++;
@@ -268,7 +279,7 @@ void WalkTask(void)
 				ifEscape = 1;
 			}
 		}
-		USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",(int)ifEscape,(int)ifEscape2,(int)hitNum,(int)escapeCount,(int)countTime);
+		POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\r\n",(int)ifEscape,(int)ifEscape2,(int)hitNum,(int)escapeCount,(int)countTime);
 //		finishShoot++;
 //		if(finishShoot==100)
 //		{
