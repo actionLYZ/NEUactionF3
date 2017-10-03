@@ -176,8 +176,7 @@ void CameraInit(void)
  GPIO_InitStructure.GPIO_Speed=GPIO_Speed_100MHz;//100MHz
  GPIO_InitStructure.GPIO_PuPd=GPIO_PuPd_DOWN;//下拉
  GPIO_Init(GPIOE,&GPIO_InitStructure);//初始化GPIO
-		GPIO_SetBits(GPIOE, GPIO_Pin_1);
-		GPIO_ResetBits(GPIOE, GPIO_Pin_0);
+
 }
 void PhotoelectricityInit(void)
 {
