@@ -565,12 +565,14 @@ int CheckPosition(void)
 	static int  tempx = 0, tempy = 0;
 	int         keepgo = 0;
   static float aimAngle = 0;
+	
 	switch (state)
 	{
-		carRun = 0;
+		
 		//判断距离哪面墙最近
 		case 1:
 		{
+			carRun = 0;
 			side = JudgeSide();
 			if(side == 1)
 			{

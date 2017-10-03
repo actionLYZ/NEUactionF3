@@ -177,7 +177,6 @@ void WalkTask(void)
 	//关蜂鸣器
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	finishShoot=1;
-	int V = 0;
 	OSSemSet(PeriodSem, 0, &os_err);
 	while (1)
 	{
