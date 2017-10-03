@@ -1238,7 +1238,7 @@ int ShootBallW(void)
 				{	
 						PushBall();	
 				}
-				if(noBall > 1000)
+				if(noBall > 500)
 				{
 					noBall = 0;
 					

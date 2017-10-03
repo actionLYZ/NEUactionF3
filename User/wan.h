@@ -223,4 +223,4 @@ int Escape(u16 back,u16 turn);
 //检测角度是否被卡
 int AngleStuck(void);
 
-
+int Escape1(void);
