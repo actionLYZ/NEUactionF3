@@ -1212,7 +1212,7 @@ int ShootBallW(void)
 				aimAngle  = AvoidOverAngle(aimAngle);
 				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2;
 			}
-/*		
+		
 			// 没球,来回拨动几次
 			else if (ballColor == NO)
 			{
@@ -1249,16 +1249,13 @@ int ShootBallW(void)
 					success = 1;
 				}
 			}
-*/			
+		
 			//球出射速度(mm/s)与投球点距离篮筐的距离的关系
 			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 			
 			//自己测的关系
 			rps = 0.01402f * V - 5.457f + 2.8;
 		
-			//ceshi
-			rps=btV;
-			shootAngle=0;
 			
 			// 表明射球蓝牙没有收到主控发送的数据
 			if (fabs(rps + g_shootV / 4096) > 0.1)
@@ -1303,7 +1300,7 @@ int ShootBallW(void)
 					PushBall();
 				}
 			}
-	/*		
+		
 			//判断球是否卡死
 			if(abs(g_pushPosition - lastPosition) < 5 )
 			{
@@ -1344,7 +1341,7 @@ int ShootBallW(void)
 				step = 0;
 			}
 			break;
-			*/
+		
 	}
 //	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
 //	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);

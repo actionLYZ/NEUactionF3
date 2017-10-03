@@ -158,7 +158,7 @@ void WalkTask(void)
 		GPIO_SetBits(GPIOE, GPIO_Pin_1);
 		GPIO_ResetBits(GPIOE, GPIO_Pin_0);
 		g_cameraPlan = 2;
-/*	
+
 	//延时，稳定定位系统
 	delay_s(12);
 	
@@ -166,7 +166,7 @@ void WalkTask(void)
 	CollectBallVelCtr(60);
 	delay_s(3);	
 	ShootCtr(70);
-*/	
+
 //	//鸣笛
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
 	
@@ -192,15 +192,15 @@ void WalkTask(void)
 			fighting=1;
 		}
 //    USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
-//		CountBall();
+		CountBall();
 		//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
-		ShootBallW(); 
+//		ShootBallW(); 
 //		RunWithCamera1(2);
 //		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 //普通避障
-/*		if(ifEscape)
+		if(ifEscape)
 		{
 			carRun = 0;
 			
@@ -267,7 +267,7 @@ void WalkTask(void)
 			}
 		}
 
-	*/	
+	
 
 	}
 }
