@@ -1238,7 +1238,7 @@ int ShootBallW(void)
 				{	
 						PushBall();	
 				}
-				if(noBall > 1000)
+				if(noBall > 500)
 				{
 					noBall = 0;
 					
@@ -1687,7 +1687,7 @@ u16 LaserTrigger(void)
 	{
 		g_plan = IfStart();
 	}while(g_plan == 0);
-GPIO_ResetBits(GPIOE,GPIO_Pin_7);
+  GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	//等待激光值稳定
 	if(g_plan == 1)
 	{
@@ -1724,7 +1724,7 @@ GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 											turn	转弯时间
    函数返回值	：	    
  =====================================================================================*/
-int Escape(void)
+int Escape(u16 back,u16 turn)
 {
 	static u16 time = 0, step = 0;
 	static int status = 0;
@@ -1735,6 +1735,7 @@ int Escape(void)
 		case 0:
 			status = In_Or_Out();
 		  aimAngle = Position_t.angle;
+		
 			//车子不在四个死角
 			if(status == 0 || status == -1)
 			{
@@ -1748,8 +1749,10 @@ int Escape(void)
 			}
 			break;
 		case 1:
+			
+			//后退
 			time++;
-			if (time < 80)
+			if (time < back)
 			{
 				angClose(-1000,aimAngle,100);
 			}
@@ -1762,18 +1765,18 @@ int Escape(void)
 		case 2:
 			time++;
 		
-			//内圈
+			//内圈转弯
 			if(status == 0)
 			{
 				angClose(1000,(aimAngle - 70),100);
 			}
 			
-			//外圈
+			//外圈转弯
 			else
 			{
 				angClose(1000,(aimAngle + 70),100);
 			}
-			if(time > 120)
+			if(time > turn)
 			{
 				time = 0;
 				step = 0;
@@ -1822,7 +1825,7 @@ int Escape(void)
 			}
 			else
 			{
-				if(Position_t.angle < 135)
+				if(Position_t.angle < 135 && Position_t.angle > 45)
 				{
 					aimAngle = 180;
 					step = 4;
@@ -1836,7 +1839,7 @@ int Escape(void)
 		case 4:
 			time++;
 			angClose(-1200,aimAngle,100);
-		  if(time > 120)
+		  if(time > turn)
 			{
 				time = 0;
 				
@@ -1864,8 +1867,8 @@ int Escape(void)
 			time++;
 			angClose(1200,aimAngle,120);
 		
-			//转弯1s
-			if(time > 100)
+			//转弯
+			if(time > turn)
 			{
 				time = 0;
 				step = 0;
@@ -1875,6 +1878,7 @@ int Escape(void)
 	}
 	return success;
 }
+
 
 /*======================================================================================
    函数定义		：	检测车是否被平移	  

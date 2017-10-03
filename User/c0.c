@@ -2240,6 +2240,14 @@ void CountBall(void)
 		ballN=0;
 		sum=0;
 	}
+	
+	//检测辊子是否被卡住了
+	if(g_gather<=4)
+	{
+		
+	}
+	
+	
 	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
 
 }
