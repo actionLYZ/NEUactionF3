@@ -16,7 +16,6 @@
 #include "stm32f4xx_gpio.h"
 #include "MotionCard.h"
 #include "stdlib.h"
-#include "string.h"
 
 /*==============================================全局变量声明区============================================*/
 extern POSITION_T Position_t;     //校正后定位
@@ -30,23 +29,9 @@ extern int32_t     g_leftPulse ;
 extern float       firstLine;
 extern int ballNumber;
 extern int32_t     g_pushPosition;
-extern char				g_carState[50];						//存储小车状态
+extern uint8_t     shootNum;  
 /*================================================函数定义区==============================================*/
 
-/*======================================================================================
-   函数定义	：		判断小车状态并输出日志
-   函数参数	：		即将进入的状态
-	 其他：当小车已经处于此状态时，不输出当前状态
-   =======================================================================================*/
-void JudgeState(char state[])
-{
-	//如果当前状态不为state
-	if(strcmp(g_carState,state))
-	{
-		USART_OUT(UART5,(u8*)"%s:\t%s\r\n",__TIME__,state);
-	}
-	strcpy(g_carState,state);
-}
 
 /*======================================================================================
    函数定义	：		通过激光判断是否开始
@@ -167,7 +152,7 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 		VelCrl(CAN2, 2, -(int)(speed * SP2PULSE) + g_plan * (Ainput - Dinput));
 	}
 }
-extern int carRun;
+extern int carRun,fighting;
 /*======================================================================================
    函数定义	：		开始跑场
    函数参数	：		方案：暂定1为逆时针(右侧激光触发)，-1为顺时针(左侧激光触发)
@@ -175,21 +160,21 @@ extern int carRun;
    =======================================================================================*/
 void GoGoGo(float fLine)
 {
-	static int  state = 1, shootTime = 0, count = 0;             //应该执行的状态
+	static int  state = 1, shootTime = 0, count = 0,full=0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
 	static int32_t lastPosition = 0, notMove = 0;
 
-//	if(ballNumber>20)
+//	if(ballNumber>25&&full==0)
 //	{
 //		state=4;
-//	  ballNumber=0;	
+//	  full=1;
 //	}
+	
 	switch (state)
 	{
 		//第一圈放球区附近跑场
 		case 1:
 		{
-			NOTE JudgeState("firstRound running....");
 			//先启动3s
 			count++;
 			if(count >= 300)
@@ -212,7 +197,7 @@ void GoGoGo(float fLine)
 		//向外扩散扫场
 		case 2:
 		{
-			NOTE JudgeState("Circle running....");
+			carRun = 1;
 	//		if (RunRectangle(length, wide, RUN_SPEED))
 	//		{
 	//			//逐渐增加长方形跑场参数
@@ -231,14 +216,13 @@ void GoGoGo(float fLine)
 		
 		//紧随画圆后矩形扫场
 		case 3:
-			NOTE JudgeState("Rectangle Sticke running");//贴边矩形扫场
+			carRun = 1;
 			if(AfterCircle(2200))
 				state = 4;
 			break;
 		//进行坐标校正
 		case 4:
 		{
-			NOTE JudgeState("Start CheckPosition....");
 			carRun = 0;
 			count=0;
 			if (CheckPosition())
@@ -265,19 +249,28 @@ void GoGoGo(float fLine)
 			}
 			
 			//6s不动，切换下一状态
-			if(notMove > 600)
+			if (notMove > 600)
 			{
-				state = 6;
+				state = 7;
 			}
-			
-			if (ShootBallW())
-			{
-				//state = 6;
 
+			if (ShootBallW())
+			{			
 				shootStart = 0;
-				shootTime++;
+				if(full==0)
+				{
+					shootTime++;
+				}
 				switch (shootTime)
 				{
+					case 4:
+					{
+						state = 6;
+					}
+					case 3:
+					{
+						state = 6;
+					}
 					case 2:
 					{
 						state = 6;
@@ -309,10 +302,19 @@ void GoGoGo(float fLine)
 					case 1: 
 						state = 7;
 					break;
-
+					case 0: 
+					{
+						state = 7;
+						shootTime=1;
+					}break;						
+					
 				default: break;
 				}
-	
+	       
+				//球数等于进的减去射出去的
+        ballNumber=ballNumber-shootNum;
+				shootNum=0;
+				full=0;
 			}
 			else
 			{
@@ -366,6 +368,7 @@ void GoGoGo(float fLine)
 		default:
 			break;
 	}
+	USART_OUT(UART5,(u8*)"gogogostate %d\r\n",state);
 }
 
 /*======================================================================================
@@ -392,7 +395,7 @@ bool FirstRound(float firstLine)
 	//第一圈贴框走成功极限条件
 	if(firstLine < 650)
 	{
-		firstLine = 550;
+		firstLine = 570;
 	}
 	switch (state)
 	{
@@ -415,7 +418,14 @@ bool FirstRound(float firstLine)
 	//	//左边，目标角度180度
 		case 3:
 		{
-			StaightCLose(-700, 0, 180, speed);
+			if(fighting==0)
+			{
+        StaightCLose(-700, 0, 180, speed);
+			}
+			else if(fighting==1)
+			{
+				StaightCLose(-650, 0, 180, speed);
+			}
 			if (Position_t.Y <= 1200 + FIR_ADV)
 				state = 4;
 		} break;
@@ -551,16 +561,18 @@ bool  RunRectangle(int length, int wide, float speed)
 
 int CheckPosition(void)
 {
-	static int  state = 1, count = 0, side = 0, checkError = 0;
+	static int  state = 1, count = 0, side = 0, checkError = 0, switchError = 0, switchNoError = 1;
 	static int  tempx = 0, tempy = 0;
 	int         keepgo = 0;
   static float aimAngle = 0;
+	
 	switch (state)
 	{
+		
 		//判断距离哪面墙最近
 		case 1:
 		{
-			NOTE JudgeState("Judge which is nearest");//判断距离哪面墙最近
+			carRun = 0;
 			side = JudgeSide();
 			if(side == 1)
 			{
@@ -584,7 +596,7 @@ int CheckPosition(void)
 		//原地旋转至目标角度
 		case 2:
 		{
-			NOTE JudgeState("Turn to right angle");//原地旋转至目标角度
+			carRun = 0;
 			TurnAngle(aimAngle, 5000);
 			if (fabs(Position_t.angle - aimAngle) <= 15)
 			{
@@ -598,35 +610,98 @@ int CheckPosition(void)
 		//后退靠墙
 		case 3:
 		{
-			NOTE JudgeState("Backward until against the wall");//后退靠墙
-			StaightCLose(tempx, tempy, aimAngle, -1000);
+			carRun = 0;
+			StaightCLose(tempx, tempy, aimAngle, -500);
 			
-			//后退车被困住（被困的条件比较严苛）
-			if(stuckCar(2,50))
+			//如果行程开关没有坏
+			if(switchNoError)
 			{
-				//行程开关没有全部触发
-				if(SWITCHC2 == 0 || SWITCHC0 == 0)
+				//后退车被困住（被困的条件比较严苛）
+				if(stuckCar(2,100))
 				{
+					//行程开关没有全部触发
+					if(SWITCHE2 == 0 || SWITCHC0 == 0)
+					{
+						switchError++;
+						if(switchError >= 3)
+						{
+							state = 3;
+							switchNoError = 0;
+							switchError = 0;
+						}
+						state = 9;
+					}
+				}
+				
+				//两个行程开关触发,则进入下一次状态进行激光矫正
+				if(SWITCHE2 == 1 && SWITCHC0 == 1)
+				{
+					count++;
+				}
+				if(count >= 10)
+				{
+					count = 0;
 					state = 4;
 				}
 			}
-			
-			//两个行程开关触发,则进入下一次状态进行激光矫正
-			if(SWITCHC2 == 1 && SWITCHC0 == 1)
+			else
 			{
-				count++;
-			}
-			if(count >= 10)
-			{
-				count = 0;
-				state = 4;
+				if(stuckCar(50,200))
+				{
+					side = JudgeSide();
+					if(side == 1)
+					{
+						//坐标误差过大，说明后面有车
+						if(Position_t.Y > 400)
+						{
+							state = 10;
+						}
+						else
+						{
+							state = 4;
+						}
+					}
+					else if(side == 2)
+					{
+						if(Position_t.X < 2000)
+						{
+							state = 10;
+						}
+						else
+						{
+							state = 4;
+						}
+					}
+					else if(side == 3)
+					{
+						if(Position_t.Y < 4300)
+						{
+							state = 10;
+						}
+						else
+						{
+							state = 4;
+						}
+					}
+					else
+					{
+						if(Position_t.X > -2100)
+						{
+							state = 10;
+						}
+						else
+						{
+							state = 4;
+						}
+					}
+				}
 			}
 		} break;
 
 		//激光校正
 		case 4:
 		{
-			NOTE JudgeState("Laser Check");//激光矫正
+			carRun = 0;
 			if (LaserCheck() == 1)
 			{
 				keepgo  = 1;
@@ -711,7 +786,7 @@ int CheckPosition(void)
 		//继续矫正,前进
 		case 5:
 			{
-				NOTE JudgeState("Continue Checking .Go ahead");//继续矫正，前进
+				carRun = 1;
 				angClose(1800, aimAngle, 250);
 				
 				//判断距离第二面墙1米时准备靠墙
@@ -788,8 +863,7 @@ int CheckPosition(void)
 			
 		//通过坐标判断车距离哪面墙近
 		case 6:
-			
-			NOTE JudgeState("Judge which wall is nearest");//通过坐标判断车距离哪面墙近
+			carRun = 0;
 			side = JudgeSide();
 			if(side == 1)
 			{
@@ -813,7 +887,7 @@ int CheckPosition(void)
 		//转向目标角度
 		case 7:
 		{
-			NOTE JudgeState("Turn to right angle");//转向目标角度
+			carRun = 0;
 			TurnAngle(aimAngle, 5000);
 			if (fabs(Position_t.angle - aimAngle) <5)
 			{
@@ -826,9 +900,9 @@ int CheckPosition(void)
 		//后退
 		case 8:
 		{
-			NOTE JudgeState("BackWard until against the wall");//后退
-			StaightCLose(tempx, tempy, aimAngle, -1000);
-			if(SWITCHC2==1 && SWITCHC0==1)
+			carRun = 0;
+			StaightCLose(tempx, tempy, aimAngle, -500);
+			if(SWITCHE2==1 && SWITCHC0==1)
 			{
 				count++;
 			}
@@ -859,7 +933,7 @@ int CheckPosition(void)
 			}
 		} break;
 		case 9:
-			
+			carRun = 0;
 			//前进0.5s
 			count++;
 			if(count >= 50)
@@ -882,6 +956,7 @@ int CheckPosition(void)
 			VelCrl(CAN2, 2, -10000);
 			break;
 		case 10:
+			carRun = 0;
 			if(side == 1)
 			{
 				//计算下一刻的目标角度,下同
@@ -930,6 +1005,7 @@ int CheckPosition(void)
 			state = 11;
 			break;
 		case 11:
+			carRun = 1;
 			angClose(1800, aimAngle, 250);
 		
 			//判断距离第二面墙1米时准备靠墙
@@ -1004,7 +1080,7 @@ int CheckPosition(void)
 			}
 			break;
 		case 12:
-			
+			carRun = 1;
 			//判断车在哪面墙
 			side = JudgeSide();
 		
@@ -1050,6 +1126,7 @@ int CheckPosition(void)
 	return keepgo;
 }
 
+
 //方案1 发三个区域的球数
 extern int    ballN_L, ballN_M, ballN_R;
 //方案2 发球数最多的那个角度
@@ -1073,12 +1150,16 @@ Pose_t bestTra[20] = {0};
 
 int RunCamera(void)
 {
-	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1,border=0,porm=0,chuqu=0,edge[4]={0};
+	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1,border=0,porm=0,chuqu=0,edge[4]={0},cameratime=0;
 	static float  cameraX, cameraY;
 	int           finish = 0, circulate;
 	POSITION_T    basePoint;
   cameraScheme = 1;
-	
+	cameratime++;
+	if(cameratime>=6000)
+	{
+		finish = 1;
+	}
   g_plan=1;
 	
 	//一环连一环 上部分是偶数则加一 下部分是奇数则加一 让stagger(错开)等于一
@@ -1720,5 +1801,3 @@ float Angel2PI(float angel)
 	res = PI * (angel) / 180;
 	return res;
 }
-
-
