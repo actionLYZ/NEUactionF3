@@ -43,7 +43,7 @@ void JudgeState(char state[])
 	//如果当前状态不为state
 	if(strcmp(g_carState,state))
 	{
-		NOTE USART_OUT(UART5,(u8*)"%s:\t%s\r\n",__TIME__,state);
+		USART_OUT(UART5,(u8*)"%s:\t%s\r\n",__TIME__,state);
 	}
 	strcpy(g_carState,state);
 }
@@ -189,7 +189,7 @@ void GoGoGo(float fLine)
 		//第一圈放球区附近跑场
 		case 1:
 		{
-			NOTE JudgeState("正在进行第一圈跑场");
+			NOTE JudgeState("firstRound running....");
 			//先启动3s
 			count++;
 			if(count >= 300)
@@ -212,7 +212,7 @@ void GoGoGo(float fLine)
 		//向外扩散扫场
 		case 2:
 		{
-			NOTE JudgeState("正在进行圆形扩散扫场");
+			NOTE JudgeState("Circle running....");
 	//		if (RunRectangle(length, wide, RUN_SPEED))
 	//		{
 	//			//逐渐增加长方形跑场参数
@@ -231,14 +231,14 @@ void GoGoGo(float fLine)
 		
 		//紧随画圆后矩形扫场
 		case 3:
-			NOTE JudgeState("正在进行贴边矩形扫场");
+			NOTE JudgeState("Rectangle Sticke running");//贴边矩形扫场
 			if(AfterCircle(2200))
 				state = 4;
 			break;
 		//进行坐标校正
 		case 4:
 		{
-			NOTE JudgeState("开始进行坐标校正");
+			NOTE JudgeState("Start CheckPosition....");
 			carRun = 0;
 			count=0;
 			if (CheckPosition())
@@ -560,7 +560,7 @@ int CheckPosition(void)
 		//判断距离哪面墙最近
 		case 1:
 		{
-			NOTE JudgeState("判断距离哪勉强最近");
+			NOTE JudgeState("Judge which is nearest");//判断距离哪面墙最近
 			side = JudgeSide();
 			if(side == 1)
 			{
@@ -584,7 +584,7 @@ int CheckPosition(void)
 		//原地旋转至目标角度
 		case 2:
 		{
-			NOTE JudgeState("原地旋转至目标角度");
+			NOTE JudgeState("Turn to right angle");//原地旋转至目标角度
 			TurnAngle(aimAngle, 5000);
 			if (fabs(Position_t.angle - aimAngle) <= 15)
 			{
@@ -598,7 +598,7 @@ int CheckPosition(void)
 		//后退靠墙
 		case 3:
 		{
-			NOTE JudgeState("后退靠墙");
+			NOTE JudgeState("Backward until against the wall");//后退靠墙
 			StaightCLose(tempx, tempy, aimAngle, -1000);
 			
 			//后退车被困住（被困的条件比较严苛）
@@ -626,7 +626,7 @@ int CheckPosition(void)
 		//激光校正
 		case 4:
 		{
-			NOTE JudgeState("激光矫正");
+			NOTE JudgeState("Laser Check");//激光矫正
 			if (LaserCheck() == 1)
 			{
 				keepgo  = 1;
@@ -711,7 +711,7 @@ int CheckPosition(void)
 		//继续矫正,前进
 		case 5:
 			{
-				NOTE JudgeState("继续矫正，前进");
+				NOTE JudgeState("Continue Checking .Go ahead");//继续矫正，前进
 				angClose(1800, aimAngle, 250);
 				
 				//判断距离第二面墙1米时准备靠墙
@@ -789,7 +789,7 @@ int CheckPosition(void)
 		//通过坐标判断车距离哪面墙近
 		case 6:
 			
-			NOTE JudgeState("通过坐标判断车距离哪面墙近");
+			NOTE JudgeState("Judge which wall is nearest");//通过坐标判断车距离哪面墙近
 			side = JudgeSide();
 			if(side == 1)
 			{
@@ -813,7 +813,7 @@ int CheckPosition(void)
 		//转向目标角度
 		case 7:
 		{
-			NOTE JudgeState("转向目标角度");
+			NOTE JudgeState("Turn to right angle");//转向目标角度
 			TurnAngle(aimAngle, 5000);
 			if (fabs(Position_t.angle - aimAngle) <5)
 			{
@@ -826,7 +826,7 @@ int CheckPosition(void)
 		//后退
 		case 8:
 		{
-			NOTE JudgeState("后退");
+			NOTE JudgeState("BackWard until against the wall");//后退
 			StaightCLose(tempx, tempy, aimAngle, -1000);
 			if(SWITCHC2==1 && SWITCHC0==1)
 			{

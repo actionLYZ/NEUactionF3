@@ -36,6 +36,6 @@ void JudgeState(char[]);																							//判断当前小车状态
 #define SWITCHE2        (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_2))  //PE2 行程开关
 #define SWITCHC0        (GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_0))  //PC0 行程开关
 #define SWITCHC2        (GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_2))  //PC2 行程开关
-#define NOTE						 																		//日志注释
-#define POS_NOTE			   																			//坐标注释
+#define NOTE						 		if(1)															//日志注释
+#define POS_NOTE			   		if(0)																	//坐标注释
 /*=====================================================结构体定义===================================================*/
