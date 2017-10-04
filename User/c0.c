@@ -558,7 +558,7 @@ void First_Scan(void)
 		default:
 			break;
 	}
-	USART_OUT(UART5,(u8*)"area%d\r\n",area);
+	POS_NOTE USART_OUT(UART5,(u8*)"area%d\r\n",area);
 }
 /*======================================================================================
    函数定义	  ：    将场地分成内外，用于逃逸
@@ -875,7 +875,7 @@ void New_Route(int dow, int righ, int u, int lef)
 		}
 	}
 	
-	USART_OUT(UART5,(u8*)"side %d aim %d d%d r%d u%d l%d\r\n",side,aim,dow,righ,u,lef);
+	POS_NOTE USART_OUT(UART5,(u8*)"side %d aim %d d%d r%d u%d l%d\r\n",side,aim,dow,righ,u,lef);
 }
 /*======================================================================================
    函数定义	  ：    扫四条边缘(一圈)
@@ -2249,7 +2249,7 @@ void CountBall(void)
 	}
 	
 	
-	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
+	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
 
 }
 

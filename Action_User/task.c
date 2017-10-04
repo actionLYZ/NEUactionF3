@@ -29,6 +29,7 @@ static OS_STK WalkTaskStk[Walk_TASK_STK_SIZE];
 /*=====================================================全局变量声明===================================================*/
 
 //uint8_t g_camera = 0;					     //摄像头收到的数
+char				g_carState[50] = "";			//存储小车当前状态
 int8_t      g_cameraAng[50] = { 0 };  //存储摄像头接受到的角度
 uint8_t     g_cameraDis[50] = { 0 };  //存储摄像头接受到的距离
 int8_t      g_cameraFin     = 0;      //摄像头接收到0xc9置1
@@ -161,7 +162,7 @@ void WalkTask(void)
 
 	//延时，稳定定位系统
 	delay_s(12);
-	
+	LOG_NOTE JudgeState("Init CollectBallVelCtr Shoot structure....");
 	//棍子，发射机构的初始速度
 	CollectBallVelCtr(60);
 	delay_s(3);	
@@ -169,11 +170,12 @@ void WalkTask(void)
 
 //	//鸣笛
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
-	
+	LOG_NOTE JudgeState("Waiting for Laser break....");
 	//激光触发
   firstLine = LaserTrigger();
-	USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)g_plan,(int)firstLine);
+	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)g_plan,(int)firstLine);
 	
+	LOG_NOTE JudgeState("Laser has broken");
 	//关蜂鸣器
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	finishShoot=1;
@@ -203,10 +205,11 @@ void WalkTask(void)
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
 		
 		//普通避障
-		USART_OUT(UART5,(u8*)"TLY       %d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+		POS_NOTE USART_OUT(UART5,(u8*)"TLY%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 //普通避障
 		if(ifEscape)
 		{
+			LOG_NOTE JudgeState("Start Escape");
 			carRun = 0;
 			
 			//开始逃逸计时
@@ -215,6 +218,7 @@ void WalkTask(void)
 			//逃逸完成后，ifEscape清零
 			if(Escape(100,120))
 			{
+				LOG_NOTE JudgeState("Escape Successful !!");
 				ifEscape = 0;
 			}
 		}
@@ -224,6 +228,7 @@ void WalkTask(void)
 		{
 			carRun = 0;
 			
+			LOG_NOTE JudgeState("Start Bigger Escape !!");
 			//更大幅度的避障
 			if(Escape(120,160))
 			{
