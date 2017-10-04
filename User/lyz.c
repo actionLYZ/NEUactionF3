@@ -16,6 +16,7 @@
 #include "stm32f4xx_gpio.h"
 #include "MotionCard.h"
 #include "stdlib.h"
+#include "string.h"
 
 /*==============================================全局变量声明区============================================*/
 extern POSITION_T Position_t;     //校正后定位
@@ -32,6 +33,20 @@ extern int32_t     g_pushPosition;
 extern uint8_t     shootNum;  
 /*================================================函数定义区==============================================*/
 
+/*======================================================================================
+   函数定义	：		判断小车状态并输出日志
+   函数参数	：		即将进入的状态
+	 其他：当小车已经处于此状态时，不输出当前状态
+   =======================================================================================*/
+void JudgeState(char state[])
+{
+	//如果当前状态不为state
+//	if(strcmp(g_carState,state))
+	{
+		USART_OUT(UART5,(u8*)"%s:\t%s\r\n",__TIME__,state);
+	}
+//	strcpy(g_carState,state);
+}
 
 /*======================================================================================
    函数定义	：		通过激光判断是否开始
@@ -209,7 +224,7 @@ void GoGoGo(float fLine)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(2200, 900, 3, 1))
+			if(sweepYuan(2000, 900, 3, 1))
 				state = 3;
 		}
 		break;
@@ -217,7 +232,7 @@ void GoGoGo(float fLine)
 		//紧随画圆后矩形扫场
 		case 3:
 			carRun = 1;
-			if(AfterCircle(2200))
+			if(AfterCircle(2000))
 				state = 4;
 			break;
 		//进行坐标校正
@@ -341,11 +356,11 @@ void GoGoGo(float fLine)
 		case 7:
 		{
 			count++;
-			if(count >= 500)
+			if(count >= 300)
 			{
 				shootStart  = 0;
 				carRun      = 1;
-				count = 500;
+				count = 300;
 			}
 			if (RunEdge())
 			{
@@ -612,13 +627,15 @@ int CheckPosition(void)
 		{
 			carRun = 0;
 			StaightCLose(tempx, tempy, aimAngle, -500);
+			USART_OUT(UART5,(u8*)"SWITCH %d\t%d\t%d\t%d\t%d\r\n",(int)switchNoError,(int)SWITCHC0,(int)SWITCHE2,(int)count,(int)state);
 			
 			//如果行程开关没有坏
 			if(switchNoError)
 			{
 				//后退车被困住（被困的条件比较严苛）
-				if(stuckCar(2,100))
+				if(stuckCar(50,200))
 				{
+					USART_OUT(UART5,(u8*)"stuckCar %d\t%d\r\n",(int)SWITCHC0,(int)SWITCHE2);
 					//行程开关没有全部触发
 					if(SWITCHE2 == 0 || SWITCHC0 == 0)
 					{
@@ -700,9 +717,11 @@ int CheckPosition(void)
 
 		//激光校正
 		case 4:
-		{
+		
 			carRun = 0;
-			if (LaserCheck() == 1)
+		  int laserCheck = 0;
+		  laserCheck = LaserCheck();
+			if (laserCheck == 1)
 			{
 				keepgo  = 1;
 				state   = 1;
@@ -710,7 +729,7 @@ int CheckPosition(void)
 			}
 			
 			//矫正失败
-			else if(LaserCheck() == 0)
+			else if(laserCheck == 0)
 			{
 				
 				//矫正失败，继续矫正
@@ -777,11 +796,11 @@ int CheckPosition(void)
 			}
 			
 			//如果车在死角，两侧激光测距均超出激光测距范围，则进入state12
-			else if(LaserCheck() == 3)
+			else if(laserCheck == 3)
 			{
 				state = 12;
 			}
-		} break;
+			break;
 
 		//继续矫正,前进
 		case 5:
@@ -899,7 +918,6 @@ int CheckPosition(void)
 
 		//后退
 		case 8:
-		{
 			carRun = 0;
 			StaightCLose(tempx, tempy, aimAngle, -500);
 			if(SWITCHE2==1 && SWITCHC0==1)
@@ -931,7 +949,7 @@ int CheckPosition(void)
 				keepgo  = 1;
 				tempx   = 0, tempy = 0;
 			}
-		} break;
+		 break;
 		case 9:
 			carRun = 0;
 			//前进0.5s
@@ -1078,6 +1096,7 @@ int CheckPosition(void)
 					}
 				}
 			}
+			USART_OUT(UART5,(u8*)"%d\r\n",(int)aimAngle);
 			break;
 		case 12:
 			carRun = 1;
@@ -1522,10 +1541,9 @@ void TurnAngle(float angel, int speed)
    =======================================================================================*/
 int LaserCheck(void)
 {
-	int laserGetRight = 0, laserGetLeft = 0, side = 0, success = 2;
-	static u8 step = 0, left = 1, right = 1;
-	laserGetRight = Get_Adc_Average(RIGHT_LASER, 20);
-	laserGetLeft  = Get_Adc_Average(LEFT_LASER, 20);
+	static int laserGetRight = 0, laserGetLeft = 0;
+	int  side = 0, success = 2;
+	static u8 step = 3, left = 1, right = 1;
 	switch(step)
 	{
 		case 0:
@@ -1552,10 +1570,12 @@ int LaserCheck(void)
 				//右侧没有被挡
 				if(right)
 				{
+					success = 1;
 					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetRight);
 				}
 				else if(left)
 				{
+					success = 1;
 					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (laserGetLeft - 2400);
 				}
 				
@@ -1565,7 +1585,7 @@ int LaserCheck(void)
 					//置1，为了下次激光矫正时left right 初始值为1
 					right = 1;
 					left = 1;
-					
+					step = 3;
 					//左右侧都被挡，succese置0
 					success = 0;
 					//return 0;
@@ -1575,7 +1595,7 @@ int LaserCheck(void)
 				//right left置1，为了下次激光矫正时left right 初始值为1
 				right = 1;
 				left = 1;
-				success = 1;
+				step = 3;
 				//return 1;
 			}
 
@@ -1590,16 +1610,19 @@ int LaserCheck(void)
 				{
 					if(right)
 					{
+						success = 1;
 						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - laserGetRight);
 					}
 					else if(left)
 					{
+						success = 1;
 						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetLeft - 64.65);
 					}
 					else
 					{
 						right = 1;
 						left = 1;
+						step = 3;
 						success = 0;
 						//return 0;
 					}
@@ -1608,23 +1631,26 @@ int LaserCheck(void)
 				{
 					if(right)
 					{
+						success = 1;
 						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetRight - 64.65);
 					}
 					else if(left)
 					{
+						success = 1;
 						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - laserGetLeft);
 					}
 					else
 					{
 						right = 1;
 						left = 1;
+						step = 3;
 						success = 0;
 						//return 0;
 					}
 				}
 				right = 1;
 				left = 1;
-				success = 1;
+				step = 3;
 //				return 1;
 			}
 
@@ -1635,23 +1661,26 @@ int LaserCheck(void)
 				angleError  = AvoidOverAngle(angleError);
 				if(right)
 				{
+					success = 1;
 					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (laserGetRight - 2400);
 				}
 				else if(left)
 				{
+					success = 1;
 					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetLeft);
 				}
 				else
 				{
 					right = 1;
 					left = 1;
+					step = 3;
 					success = 0;
 					//return 0;
 				}
 				yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - 64.65);
 				right = 1;
 				left = 1;
-				success = 1;
+				step = 3;
 				//return 1;
 			}
 
@@ -1664,16 +1693,19 @@ int LaserCheck(void)
 				{
 					if(right)
 					{
+						success = 1;
 						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetRight - 64.65);
 					}
 					else if(left)
 					{
+						success = 1;
 						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 -laserGetLeft);
 					}
 					else
 					{
 						right = 1;
 						left = 1;
+						step = 3;
 						success = 0;
 						//return 0;
 					}
@@ -1682,23 +1714,26 @@ int LaserCheck(void)
 				{
 					if(right)
 					{
+						success = 1;
 						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 -laserGetRight);
 					}
 					else if(left)
 					{
+						success = 1;
 						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetLeft - 64.65);
 					}
 					else
 					{
 						right = 1;
 						left = 1;
+						step = 3;
 						success = 0;
 						//return 0;
 					}
 				}
 				right = 1;
 				left = 1;
-				success = 1;
+				step = 3;
 				//return 1;
 			}
 			break;
@@ -1707,6 +1742,7 @@ int LaserCheck(void)
 			//两侧激光值均小于600，说明车在死角，距离都超出了激光的测量范围，此时函数返回数值3
 			if(laserGetRight < 650 && laserGetLeft < 650)
 			{
+				step = 3;
 				success = 3;
 			}
 			
@@ -1789,7 +1825,15 @@ int LaserCheck(void)
 			}
 			step = 1;
 			break;
+		case 3:
+			
+			//采集激光值
+			laserGetRight = Get_Adc_Average(RIGHT_LASER, 100);
+			laserGetLeft  = Get_Adc_Average(LEFT_LASER, 100);
+			step = 0;
+			break;
 	}
+	USART_OUT(UART5,(u8*)"laser%d\t%d\t%d\t%d\r\n",(int)laserGetRight,(int)laserGetLeft,(int)success,(int)step);
 	return success;
 }
 

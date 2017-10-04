@@ -181,6 +181,7 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
+//		USART_OUT(UART5,(u8*)"SWITCH %d\t%d\r\n",(int)SWITCHE2,(int)SWITCHC0);
 		rightlaser = Get_Adc_Average(RIGHT_LASER, 20);
 		leftlaser  = Get_Adc_Average(LEFT_LASER, 20);
 		if(leftlaser<1000||rightlaser<1000)
@@ -192,7 +193,7 @@ void WalkTask(void)
 			fighting=1;
 		}
 //    USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
-		CountBall();
+//		CountBall();
 		//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
@@ -203,8 +204,8 @@ void WalkTask(void)
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
 		
 		//普通避障
-		USART_OUT(UART5,(u8*)"TLY       %d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
-//普通避障
+		USART_OUT(UART5,(u8*)"TLY       %d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
+		//普通避障
 		if(ifEscape)
 		{
 			carRun = 0;
@@ -264,16 +265,13 @@ void WalkTask(void)
 		//车跑时才判断是否被困
 		if(carRun)
 		{
-			if (stuckCar(200,200))
+			if (stuckCar(400,200))
 			{
 				//记录撞击次数
 				hitNum++;
 				ifEscape = 1;
 			}
 		}
-
-	
-
 	}
 }
 

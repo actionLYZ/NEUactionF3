@@ -1548,7 +1548,7 @@ int stuckCar(uint16_t stuckV, uint16_t time)
 	
 	//获取车当前的速度
 	V = RealVel();
-	//USART_OUT(UART5,(u8*)"c%d\tV%d\r\n",count,(int)V);
+	USART_OUT(UART5,(u8*)"c%d\tV%d\r\n",count,(int)V);
 	
 	//车速小于stuckV,认为车被困,count++
 	if(V < stuckV)
