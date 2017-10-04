@@ -192,7 +192,7 @@ void ClLine(float aimX, float aimY, float lineAngle, int speed)
 	}
 	else if(speed >=2000)
 	{
-		angleP    = 400;
+		angleP    = 350;
 		angleD    = 0;
 		distantP  = 15;		
 	}
@@ -887,172 +887,192 @@ void New_Route(int dow, int righ, int u, int lef)
 int RunEdge(void)
 {
 	int         finish = 0;
-	static int  side = 0,sideTimes=0,avoidBack=0;
-	
+	static int  sideTimes=0,avoidBack=0,zone=0;
+	g_plan=1;
+
   if(!ifEscape)
 	{
-		if (Position_t.X >= 600&&Position_t.Y<3000&&side!=2)
+		if(Position_t.X>=1300&&Position_t.Y<=1100)
 		{
-			side = 2;sideTimes++;
+			if(zone!=1)
+			{
+				sideTimes++;
+			}
+			zone=1;
 		}
-		if (Position_t.Y >= 3000&&Position_t.X>-600&&side!=3)
+		else if(Position_t.Y>1100&Position_t.Y<3700&&(Position_t.Y-Position_t.X-2400)<0&&(Position_t.Y+Position_t.X-2400)>=0)
 		{
-			side = 3;sideTimes++;
+			zone=2;
 		}
-		if (Position_t.X <= -600&&Position_t.Y>1800&&side!=4)
+		else if(Position_t.X>=1300&&Position_t.Y>=3700)
 		{
-			side = 4;sideTimes++;
+			if(zone!=3)
+			{
+				sideTimes++;
+			}
+			zone=3;
 		}
-		if (Position_t.Y <= 1800&&Position_t.X<600&&side!=1)
+		else if(Position_t.X<1300&&Position_t.X>-1300&&(Position_t.Y-Position_t.X-2400)>=0&&(Position_t.Y+Position_t.X-2400)>0)
 		{
-			side = 1;sideTimes++;
+			zone=4;
 		}
-		if(sideTimes>=6)
+		else if(Position_t.X<=-1300&&Position_t.Y>=3700)
 		{
-			side = 0;
+			if(zone!=5)
+			{
+				sideTimes++;
+			}
+			zone=5;
+		}
+		else if(Position_t.Y>1100&Position_t.Y<3700&&(Position_t.Y-Position_t.X-2400)>0&&(Position_t.Y+Position_t.X-2400)<=0)
+		{
+			zone=6;
+		}
+		else if(Position_t.X<=-1300&&Position_t.Y<=1100)
+		{
+			if(zone!=7)
+			{
+				sideTimes++;
+			}
+			zone=7;
+		}
+		else if(Position_t.X<1100&&Position_t.X>-1100&&(Position_t.Y-Position_t.X-2400)<=0&&(Position_t.Y+Position_t.X-2400)<0)
+		{
+			zone=8;
+		}
+		if(sideTimes>=5)
+		{
+			zone = 0;
 			sideTimes = 0;
 			avoidBack=0;
 			finish = 1;
 		}
 	}
-  if(sideTimes==1&&avoidBack==0)
+  if(sideTimes==0&&avoidBack==0)
 	{
 		if(g_plan==1)
 		{
-			switch(side)
+			switch(zone)
 			{
 				case 1:
 				{
-					ClLineAngle(-90,1000);
-					if(Position_t.angle>-95&&Position_t.angle<-85)
+					ClLineAngle(0,1000);
+					if(fabs(Position_t.angle)<10)
 					{
 						avoidBack=1;
 					}
-				}break;
+				}break;	
 				case 2:
 				{
 					ClLineAngle(0,1000);
-					if(fabs(Position_t.angle)<5)
+					if(fabs(Position_t.angle)<10)
 					{
 						avoidBack=1;
 					}
 				}break;
+
 				case 3:
 				{
 					ClLineAngle(90,1000);
-					if(Position_t.angle>85&&Position_t.angle<95)
+					if(Position_t.angle>80&&Position_t.angle<100)
 					{
 						avoidBack=1;
 					}
 				}break;
 				case 4:
 				{
+					ClLineAngle(90,1000);
+					if(Position_t.angle>80&&Position_t.angle<100)
+					{
+						avoidBack=1;
+					}
+				}break;	
+
+				case 5:
+				{
 					ClLineAngle(180,1000);
-					if(fabs(Position_t.angle)>175)
+					if(fabs(Position_t.angle)>170)
+					{
+						avoidBack=1;
+					}
+				}break;	
+				case 6:
+				{
+					ClLineAngle(180,1000);
+					if(fabs(Position_t.angle)>170)
+					{
+						avoidBack=1;
+					}
+				}break;		
+				
+				case 7:
+				{
+					ClLineAngle(-90,1000);
+					if(Position_t.angle>-100&&Position_t.angle<-80)
 					{
 						avoidBack=1;
 					}
 				}break;
+				case 8:
+				{
+					ClLineAngle(-90,1000);
+					if(Position_t.angle>-100&&Position_t.angle<-80)
+					{
+						avoidBack=1;
+					}
+				}break;
+
+
 				default:
 					break;
 			}	
  
 		}
-    else
-		{
-			switch(side)
-			{
-				case 1:
-				{
-					TurnAngle(90,1000);
-					if(Position_t.angle<95&&Position_t.angle>85)
-					{
-						avoidBack=1;
-					}
-				}break;
-				case 2:
-				{
-					TurnAngle(0,1000);
-					if(fabs(Position_t.angle)<5)
-					{
-						avoidBack=1;
-					}
-				}break;
-				case 3:
-				{
-					TurnAngle(-90,1000);
-					if(Position_t.angle<-85&&Position_t.angle>-95)
-					{
-						avoidBack=1;
-					}
-				}break;
-				case 4:
-				{
-					TurnAngle(180,1000);
-					if(fabs(Position_t.angle)>175)
-					{
-						avoidBack=1;
-					}
-				}break;
-				default:
-					break;
-			}				
-		}				
+
 	}
 	if(avoidBack)
 	{
 		if(g_plan==1)
 		{
-			switch (side)
+			switch (zone)
 			{
-				case 1:
+        case 1:
 				{
-					ClLine(0, 245-POSYSTEM_TO_BACK, -90, 2000);
-				} break;
-
-				case 2:
-				{
-					ClLine(2155, 0, 0, 2000);
-				} break;
-
+					ClLineAngle(0,1300);
+				}break;
 				case 3:
 				{
-					ClLine(0, 4555-POSYSTEM_TO_BACK, 90, 2000);
+					ClLineAngle(90,1300);
+				}break;
+				case 5:
+				{
+					ClLineAngle(180,1300);
+				}break;
+				case 7:
+				{
+					ClLineAngle(-90,1300);
+				}break;
+				
+				case 2:
+				{
+					ClLine(2155, 0, -4, 1500);
 				} break;
 
 				case 4:
 				{
-					ClLine(-2250, 0, 180, 2000);
+					ClLine(0, 4555-POSYSTEM_TO_BACK, 86, 1500);
 				} break;
 
-				default:
-					break;
-			}			
-		}
-		else
-		{
-			switch (side)
-			{
-				case 1:
+				case 6:
 				{
-					ClLine(0, 245-POSYSTEM_TO_BACK, 90, 1000);
+					ClLine(-2155, 0, 176, 1500);
 				} break;
 
-				case 2:
+				case 8:
 				{
-					ClLine(2155, 0, 0, 1000);
+					ClLine(0, 245-POSYSTEM_TO_BACK, -94, 1500);
 				} break;
-
-				case 3:
-				{
-					ClLine(0, 4555-POSYSTEM_TO_BACK, -90, 1000);
-				} break;
-
-				case 4:
-				{
-					ClLine(-2250, 0, 180, 1000);
-				} break;
-
+				
 				default:
 					break;
 			}			
@@ -1060,7 +1080,7 @@ int RunEdge(void)
 
 	}
 
-//	USART_OUT(UART5,(u8*)"edge  %d\t%d\t\r\n",side,sideTimes,avoidBack);
+	USART_OUT(UART5,(u8*)"edge %d\t%d\t%d\t\r\n",zone,sideTimes,avoidBack);
 	return finish;
 }
 /*======================================================================================

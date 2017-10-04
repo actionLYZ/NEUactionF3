@@ -143,7 +143,7 @@ int carRun = 0, ifEscape = 0, countTime = 0, ifEscape2 = 0,leftlaser=2400,rightl
 extern float blindTime;
 extern float photoElectricityCount;//球的数量
 extern float velocity;
-int test;
+int test=0;
 /*******************************************************/
 
 
@@ -233,7 +233,14 @@ void WalkTask(void)
 		else
  		{
 //			RunWithCamera1(2);
-			GoGoGo(firstLine);
+//			GoGoGo(firstLine);
+			 test++;
+       RunEdge();
+			 if(test>=300)
+			 {
+			 	carRun=1;
+			 	test=0;
+			 }
 		}
 		
 		//开始逃逸计时
