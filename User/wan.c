@@ -261,7 +261,7 @@ BALLNUM_T SeekMostBall(void)
 			//将距离单位cm转换成mm(g_cameraDis[j]*10)
 			//将g_cameraAng[j]转换成弧度
 			verDis = g_cameraDis[j] * 10 * sin(g_cameraAng[j] * PI / 180);
-			USART_OUT(USART1, (u8 *)"verDis%d\r\n", (int)verDis);
+			POS_NOTE USART_OUT(USART1, (u8 *)"verDis%d\r\n", (int)verDis);
 
 			//判定左边有球
 			if (g_cameraAng[j] > 8.5)
@@ -299,7 +299,7 @@ BALLNUM_T SeekMostBall(void)
 		g_cameraFin = 0;
 	}
 
-	USART_OUT(USART1, (u8 *)"left%d\tmid%d\tright%d\r\n", ballNum.leftNum, ballNum.midNum, ballNum.rightNum);
+	POS_NOTE USART_OUT(USART1, (u8 *)"left%d\tmid%d\tright%d\r\n", ballNum.leftNum, ballNum.midNum, ballNum.rightNum);
 	return ballNum;
 }
 /*======================================================================================
@@ -427,7 +427,7 @@ void CollectMostBall(void)
 	nowAngle  = GetAng();
 	aimAngle  = nowAngle + aveAngle;
 	aimAngle  = AvoidOverAngle(aimAngle);
-	USART_OUT(USART1, (u8 *)"left%d\tmid%d\tright%d\taveAngle%d\tnowAngle%d\r\n", num.leftNum, num.midNum, num.rightNum, aveAngle, nowAngle);
+	POS_NOTE USART_OUT(USART1, (u8 *)"left%d\tmid%d\tright%d\taveAngle%d\tnowAngle%d\r\n", num.leftNum, num.midNum, num.rightNum, aveAngle, nowAngle);
 	angClose(500, aimAngle, 100);
 }
 /*======================================================================================
@@ -457,7 +457,7 @@ void CollecMostBall(void)
 	nowAngle  = GetAng();
 	aimAngle  = nowAngle + angleAdjust;
 	aimAngle  = AvoidOverAngle(aimAngle);
-	USART_OUT(USART1, (u8 *)"left%d\tmid%d\tright%d\tangleAdjust%d\tnowAngle%d\r\n", num.leftNum, num.midNum, num.rightNum, angleAdjust, nowAngle);
+	POS_NOTE USART_OUT(USART1, (u8 *)"left%d\tmid%d\tright%d\tangleAdjust%d\tnowAngle%d\r\n", num.leftNum, num.midNum, num.rightNum, angleAdjust, nowAngle);
 	angClose(500, aimAngle, 100);
 }
 /*======================================================================================
@@ -1288,7 +1288,7 @@ int ShootBallW(void)
 			if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 2.0f && fabs(rps + g_shootFactV / 4096) < 2 && ballColor)
 			{
 				//位置正常，reset推球电机
-				if(g_pushPosition > 4000)
+				if(g_pushPosition > 3800)
 				{
 					PushBallReset();
 				}
@@ -1345,7 +1345,7 @@ int ShootBallW(void)
 //	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);
 //	USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
 //	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
-	USART_OUT(UART5,(u8*)"%d\r\n",(int)g_pushPosition);
+	POS_NOTE USART_OUT(UART5,(u8*)"%d\r\n",(int)g_pushPosition);
 	return success;
 }
 

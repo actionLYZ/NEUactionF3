@@ -180,7 +180,7 @@ extern int carRun,fighting;
    =======================================================================================*/
 void GoGoGo(float fLine)
 {
-	static int  state = 7, shootTime = 0, count = 0,full=0; //应该执行的状态
+	static int  state = 6, shootTime = 1, count = 0,full=0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
 	static int32_t lastPosition = 0, notMove = 0;
 
@@ -356,7 +356,7 @@ void GoGoGo(float fLine)
 				carRun      = 1;
 				count = 300;
 			}
-				GPIO_SetBits(GPIOE,GPIO_Pin_7);
+			//	GPIO_SetBits(GPIOE,GPIO_Pin_7);
 			if(RunCamera())
 			{
 				count = 0;
@@ -394,7 +394,7 @@ void GoGoGo(float fLine)
 		default:
 			break;
 	}
-	POS_NOTE USART_OUT(UART5,(u8*)"gogogostate %d\r\n",state);
+	 POS_NOTE USART_OUT(UART5,(u8*)"gogogostate %d\t%d\r\n",state,shootTime);
 }
 
 /*======================================================================================
@@ -645,7 +645,7 @@ int CheckPosition(void)
 			LOG_NOTE JudgeState("GO back until against the wall");
 			carRun = 0;
 			StaightCLose(tempx, tempy, aimAngle, -500);
-			USART_OUT(UART5,(u8*)"SWITCH%d\t%d\t%d\t%d\r\n",(int)switchNoError,(int)SWITCHC0,(int)SWITCHE2,(int)count);
+			POS_NOTE USART_OUT(UART5,(u8*)"SWITCH%d\t%d\t%d\t%d\r\n",(int)switchNoError,(int)SWITCHC0,(int)SWITCHE2,(int)count);
 
 			//如果行程开关没有坏
 			if(switchNoError)
@@ -1234,12 +1234,12 @@ int RunCamera(void)
 		down    = Least_H(traceS[0], traceS[1], traceS[2]);
 		up      = Least_H(traceS[7], traceS[8], traceS[9]);
 	}
-	POS_NOTE USART_OUT(UART5,(u8*)"trace %d\t%d\t%d\t%d\r\n",down,right,up,left);
+	 USART_OUT(UART5,(u8*)"trace %d\t%d\t%d\t%d\r\n",down,right,up,left);
 	switch (cameraScheme)
 	{
 		case 1:
 		{
-			if ( go && blind == 0)
+			if ( go)
 			{
 				go = 0;
 				if (arr_number == 0)
@@ -1261,15 +1261,11 @@ int RunCamera(void)
 					cameraX   = Position_t.X - CAMERATOGYRO * sin(Position_t.angle);
 					cameraY   = Position_t.Y + CAMERATOGYRO * cos(Position_t.angle);
 					ballAngle = AvoidOverAngle(Position_t.angle + bestAngle);
-					POS_NOTE USART_OUT(UART5,(u8*)"bestangle %d\r\n",bestAngle);
+					 USART_OUT(UART5,(u8*)"bestangle %d\r\n",bestAngle);
 				}
 			}
 			
-			//判断是否已走过该区域，继续扫面下一个区域
-			if (P2P(cameraX, cameraY, Position_t.X, Position_t.Y) >= 1000 || Position_t.angle >= ballAngle + 25 || Position_t.angle <= ballAngle - 25)
-					blind = 0;
-			else
-					blind = 1;
+
 			
 			//到边界要拐弯了
 			if (fabs(Position_t.X) >= 1500 || Position_t.Y <= 900 || Position_t.Y >= 3900)
@@ -1962,7 +1958,7 @@ int LaserCheck(void)
 			step = 0;
 			break;
 	}
-	USART_OUT(UART5,(u8*)"laser%d\t%d\t%d\t%d\r\n",(int)laserGetRight,(int)laserGetLeft,(int)success,(int)step);
+	POS_NOTE USART_OUT(UART5,(u8*)"laser%d\t%d\t%d\t%d\r\n",(int)laserGetRight,(int)laserGetLeft,(int)success,(int)step);
 	return success;
 }
 

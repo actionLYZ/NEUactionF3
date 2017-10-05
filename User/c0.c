@@ -892,7 +892,7 @@ int RunEdge(void)
 
   if(!ifEscape)
 	{
-		if(Position_t.X>=1300&&Position_t.Y<=1100)
+		if(Position_t.X>=1500&&Position_t.Y<=900)
 		{
 			if(zone!=1)
 			{
@@ -900,11 +900,11 @@ int RunEdge(void)
 			}
 			zone=1;
 		}
-		else if(Position_t.Y>1100&Position_t.Y<3700&&(Position_t.Y-Position_t.X-2400)<0&&(Position_t.Y+Position_t.X-2400)>=0)
+		else if(Position_t.Y>900&Position_t.Y<3900&&(Position_t.Y-Position_t.X-2400)<0&&(Position_t.Y+Position_t.X-2400)>=0)
 		{
 			zone=2;
 		}
-		else if(Position_t.X>=1300&&Position_t.Y>=3700)
+		else if(Position_t.X>=1500&&Position_t.Y>=3900)
 		{
 			if(zone!=3)
 			{
@@ -912,11 +912,11 @@ int RunEdge(void)
 			}
 			zone=3;
 		}
-		else if(Position_t.X<1300&&Position_t.X>-1300&&(Position_t.Y-Position_t.X-2400)>=0&&(Position_t.Y+Position_t.X-2400)>0)
+		else if(Position_t.X<1500&&Position_t.X>-1500&&(Position_t.Y-Position_t.X-2400)>=0&&(Position_t.Y+Position_t.X-2400)>0)
 		{
 			zone=4;
 		}
-		else if(Position_t.X<=-1300&&Position_t.Y>=3700)
+		else if(Position_t.X<=-1500&&Position_t.Y>=3900)
 		{
 			if(zone!=5)
 			{
@@ -924,11 +924,11 @@ int RunEdge(void)
 			}
 			zone=5;
 		}
-		else if(Position_t.Y>1100&Position_t.Y<3700&&(Position_t.Y-Position_t.X-2400)>0&&(Position_t.Y+Position_t.X-2400)<=0)
+		else if(Position_t.Y>900&Position_t.Y<3900&&(Position_t.Y-Position_t.X-2400)>0&&(Position_t.Y+Position_t.X-2400)<=0)
 		{
 			zone=6;
 		}
-		else if(Position_t.X<=-1300&&Position_t.Y<=1100)
+		else if(Position_t.X<=-1500&&Position_t.Y<=900)
 		{
 			if(zone!=7)
 			{
@@ -936,18 +936,19 @@ int RunEdge(void)
 			}
 			zone=7;
 		}
-		else if(Position_t.X<1100&&Position_t.X>-1100&&(Position_t.Y-Position_t.X-2400)<=0&&(Position_t.Y+Position_t.X-2400)<0)
+		else if(Position_t.X<1500&&Position_t.X>-1500&&(Position_t.Y-Position_t.X-2400)<=0&&(Position_t.Y+Position_t.X-2400)<0)
 		{
 			zone=8;
 		}
+
+	}
 		if(sideTimes>=5)
 		{
 			zone = 0;
 			sideTimes = 0;
 			avoidBack=0;
 			finish = 1;
-		}
-	}
+		}	
   if(sideTimes==0&&avoidBack==0)
 	{
 		if(g_plan==1)
@@ -1038,39 +1039,39 @@ int RunEdge(void)
 			{
         case 1:
 				{
-					ClLineAngle(0,1300);
+					ClLineAngle(0,1000);
 				}break;
 				case 3:
 				{
-					ClLineAngle(90,1300);
+					ClLineAngle(90,1000);
 				}break;
 				case 5:
 				{
-					ClLineAngle(180,1300);
+					ClLineAngle(180,1000);
 				}break;
 				case 7:
 				{
-					ClLineAngle(-90,1300);
+					ClLineAngle(-90,1000);
 				}break;
 				
 				case 2:
 				{
-					ClLine(2155, 0, -4, 1500);
+					ClLine(2155, 0, -4, 1200);
 				} break;
 
 				case 4:
 				{
-					ClLine(0, 4555-POSYSTEM_TO_BACK, 86, 1500);
+					ClLine(0, 4555-POSYSTEM_TO_BACK, 86, 1200);
 				} break;
 
 				case 6:
 				{
-					ClLine(-2155, 0, 176, 1500);
+					ClLine(-2255, 0, 176, 1200);
 				} break;
 
 				case 8:
 				{
-					ClLine(0, 245-POSYSTEM_TO_BACK, -94, 1500);
+					ClLine(0, 200-POSYSTEM_TO_BACK, -94, 1200);
 				} break;
 				
 				default:
@@ -1080,7 +1081,7 @@ int RunEdge(void)
 
 	}
 
-	USART_OUT(UART5,(u8*)"edge %d\t%d\t%d\t\r\n",zone,sideTimes,avoidBack);
+	POS_NOTE USART_OUT(UART5,(u8*)"edge %d\t%d\t%d\t\r\n",zone,sideTimes,avoidBack);
 	return finish;
 }
 /*======================================================================================
