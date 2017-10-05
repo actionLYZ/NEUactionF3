@@ -175,6 +175,9 @@ int IfEscape(void);
 //定点投球方案
 int ShootBallW(void);
 
+//动点投球方案
+int ShootBallD(float wx,float by,float bx);
+
 //发射航向角转换函数 由度转换为脉冲
 float YawTransform(float yawAngle);
 

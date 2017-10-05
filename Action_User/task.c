@@ -180,9 +180,28 @@ void WalkTask(void)
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	finishShoot=1;
 	OSSemSet(PeriodSem, 0, &os_err);
+	
+	//检测一定车速下能不能射准
+	while(1)
+	{
+		OSSemPend(PeriodSem, 0, &os_err);
+		bool a;
+		int b;
+		a = RunRectangle(1300,1800,300);
+		//ShootBallW();
+		if(Position_t.angle > -5 && Position_t.angle < 5)  						b = ShootBallD(WHITEX,BALLY-50,BLACKX);
+		else if(Position_t.angle > 85 && Position_t.angle < 95)  			b = ShootBallD(WHITEX+50,BALLY,BLACKX+50);
+		else if(Position_t.angle > 175 && Position_t.angle < -175)  	b = ShootBallD(WHITEX,BALLY+50,BLACKX);
+		else if(Position_t.angle > -95 && Position_t.angle < -85)  		b = ShootBallD(WHITEX-50,BALLY,BLACKX-50);
+		
+	}
+	
+	
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
+		
+		
 		rightlaser = Get_Adc_Average(RIGHT_LASER, 20);
 		leftlaser  = Get_Adc_Average(LEFT_LASER, 20);
 		if(leftlaser<1000||rightlaser<1000)

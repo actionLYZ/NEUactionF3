@@ -43,7 +43,6 @@ extern char g_carState[50];
    =======================================================================================*/
 void JudgeState(char state[])
 {
-	
 	//如果当前状态不为state
 	if(strcmp(g_carState,state))
 	{

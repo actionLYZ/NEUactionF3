@@ -1165,6 +1165,190 @@ void ShootCtr(float rps)
    =======================================================================================*/
 extern int ballColor,youqiu;
 extern int ballSpeed,need;
+int ShootBallD(float wx,float by,float bx)
+{
+	static uint16_t noBall = 0, flag = 0, notShoot = 0;
+  POSXY_T  posShoot = { 0, 0 };
+	int      success = 0;
+	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
+	static int32_t lastPosition = 0, notMove = 0;
+	static int8_t step = 0, ifCount = 0;
+	
+	//问询航向电机角度、收球电机速度、推球电机的位置
+  ReadActualPos(CAN1, GUN_YAW_ID);
+	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
+	ReadActualPos(CAN1, PUSH_BALL_ID);
+
+	//计算投球点的坐标
+	posShoot  = ShootPointPos();
+	switch(step)
+	{
+		case 0:
+			
+			//球是白球
+			if (ballColor == WHITE)
+			{
+				noBall = 0;
+				distance = sqrt((posShoot.X - wx) * (posShoot.X - wx) + (posShoot.Y - by) * (posShoot.Y - by));
+
+				//将角度装换成陀螺仪角度坐标系里的角度值
+				aimAngle  = atan2(BALLY - posShoot.Y, wx - posShoot.X);
+				aimAngle  = RADTOANG(aimAngle) - 90;
+
+				//枪顺时针转为正，逆时针为负
+				aimAngle = AvoidOverAngle(aimAngle);
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2;
+			}
+
+			//球是黑球
+			else if (ballColor == BLACK)
+			{
+				noBall = 0;
+				distance = sqrt((posShoot.X - bx) * (posShoot.X - bx) + (posShoot.Y - by) * (posShoot.Y - by));
+
+				//将角度转换成陀螺仪角度坐标系里的角度值
+				aimAngle  = atan2(BALLY - posShoot.Y, bx - posShoot.X);
+				aimAngle  = RADTOANG(aimAngle) - 90;
+				aimAngle  = AvoidOverAngle(aimAngle);
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2;
+			}
+		
+			// 没球,来回拨动几次
+			else if (ballColor == NO)
+			{
+//				USART_OUT(UART5,(u8*)"n%d\t%d\r\n",(int)noBall,(int)success);
+				noBall++;
+				if(noBall > 120 && noBall < 130)
+				{
+						PushBall();
+				}
+				if(noBall > 240 && noBall < 250)
+				{		
+						PushBallReset();	
+				}
+				if(noBall > 360 && noBall < 370)
+				{	
+						PushBall();	
+				}
+				if(noBall > 480 && noBall < 490)
+				{					
+						PushBallReset();					
+				}
+				if(noBall > 600 && noBall < 610)
+				{	
+						PushBall();	
+				}
+				if(noBall > 300)
+				{
+					noBall = 0;
+					
+					//射球完成，shootNum置0
+					notMove = 0;
+					step = 0;
+//					shootNum = 0;
+					success = 1;
+				}
+			}
+		
+			//球出射速度(mm/s)与投球点距离篮筐的距离的关系
+			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
+			
+			//自己测的关系
+			rps = 0.01402f * V - 5.457f + 2.8;
+		
+			
+			// 表明射球蓝牙没有收到主控发送的数据
+			if (fabs(rps + g_shootV / 4096) > 0.1)
+			{
+					ShootCtr(rps);
+			}
+			
+			//控制发射航向角(20ms发一次)
+			flag++;
+			flag = flag % 2;
+			if(flag == 1)
+			{
+				YawAngleCtr(shootAngle);
+			}
+			
+		  //记录射球的个数
+			if(fabs(rps + (g_shootFactV / 4096)) < 1)
+			{
+				ifCount = 1;
+			}
+			if(ifCount)
+			{
+				if(rps + (g_shootFactV / 4096) > 2.7)
+				{
+					shootNum++;
+					ifCount = 0;
+				}
+			}
+			
+			//枪的角度和转速到位,推球
+			if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 2.0f && fabs(rps + g_shootFactV / 4096) < 2 && ballColor)
+			{
+				//位置正常，reset推球电机
+				if(g_pushPosition > 3200)
+				{
+					PushBallReset();
+				}
+				
+				//位置正常，push推球电机
+				if(g_pushPosition < 800)
+				{
+					PushBall();
+				}
+			}
+		
+			//判断球是否卡死
+			if(abs(g_pushPosition - lastPosition) < 5 )
+			{
+				notShoot++;
+				
+				//0.2s依然卡死，切换到step = 1;
+				if(notShoot > 20)
+				{
+					notShoot = 0;
+					step = 1;
+				}
+			}
+			else
+			{
+				notShoot = 0;
+			}
+			
+//			USART_OUT(UART5,(u8*)"l%d\t%d\t%d\r\n",(int)g_pushPosition,(int)lastPosition,(int)notMove);
+			lastPosition = g_pushPosition;
+			break;
+			
+		//推球电机卡死，特殊处理的步骤
+		case 1:
+			notMove++;
+			if(g_pushPosition >= 2000)
+			{
+				PushBall();
+			}
+			else
+			{
+				PushBallReset();
+			}
+			
+			//连续发10次命令
+			if(notMove >= 10)
+			{
+				notMove = 0;
+				step = 0;
+			}
+			break;
+		
+	}
+//	USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
+//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);
+//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
+//	USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
+	return success;
+}
 int ShootBallW(void)
 {
 	static uint16_t noBall = 0, flag = 0, notShoot = 0;
