@@ -178,6 +178,10 @@ void WalkTask(void)
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	finishShoot=1;
 	OSSemSet(PeriodSem, 0, &os_err);
+	
+
+	
+	
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
