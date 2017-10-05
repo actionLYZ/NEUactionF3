@@ -162,7 +162,7 @@ void WalkTask(void)
 	//延时，稳定定位系统
 	delay_s(12);
 	
-	//棍子，发射机构的初始速度
+	//棍子，发射机构的初始速度。
 	CollectBallVelCtr(60);
 	delay_s(3);	
 	ShootCtr(70);
