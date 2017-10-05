@@ -1169,7 +1169,7 @@ int ShootBallW(void)
 {
 	static uint16_t noBall = 0, flag = 0, notShoot = 0;
   POSXY_T  posShoot = { 0, 0 };
-	int      success = 0, side = 0;
+	int      success = 0;
 	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
 	static int32_t lastPosition = 0, notMove = 0;
 	static int8_t step = 0, ifCount = 0;

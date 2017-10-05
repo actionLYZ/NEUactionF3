@@ -206,7 +206,7 @@ void WalkTask(void)
 //		V = RealVel();
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
 		
-//		//普通避障
+
 //		POS_NOTE USART_OUT(UART5,(u8*)"TLY       %d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
 		//普通避障
 		if(ifEscape)
