@@ -233,14 +233,14 @@ void WalkTask(void)
 		else
  		{
 //			RunWithCamera1(2);
-//			GoGoGo(firstLine);
-			 test++;
-       RunEdge();
-			 if(test>=300)
-			 {
-			 	carRun=1;
-			 	test=0;
-			 }
+			GoGoGo(firstLine);
+//			 test++;
+//       RunEdge();
+//			 if(test>=300)
+//			 {
+//			 	carRun=1;
+//			 	test=0;
+//			 }
 		}
 		
 		//开始逃逸计时

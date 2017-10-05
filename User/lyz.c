@@ -160,7 +160,7 @@ extern int carRun,fighting;
    =======================================================================================*/
 void GoGoGo(float fLine)
 {
-	static int  state = 1, shootTime = 0, count = 0,full=0; //应该执行的状态
+	static int  state = 7, shootTime = 0, count = 0,full=0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
 	static int32_t lastPosition = 0, notMove = 0;
 
@@ -238,21 +238,21 @@ void GoGoGo(float fLine)
 			carRun      = 0;
 			shootStart  = 1;
 			
-			//检测是否被卡死
-			if(abs(g_pushPosition - lastPosition) < 10)
-			{
-				notMove++;
-			}
-			else
-			{
-				notMove = 0;
-			}
-			
-			//6s不动，切换下一状态
-			if (notMove > 600)
-			{
-				state = 7;
-			}
+//			//检测是否被卡死
+//			if(abs(g_pushPosition - lastPosition) < 10)
+//			{
+//				notMove++;
+//			}
+//			else
+//			{
+//				notMove = 0;
+//			}
+//			
+//			//6s不动，切换下一状态
+//			if (notMove > 600)
+//			{
+//				state = 7;
+//			}
 
 			if (ShootBallW())
 			{			
@@ -331,6 +331,7 @@ void GoGoGo(float fLine)
 				carRun      = 1;
 				count = 300;
 			}
+				GPIO_SetBits(GPIOE,GPIO_Pin_7);
 			if(RunCamera())
 			{
 				count = 0;
@@ -1151,7 +1152,7 @@ Pose_t bestTra[20] = {0};
 
 int RunCamera(void)
 {
-	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1,border=0,porm=0,chuqu=0,edge[4]={0},cameratime=0;
+	static int    gone = 1, haveBall = 0, run = 0, ballAngle, traceH[10][10] = { 0 }, traceS[10][10] = { 0 }, stagger = 0, left = 1, right = 1, up = 1, down = 1,border=0,porm=0,chuqu=0,edge[4]={0},cameratime=0,blind=0;
 	static float  cameraX, cameraY;
 	int           finish = 0, circulate;
 	POSITION_T    basePoint;
@@ -1200,7 +1201,7 @@ int RunCamera(void)
 	{
 		case 1:
 		{
-			if (go)
+			if ( go && blind == 0)
 			{
 				go = 0;
 				if (arr_number == 0)
@@ -1210,6 +1211,7 @@ int RunCamera(void)
 				else
 				{
 					haveBall  = 1;
+					blind = 1;
 					if(bestAngle>0)
 					{
 						porm=1;
@@ -1224,6 +1226,12 @@ int RunCamera(void)
 					USART_OUT(UART5,(u8*)"bestangle %d\r\n",bestAngle);
 				}
 			}
+			
+			//判断是否已走过该区域，继续扫面下一个区域
+			if (P2P(cameraX, cameraY, Position_t.X, Position_t.Y) >= 1000 || Position_t.angle >= ballAngle + 25 || Position_t.angle <= ballAngle - 25)
+					blind = 0;
+			else
+					blind = 1;
 			
 			//到边界要拐弯了
 			if (fabs(Position_t.X) >= 1500 || Position_t.Y <= 900 || Position_t.Y >= 3900)
