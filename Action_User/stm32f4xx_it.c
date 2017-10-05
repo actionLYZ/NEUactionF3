@@ -487,6 +487,7 @@ void USART3_IRQHandler(void) //更新频率200Hz
 
 				//矫正角度
 				Position_t.angle = getPosition_t.angle - angleError;
+				USART_OUT(UART5,(u8*)"ZD   %d\t%d\r\n",(int)Position_t.angle,(int)angleError);
 				if (Position_t.angle > 180)
 					Position_t.angle -= 360;
 				if (Position_t.angle <= -180)

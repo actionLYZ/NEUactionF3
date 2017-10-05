@@ -284,7 +284,7 @@ void GoGoGo(float fLine)
 					}
 					case 3:
 					{
-						state = 6;
+						state = 7;
 					}
 					case 2:
 					{
@@ -721,6 +721,7 @@ int CheckPosition(void)
 			carRun = 0;
 		  int laserCheck = 0;
 		  laserCheck = LaserCheck();
+			USART_OUT(UART5,(u8*)"lasercheck%d\r\n",(int)laserCheck);
 			if (laserCheck == 1)
 			{
 				keepgo  = 1;
@@ -1096,7 +1097,6 @@ int CheckPosition(void)
 					}
 				}
 			}
-			USART_OUT(UART5,(u8*)"%d\r\n",(int)aimAngle);
 			break;
 		case 12:
 			carRun = 1;
@@ -1175,7 +1175,7 @@ int RunCamera(void)
 	POSITION_T    basePoint;
   cameraScheme = 1;
 	cameratime++;
-	if(cameratime>=6000)
+	if(cameratime>=4000)
 	{
 		finish = 1;
 	}
@@ -1571,12 +1571,12 @@ int LaserCheck(void)
 				if(right)
 				{
 					success = 1;
-					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetRight);
+					xError = (g_plan * getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetRight);
 				}
 				else if(left)
 				{
 					success = 1;
-					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (laserGetLeft - 2400);
+					xError = (g_plan * getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (laserGetLeft - 2400);
 				}
 				
 				//左右侧激光都有问题，则返回0
@@ -1590,7 +1590,7 @@ int LaserCheck(void)
 					success = 0;
 					//return 0;
 				}
-				yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError)));
+				yError      = (getPosition_t.Y * cos(Angel2PI(angleError)) - g_plan * getPosition_t.X * sin(Angel2PI(angleError)));
 				
 				//right left置1，为了下次激光矫正时left right 初始值为1
 				right = 1;
@@ -1603,7 +1603,7 @@ int LaserCheck(void)
 			else if (Position_t.angle < 135 && Position_t.angle > 45)
 			{
 				angleError  += Position_t.angle - 90;
-				xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - 64.65);
+				xError      = (g_plan * getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - 64.65);
 				
 				//逆时针用右激光
 				if(g_plan == 1)
@@ -1611,12 +1611,12 @@ int LaserCheck(void)
 					if(right)
 					{
 						success = 1;
-						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - laserGetRight);
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - g_plan * getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - laserGetRight);
 					}
 					else if(left)
 					{
 						success = 1;
-						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetLeft - 64.65);
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - g_plan * getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetLeft - 64.65);
 					}
 					else
 					{
@@ -1632,12 +1632,12 @@ int LaserCheck(void)
 					if(right)
 					{
 						success = 1;
-						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetRight - 64.65);
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - g_plan * getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetRight - 64.65);
 					}
 					else if(left)
 					{
 						success = 1;
-						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - laserGetLeft);
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - g_plan * getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 - laserGetLeft);
 					}
 					else
 					{
@@ -1662,12 +1662,12 @@ int LaserCheck(void)
 				if(right)
 				{
 					success = 1;
-					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (laserGetRight - 2400);
+					xError = (g_plan * getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (laserGetRight - 2400);
 				}
 				else if(left)
 				{
 					success = 1;
-					xError = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetLeft);
+					xError = (g_plan * getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (2400 - laserGetLeft);
 				}
 				else
 				{
@@ -1688,18 +1688,18 @@ int LaserCheck(void)
 			else
 			{
 				angleError  += Position_t.angle + 90;
-				xError      = (getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (-2400 + 64.65);
+				xError      = (g_plan * getPosition_t.X * cos(Angel2PI(angleError)) + getPosition_t.Y * sin(Angel2PI(angleError))) - g_plan * (-2400 + 64.65);
 				if(g_plan == 1)
 				{
 					if(right)
 					{
 						success = 1;
-						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetRight - 64.65);
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - g_plan * getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetRight - 64.65);
 					}
 					else if(left)
 					{
 						success = 1;
-						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 -laserGetLeft);
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - g_plan * getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 -laserGetLeft);
 					}
 					else
 					{
@@ -1715,12 +1715,12 @@ int LaserCheck(void)
 					if(right)
 					{
 						success = 1;
-						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 -laserGetRight);
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - g_plan * getPosition_t.X * sin(Angel2PI(angleError))) - (4800 - 64.65 -laserGetRight);
 					}
 					else if(left)
 					{
 						success = 1;
-						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetLeft - 64.65);
+						yError = (getPosition_t.Y * cos(Angel2PI(angleError)) - g_plan * getPosition_t.X * sin(Angel2PI(angleError))) - (laserGetLeft - 64.65);
 					}
 					else
 					{
