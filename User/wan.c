@@ -1182,8 +1182,24 @@ int ShootBallW(void)
 	//行程开关都触发，一直进行角度矫正
   if(SWITCHC0 == 1 && SWITCHE2 == 1)
 	{
-		side = JudgeSide();
-		
+		//靠的墙是Y=0
+		if (Position_t.angle < 45 && Position_t.angle > -45)
+		{
+			angleError += Position_t.angle;  //纠正角度坐标
+		}
+		else if (Position_t.angle < 135 && Position_t.angle > 45)
+		{
+			angleError  += Position_t.angle - 90;
+		}
+		else if (Position_t.angle > 135 || Position_t.angle < -135)
+		{
+			angleError  += Position_t.angle - 180;
+			angleError  = AvoidOverAngle(angleError);
+		}
+		else
+		{
+			angleError  += Position_t.angle + 90;
+		}
 	}
 	//计算投球点的坐标
 	posShoot  = ShootPointPos();

@@ -200,7 +200,7 @@ void WalkTask(void)
 		//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
-		ShootBallW(); 
+//		ShootBallW(); 
 //		RunWithCamera1(2);
 //		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 //		V = RealVel();
@@ -208,76 +208,76 @@ void WalkTask(void)
 		
 //		//普通避障
 //		POS_NOTE USART_OUT(UART5,(u8*)"TLY       %d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
-//		//普通避障
-//		if(ifEscape)
-//		{
-//			LOG_NOTE JudgeState("Start Escape");
-//			carRun = 0;
-//			
-//			//开始逃逸计时
-//			escapeCount = 1;
-//			
-//			//逃逸完成后，ifEscape清零
-//			if(Escape(100,120))
-//			{
-//				LOG_NOTE JudgeState("Escape Successful !!");
-//				ifEscape = 0;
-//			}
-//		}
-//		
-//		//连续撞击后切换到此模式，大幅度避障
-//		else if(ifEscape2)
-//		{
-//			carRun = 0;
-//			
-//			LOG_NOTE JudgeState("Start Bigger Escape !!");
-//			//更大幅度的避障
-//			if(Escape(120,160))
-//			{
-//				ifEscape2 = 0;
-//			}
-//		}
-//		else
-// 		{
-////			RunWithCamera1(2);
-//			GoGoGo(firstLine);
-//		}
-//		
-//		//开始逃逸计时
-//		if(escapeCount)
-//		{
-//			countTime++;
+		//普通避障
+		if(ifEscape)
+		{
+			LOG_NOTE JudgeState("Start Escape");
+			carRun = 0;
+			
+			//开始逃逸计时
+			escapeCount = 1;
+			
+			//逃逸完成后，ifEscape清零
+			if(Escape(100,120))
+			{
+				LOG_NOTE JudgeState("Escape Successful !!");
+				ifEscape = 0;
+			}
+		}
+		
+		//连续撞击后切换到此模式，大幅度避障
+		else if(ifEscape2)
+		{
+			carRun = 0;
+			
+			LOG_NOTE JudgeState("Start Bigger Escape !!");
+			//更大幅度的避障
+			if(Escape(120,160))
+			{
+				ifEscape2 = 0;
+			}
+		}
+		else
+ 		{
+//			RunWithCamera1(2);
+			GoGoGo(firstLine);
+		}
+		
+		//开始逃逸计时
+		if(escapeCount)
+		{
+			countTime++;
 
-//			//6s之内
-//			if(countTime < 600)
-//			{
-//				//撞击次数超过2次
-//				if(hitNum >= 2)
-//				{
-//					//ifEscape2置1，开启2阶段逃逸
-//					ifEscape2 = 1;
-//					ifEscape = 0;
-//				}
-//			}
-//			else
-//			{
-//				//各种清零
-//				escapeCount = 0;
-//				countTime = 0;
-//				hitNum = 0;
-//			}
-//		}
-//		
-//		//车跑时才判断是否被困
-//		if(carRun)
-//		{
-//			if (stuckCar(400,200))
-//			{
-//				//记录撞击次数
-//				hitNum++;
-//				ifEscape = 1;
-//			}
-//		}
+			//6s之内
+			if(countTime < 600)
+			{
+				//撞击次数超过2次
+				if(hitNum >= 2)
+				{
+					//ifEscape2置1，开启2阶段逃逸
+					ifEscape2 = 1;
+					ifEscape = 0;
+				}
+			}
+			else
+			{
+				//各种清零
+				escapeCount = 0;
+				countTime = 0;
+				hitNum = 0;
+			}
+		}
+		
+		//车跑时才判断是否被困
+		if(carRun)
+		{
+			if (stuckCar(400,200))
+			{
+				//记录撞击次数
+				hitNum++;
+				ifEscape = 1;
+			}
+		}
 	}
 }
 
