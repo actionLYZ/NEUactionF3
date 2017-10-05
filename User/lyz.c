@@ -31,6 +31,7 @@ extern float       firstLine;
 extern int ballNumber;
 extern int32_t     g_pushPosition;
 extern uint8_t     shootNum;  
+extern char g_carState[50];
 /*================================================函数定义区==============================================*/
 
 /*======================================================================================
@@ -38,14 +39,16 @@ extern uint8_t     shootNum;
    函数参数	：		即将进入的状态
 	 其他：当小车已经处于此状态时，不输出当前状态
    =======================================================================================*/
+
 void JudgeState(char state[])
 {
 	//如果当前状态不为state
-//	if(strcmp(g_carState,state))
+	if(strcmp(g_carState,state))
 	{
+		
 		USART_OUT(UART5,(u8*)"%s:\t%s\r\n",__TIME__,state);
 	}
-//	strcpy(g_carState,state);
+	strcpy(g_carState,state);
 }
 
 /*======================================================================================
