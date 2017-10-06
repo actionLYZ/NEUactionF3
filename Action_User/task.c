@@ -54,6 +54,7 @@ u16         firstLine = 0;            //记录第一圈的目标直线
 uint8_t     circleFlag = 0;           //画圆标志位
 uint8_t     shootNum = 0;             //记录射球的个数
 extern float             angleError, xError , yError ;
+float carDeVel = 0;
 void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);
 
@@ -94,43 +95,59 @@ void ConfigTask(void)
 	os_err = os_err;
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 
+	//蓝牙串口
+	UART5_Init(921600);
+
 	//1ms定时器用于控制WalkTask周期
+	LOG_NOTE JudgeState("TIM");
 	TIM_Init(TIM2, 99, 839, 0, 0);
+	LOG_NOTE JudgeState("adc");
 	AdcInit();            //初始化adc端口
+	LOG_NOTE JudgeState("beep");
 	BeepInit();           //初始化蜂鸣器端口
 //	BEEP_Init();
+	LOG_NOTE JudgeState("swtich");
 	LimitSwitch();        //行程开关初始化
+	LOG_NOTE JudgeState("Camera");
 	NumTypeInit();        //摄像头高低电平拉数据PE4 PE6初始化
+	LOG_NOTE JudgeState("kongzhika");
 	BufferZizeInit(400);  //控制卡初始化
+	LOG_NOTE JudgeState("Camerainit");
   CameraInit();
+	LOG_NOTE JudgeState("can");
 	//CAN初始化
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
 	CAN_Config(CAN2, 500, GPIOB, GPIO_Pin_5, GPIO_Pin_6);
 
+	LOG_NOTE JudgeState("USART1");
 	//射球转速
 	USART1_Init(115200);
 
+	LOG_NOTE JudgeState("USART2");
 	//树莓派
 	USART2_Init(115200);
 
+	LOG_NOTE JudgeState("USART3");
 	//坐标
 	USART3_Init(115200);
 
-	//蓝牙串口
-	UART5_Init(921600);
 
+	LOG_NOTE JudgeState("elmo");
 	//驱动器初始化
 	elmo_Init(CAN2);
 	elmo_Enable(CAN2, 1);
 	elmo_Enable(CAN2, 2);
 
 
+	LOG_NOTE JudgeState("Vel_cfg");
 	//收球电机初始化
 	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000, 50000);
 
+	LOG_NOTE JudgeState("VelCrl");
 	VelCrl(CAN2, 1, 0);
 	VelCrl(CAN2, 2, 0);
 	
+	LOG_NOTE JudgeState("Photoelectricity");
 	//光电门初始化
 	PhotoelectricityInit();
 
@@ -145,6 +162,7 @@ extern float blindTime;
 extern float photoElectricityCount;//球的数量
 extern float velocity;
 int test;
+int time1 = 0;
 /*******************************************************/
 
 
@@ -184,6 +202,9 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
+		
+		//获取车当前的速度
+		carDeVel = RealVel();
 //		USART_OUT(UART5,(u8*)"SWITCH %d\t%d\r\n",(int)SWITCHE2,(int)SWITCHC0);
 		rightlaser = Get_Adc_Average(RIGHT_LASER, 20);
 		leftlaser  = Get_Adc_Average(LEFT_LASER, 20);
@@ -206,8 +227,23 @@ void WalkTask(void)
 //		V = RealVel();
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
 		
-
-//		POS_NOTE USART_OUT(UART5,(u8*)"TLY       %d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
+	 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
+		if(carRun)
+		{
+			if(carDeVel < 50)
+			{
+				time1++;
+			}
+			else
+			{
+				time1 = 0;
+			}
+			if(time1 > 500)
+			{
+				time1 = 500;
+				ShootBallW();
+			}
+		}
 		//普通避障
 		if(ifEscape)
 		{
@@ -232,7 +268,7 @@ void WalkTask(void)
 			
 			LOG_NOTE JudgeState("Start Bigger Escape !!");
 			//更大幅度的避障
-			if(Escape(120,160))
+			if(Escape(80,140))
 			{
 				ifEscape2 = 0;
 			}
@@ -271,7 +307,7 @@ void WalkTask(void)
 		//车跑时才判断是否被困
 		if(carRun)
 		{
-			if (stuckCar(400,200))
+			if (stuckCar(200,200))
 			{
 				//记录撞击次数
 				hitNum++;

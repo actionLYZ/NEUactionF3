@@ -25,7 +25,7 @@ void JudgeState(char[]);																							//判断小车当前状态并输�
 #define STUCK_TIME      0.8                                         //判断卡住时长(s)
 #define FIRST_SPEED     1000                                        //第一圈速度
 #define RUN_SPEED       1500                                        //正常跑场速度
-#define FIR_ADV         1000                                         //first_advance:第一圈提前量
+#define FIR_ADV         1500                                         //first_advance:第一圈提前量
 #define ADV_TUEN        1200                                        //提前变向距离
 #define SPREAD_DIS      400                                         //扩散距离（每圈边长增大距离）
 #define CAMERA_DIS      700                                         //摄像头找球时扩散距离
@@ -37,7 +37,7 @@ void JudgeState(char[]);																							//判断小车当前状态并输�
 #define SWITCHE2        (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_2))  //PE2 行程开关
 #define SWITCHC0        (GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_0))  //PC0 行程开关
 #define SWITCHC2        (GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_2))  //PC2 行程开关
-#define LOG_NOTE						if(1)																		//日志注释if(1)为输出日志，if(0)为不输出日志
-#define POS_NOTE			   		if(0)																		//坐标注释
+#define LOG_NOTE						if(0)																		//日志注释if(1)为输出日志，if(0)为不输出日志
+#define POS_NOTE			   		if(1)																		//坐标注释
 #define DOCUMENT_NOTE				if(1)																		//将日志写入文件
 /*=====================================================结构体定义===================================================*/

@@ -564,21 +564,16 @@ void First_Scan(void)
    函数定义	  ：    将场地分成内外，用于逃逸
    函数参数	  ：    无
 
-   函数返回值  ：	  0代表内圈 1代表外圈（以逆时针看，顺时针倒过来）
+   函数返回值  ：	  
    =======================================================================================*/
 
 int In_Or_Out(void)
 {
 	int finish = 0;
   //USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y);
-	//内部区域
-	if (Position_t.X > -1200 && Position_t.X < 1200 && Position_t.Y > 1200 && Position_t.Y < 3600)
-	{
-			finish = 0;
-	}
 	
 	//一号区域
-	else if(Position_t.X > 1200 && Position_t.Y < 1200)
+  if(Position_t.X > 1200 && Position_t.Y < 1200)
 	{
 		finish = 1;
 	}
@@ -600,10 +595,25 @@ int In_Or_Out(void)
 	{
 		finish = 4;
 	}
-	
+	else if (Position_t.X >= -875 && Position_t.X <= 275 && Position_t.Y >= 1100 && Position_t.Y <= 1700)
+	{
+			finish = 5;
+	}
+	else if(Position_t.X > 275 && Position_t.X < 875 && Position_t.Y < 3035.35 && Position_t.Y > 1100)
+	{
+		finish = 6;
+	}
+	else if(Position_t.X > -275 && Position_t.X < 875 && Position_t.Y > 3035.35 && Position_t.Y < 3635.35)
+	{
+		finish = 7;
+	}
+	else if(Position_t.X > -875 && Position_t.X < -275 && Position_t.Y > 1100 && Position_t.Y < 3035.35)
+	{
+		finish = 8;
+	}
 	else
 	{
-			finish = -1;
+			finish = 9;
 	}
 	return finish;
 }
@@ -892,7 +902,7 @@ int RunEdge(void)
 
   if(!ifEscape)
 	{
-		if(Position_t.X>=1300&&Position_t.Y<=1100)
+		if(Position_t.X>=1200&&Position_t.Y<=1200)
 		{
 			if(zone!=1)
 			{
@@ -900,11 +910,11 @@ int RunEdge(void)
 			}
 			zone=1;
 		}
-		else if(Position_t.Y>1100&Position_t.Y<3700&&(Position_t.Y-Position_t.X-2400)<0&&(Position_t.Y+Position_t.X-2400)>=0)
+		else if(Position_t.Y>1200&Position_t.Y<3600&&(Position_t.Y-Position_t.X-2400)<0&&(Position_t.Y+Position_t.X-2400)>=0)
 		{
 			zone=2;
 		}
-		else if(Position_t.X>=1300&&Position_t.Y>=3700)
+		else if(Position_t.X>=1200&&Position_t.Y>=3600)
 		{
 			if(zone!=3)
 			{
@@ -912,11 +922,11 @@ int RunEdge(void)
 			}
 			zone=3;
 		}
-		else if(Position_t.X<1300&&Position_t.X>-1300&&(Position_t.Y-Position_t.X-2400)>=0&&(Position_t.Y+Position_t.X-2400)>0)
+		else if(Position_t.X<1200&&Position_t.X>-1200&&(Position_t.Y-Position_t.X-2400)>=0&&(Position_t.Y+Position_t.X-2400)>0)
 		{
 			zone=4;
 		}
-		else if(Position_t.X<=-1300&&Position_t.Y>=3700)
+		else if(Position_t.X<=-1200&&Position_t.Y>=3600)
 		{
 			if(zone!=5)
 			{
@@ -924,11 +934,11 @@ int RunEdge(void)
 			}
 			zone=5;
 		}
-		else if(Position_t.Y>1100&Position_t.Y<3700&&(Position_t.Y-Position_t.X-2400)>0&&(Position_t.Y+Position_t.X-2400)<=0)
+		else if(Position_t.Y>1200&Position_t.Y<3600&&(Position_t.Y-Position_t.X-2400)>0&&(Position_t.Y+Position_t.X-2400)<=0)
 		{
 			zone=6;
 		}
-		else if(Position_t.X<=-1300&&Position_t.Y<=1100)
+		else if(Position_t.X<=-1200&&Position_t.Y<=1200)
 		{
 			if(zone!=7)
 			{
@@ -936,18 +946,23 @@ int RunEdge(void)
 			}
 			zone=7;
 		}
-		else if(Position_t.X<1100&&Position_t.X>-1100&&(Position_t.Y-Position_t.X-2400)<=0&&(Position_t.Y+Position_t.X-2400)<0)
+		else if(Position_t.X<1200&&Position_t.X>-1200&&(Position_t.Y-Position_t.X-2400)<=0&&(Position_t.Y+Position_t.X-2400)<0)
 		{
 			zone=8;
 		}
-		if(sideTimes>=5)
+
+	}
+		if(sideTimes>=4)
 		{
-			zone = 0;
+			if(Position_t.X>-500)
+			{
+							zone = 0;
 			sideTimes = 0;
 			avoidBack=0;
 			finish = 1;
-		}
-	}
+			}
+
+		}	
   if(sideTimes==0&&avoidBack==0)
 	{
 		if(g_plan==1)
@@ -1038,19 +1053,19 @@ int RunEdge(void)
 			{
         case 1:
 				{
-					ClLineAngle(0,1300);
+					ClLineAngle(0,1000);
 				}break;
 				case 3:
 				{
-					ClLineAngle(90,1300);
+					ClLineAngle(90,1000);
 				}break;
 				case 5:
 				{
-					ClLineAngle(180,1300);
+					ClLineAngle(180,1000);
 				}break;
 				case 7:
 				{
-					ClLineAngle(-90,1300);
+					ClLineAngle(-90,1000);
 				}break;
 				
 				case 2:
@@ -1065,12 +1080,12 @@ int RunEdge(void)
 
 				case 6:
 				{
-					ClLine(-2155, 0, 176, 1500);
+					ClLine(-2355, 0, 176, 1500);
 				} break;
 
 				case 8:
 				{
-					ClLine(0, 245-POSYSTEM_TO_BACK, -94, 1500);
+					ClLine(0, 100-POSYSTEM_TO_BACK, -94, 1500);
 				} break;
 				
 				default:
@@ -1083,6 +1098,8 @@ int RunEdge(void)
 	POS_NOTE USART_OUT(UART5,(u8*)"edge %d\t%d\t%d\t\r\n",zone,sideTimes,avoidBack);
 	return finish;
 }
+
+
 /*======================================================================================
    函数定义	  ：    计算判断球是否在车身范围内，就可以直接直走
    函数参数	  ：    di      球离摄像头的距离

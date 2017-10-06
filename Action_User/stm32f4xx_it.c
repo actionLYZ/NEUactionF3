@@ -67,6 +67,7 @@ extern int32_t     g_rightPulse ;
 extern int32_t     g_leftPulse ;
 extern int32_t     g_collectVel;
 extern int32_t     g_pushPosition;
+extern float carDeVel;
 int               shootStart = 0, ballColor = 0,youqiu=0;
 int32_t g_gather;
 
@@ -239,7 +240,7 @@ void TIM2_IRQHandler(void)
 			if(blindTime > 0)
 			{
 				photoElectricityCount += (int)((blindTime * RealVel() / 1000) / 35) + 0.7;
-				velocity = RealVel();
+				carDeVel = RealVel();
 			}
 			blindTime = 0;
 		}
@@ -487,7 +488,6 @@ void USART3_IRQHandler(void) //更新频率200Hz
 
 				//矫正角度
 				Position_t.angle = getPosition_t.angle - angleError;
-				POS_NOTE USART_OUT(UART5,(u8*)"ZD   %d\t%d\r\n",(int)Position_t.angle,(int)angleError);
 				if (Position_t.angle > 180)
 					Position_t.angle -= 360;
 				if (Position_t.angle <= -180)
