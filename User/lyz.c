@@ -34,6 +34,7 @@ extern int32_t     g_pushPosition;
 extern uint8_t     shootNum;  
 static bool ifPrintPositionCheck = true;
 extern char g_carState[50];
+int leftfirst=2400,rightfirst=2400;
 /*================================================函数定义区==============================================*/
 
 /*======================================================================================
@@ -53,6 +54,8 @@ void JudgeState(char state[])
 	strcpy(g_carState,state);
 }
 
+
+
 /*======================================================================================
    函数定义	：		通过激光判断是否开始
    函数参数	：		无
@@ -66,18 +69,51 @@ int IfStart(void)
 	right = Get_Adc_Average(RIGHT_LASER, 30);
 	left = Get_Adc_Average(LEFT_LASER, 30);
 //	USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
-	if (right < 2000)     //右侧激光触发
+	if((leftfirst+rightfirst)>=4700)
 	{
-		return 1;
+		if (right < 2000)     //右侧激光触发
+		{
+			return 1;
+		}
+			
+		else if (left < 2000) //左侧激光触发
+		{
+			return 1;
+		}
+			
+		else
+			return 0;		
 	}
-		
-	else if (left < 2000) //左侧激光触发
+	else if((leftfirst+rightfirst)<4700&&leftfirst<700)
 	{
-		return -1;
+		if (right < 2000)     //右侧激光触发
+		{
+			return 1;
+		}
+			
+		else
+			return 0;				
 	}
-		
-	else
-		return 0;
+	else if((leftfirst+rightfirst)<4700&&rightfirst<700)
+	{
+		if (left < 2000)     //右侧激光触发
+		{
+			return 1;
+		}
+			
+		else
+			return 0;				
+	}  
+	else if((leftfirst+rightfirst)<4700&&leftfirst<700&&rightfirst<700)
+	{
+		if (SWITCHE2 == 1 || SWITCHC0 == 1)     
+		{
+			return 1;
+		}
+			
+		else
+			return 0;						
+	}
 }
 
 /*======================================================================================
@@ -180,7 +216,7 @@ extern int carRun,fighting;
    =======================================================================================*/
 void GoGoGo(float fLine)
 {
-	static int  state = 6, shootTime = 1, count = 0,full=0; //应该执行的状态
+	static int  state = 1, shootTime = 1, count = 0,full=0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
 	static int32_t lastPosition = 0, notMove = 0;
 
@@ -221,19 +257,19 @@ void GoGoGo(float fLine)
 		{
 			LOG_NOTE JudgeState("Circle running....");//向外扩散扫场
 			carRun = 1;
-	//		if (RunRectangle(length, wide, RUN_SPEED))
-	//		{
-	//			//逐渐增加长方形跑场参数
-	//			length  += SPREAD_DIS;
-	//			wide    += SPREAD_DIS;
-	//			if (length >= 1700 - WIDTH / 2 - 100)
-	//				length = 1700 - WIDTH / 2 - 100;
-	//			if (wide >= 2125 - WIDTH / 2 - 100)
-	//				wide = 2125 - WIDTH / 2 - 100;
-	//		}
-	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(2000, 900, 3, 1))
-				state = 3;
+			if (RunRectangle(length, wide, RUN_SPEED))
+			{
+				//逐渐增加长方形跑场参数
+				length  += SPREAD_DIS;
+				wide    += SPREAD_DIS;
+				if (length >= 1700 - WIDTH / 2 - 100)
+					length = 1700 - WIDTH / 2 - 100;
+				if (wide >= 2125 - WIDTH / 2 - 100)
+					wide = 2125 - WIDTH / 2 - 100;
+			}
+			if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
+				//if(sweepYuan(2000, 900, 3, 1))
+					state = 3;
 		}
 		break;
 		
@@ -263,21 +299,21 @@ void GoGoGo(float fLine)
 			carRun      = 0;
 			shootStart  = 1;
 			
-//			//检测是否被卡死
-//			if(abs(g_pushPosition - lastPosition) < 10)
-//			{
-//				notMove++;
-//			}
-//			else
-//			{
-//				notMove = 0;
-//			}
-//			
-//			//6s不动，切换下一状态
-//			if (notMove > 600)
-//			{
-//				state = 7;
-//			}
+			//检测是否被卡死
+			if(abs(g_pushPosition - lastPosition) < 10)
+			{
+				notMove++;
+			}
+			else
+			{
+				notMove = 0;
+			}
+			
+			//6s不动，切换下一状态
+			if (notMove > 600)
+			{
+				state = 6;
+			}
 
 			if (ShootBallW())
 			{			
@@ -1203,7 +1239,7 @@ int RunCamera(void)
   g_plan=1;
 	
 	//一环连一环 上部分是偶数则加一 下部分是奇数则加一 让stagger(错开)等于一
-	if (Position_t.Y < 1700)
+	if (Position_t.Y < 2400)
 	{
 		if (((int)(run / 2) + (int)(run / 2)) != run)
 		{
@@ -1211,7 +1247,7 @@ int RunCamera(void)
 			stagger = 1;
 		}
 	}
-	if (Position_t.Y > 3100)
+	if (Position_t.Y > 2400)
 	{
 		if (((int)(run / 2) + (int)(run / 2)) == run)
 			run++;
@@ -1261,7 +1297,7 @@ int RunCamera(void)
 					cameraX   = Position_t.X - CAMERATOGYRO * sin(Position_t.angle);
 					cameraY   = Position_t.Y + CAMERATOGYRO * cos(Position_t.angle);
 					ballAngle = AvoidOverAngle(Position_t.angle + bestAngle);
-					 USART_OUT(UART5,(u8*)"bestangle %d\r\n",bestAngle);
+					USART_OUT(UART5,(u8*)"bestangle %d\r\n",bestAngle);
 				}
 			}
 			

@@ -480,7 +480,7 @@ PolarCoo_t Closer_Point(int8_t a[20], uint8_t b[20], int sum)
 	}
 	else if(Y>=600&&Y<1700)
 	{
-		while ((Y - (o+1) * 480) > 160)
+		while ((Y - (o+1) * 400) > 160)
 			o++;
 	}
   else if(Y>=1700&&Y<3240)
@@ -892,7 +892,7 @@ int RunEdge(void)
 
   if(!ifEscape)
 	{
-		if(Position_t.X>=1500&&Position_t.Y<=900)
+		if(Position_t.X>=1200&&Position_t.Y<=1200)
 		{
 			if(zone!=1)
 			{
@@ -900,11 +900,11 @@ int RunEdge(void)
 			}
 			zone=1;
 		}
-		else if(Position_t.Y>900&Position_t.Y<3900&&(Position_t.Y-Position_t.X-2400)<0&&(Position_t.Y+Position_t.X-2400)>=0)
+		else if(Position_t.Y>1200&Position_t.Y<3600&&(Position_t.Y-Position_t.X-2400)<0&&(Position_t.Y+Position_t.X-2400)>=0)
 		{
 			zone=2;
 		}
-		else if(Position_t.X>=1500&&Position_t.Y>=3900)
+		else if(Position_t.X>=1200&&Position_t.Y>=3600)
 		{
 			if(zone!=3)
 			{
@@ -912,11 +912,11 @@ int RunEdge(void)
 			}
 			zone=3;
 		}
-		else if(Position_t.X<1500&&Position_t.X>-1500&&(Position_t.Y-Position_t.X-2400)>=0&&(Position_t.Y+Position_t.X-2400)>0)
+		else if(Position_t.X<1200&&Position_t.X>-1200&&(Position_t.Y-Position_t.X-2400)>=0&&(Position_t.Y+Position_t.X-2400)>0)
 		{
 			zone=4;
 		}
-		else if(Position_t.X<=-1500&&Position_t.Y>=3900)
+		else if(Position_t.X<=-1200&&Position_t.Y>=3600)
 		{
 			if(zone!=5)
 			{
@@ -924,11 +924,11 @@ int RunEdge(void)
 			}
 			zone=5;
 		}
-		else if(Position_t.Y>900&Position_t.Y<3900&&(Position_t.Y-Position_t.X-2400)>0&&(Position_t.Y+Position_t.X-2400)<=0)
+		else if(Position_t.Y>1200&Position_t.Y<3600&&(Position_t.Y-Position_t.X-2400)>0&&(Position_t.Y+Position_t.X-2400)<=0)
 		{
 			zone=6;
 		}
-		else if(Position_t.X<=-1500&&Position_t.Y<=900)
+		else if(Position_t.X<=-1200&&Position_t.Y<=1200)
 		{
 			if(zone!=7)
 			{
@@ -936,7 +936,7 @@ int RunEdge(void)
 			}
 			zone=7;
 		}
-		else if(Position_t.X<1500&&Position_t.X>-1500&&(Position_t.Y-Position_t.X-2400)<=0&&(Position_t.Y+Position_t.X-2400)<0)
+		else if(Position_t.X<1200&&Position_t.X>-1200&&(Position_t.Y-Position_t.X-2400)<=0&&(Position_t.Y+Position_t.X-2400)<0)
 		{
 			zone=8;
 		}
@@ -1056,22 +1056,22 @@ int RunEdge(void)
 				
 				case 2:
 				{
-					ClLine(2155, 0, -4, 1200);
+					ClLine(2155, 0, -4, 1500);
 				} break;
 
 				case 4:
 				{
-					ClLine(0, 4555-POSYSTEM_TO_BACK, 86, 1200);
+					ClLine(0, 4555-POSYSTEM_TO_BACK, 86, 1500);
 				} break;
 
 				case 6:
 				{
-					ClLine(-2255, 0, 176, 1200);
+					ClLine(-2355, 0, 176, 1500);
 				} break;
 
 				case 8:
 				{
-					ClLine(0, 200-POSYSTEM_TO_BACK, -94, 1200);
+					ClLine(0, 100-POSYSTEM_TO_BACK, -94, 1500);
 				} break;
 				
 				default:

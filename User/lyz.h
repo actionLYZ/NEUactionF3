@@ -23,9 +23,9 @@ void JudgeState(char[]);																							//判断当前小车状态
 /*=====================================================宏定义区域===================================================*/
 #define STUCK_TIME      0.8                                         //判断卡住时长(s)
 #define FIRST_SPEED     1000                                        //第一圈速度
-#define RUN_SPEED       1500                                        //正常跑场速度
+#define RUN_SPEED       2000                                        //正常跑场速度
 #define FIR_ADV         1000                                         //first_advance:第一圈提前量
-#define ADV_TUEN        1200                                        //提前变向距离
+#define ADV_TUEN        1800                                        //提前变向距离
 #define SPREAD_DIS      400                                         //扩散距离（每圈边长增大距离）
 #define CAMERA_DIS      700                                         //摄像头找球时扩散距离
 #define RIGHT_LASER     14                                          //右侧激光信道

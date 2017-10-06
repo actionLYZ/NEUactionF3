@@ -209,6 +209,7 @@ void CAN1_RX0_IRQHandler(void)
 float blindTime = 0.0f;
 float photoElectricityCount = 0.0f;//球的数量
 float velocity = 0;
+int waitTime=0,stopcount=0;
 /**********************************/
 
 extern OS_EVENT *PeriodSem;
@@ -226,6 +227,13 @@ void TIM2_IRQHandler(void)
 
 	if (TIM_GetITStatus(TIM2, TIM_IT_Update) == SET)
 	{
+		//
+		waitTime++;
+		if(stopcount==1)
+		{
+       waitTime=0;
+		}	
+		
 		//实现10ms 发送1次信号量
 		
 		//光电门数球

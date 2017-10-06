@@ -144,7 +144,9 @@ int carRun = 0, ifEscape = 0, countTime = 0, ifEscape2 = 0,leftlaser=2400,rightl
 extern float blindTime;
 extern float photoElectricityCount;//球的数量
 extern float velocity;
+extern int leftfirst,rightfirst;
 int test=0;
+extern int waitTime,stopcount;
 /*******************************************************/
 
 
@@ -159,7 +161,13 @@ void WalkTask(void)
 		GPIO_SetBits(GPIOE, GPIO_Pin_1);
 		GPIO_ResetBits(GPIOE, GPIO_Pin_0);
 		g_cameraPlan = 2;
-
+	
+	//
+		rightfirst = Get_Adc_Average(RIGHT_LASER, 100);
+		leftfirst  = Get_Adc_Average(LEFT_LASER, 100);
+	  
+   stopcount=1;
+	
 	//延时，稳定定位系统
 	delay_s(12);
 	LOG_NOTE JudgeState("Init CollectBallVelCtr Shoot structure....");
@@ -168,6 +176,7 @@ void WalkTask(void)
 	delay_s(3);	
 	ShootCtr(70);
 
+  stopcount=0;
 //	//鸣笛
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
 	LOG_NOTE JudgeState("Waiting for Laser break....");
@@ -189,7 +198,7 @@ void WalkTask(void)
 		{
 			triggertime++;
 		}
-		if(triggertime>=200)
+		if(triggertime>=300)
 		{
 			fighting=1;
 		}
@@ -205,7 +214,7 @@ void WalkTask(void)
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
 		
 		//普通避障
-		POS_NOTE USART_OUT(UART5,(u8*)"TLY%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+		 USART_OUT(UART5,(u8*)"TLY%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 //普通避障
 		if(ifEscape)
 		{
@@ -216,7 +225,7 @@ void WalkTask(void)
 			escapeCount = 1;
 			
 			//逃逸完成后，ifEscape清零
-			if(Escape(100,120))
+			if(Escape(80,100))
 			{
 				LOG_NOTE JudgeState("Escape Successful !!");
 				ifEscape = 0;
@@ -230,7 +239,7 @@ void WalkTask(void)
 			
 			LOG_NOTE JudgeState("Start Bigger Escape !!");
 			//更大幅度的避障
-			if(Escape(120,160))
+			if(Escape(100,130))
 			{
 				ifEscape2 = 0;
 			}
