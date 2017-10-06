@@ -29,7 +29,7 @@ static OS_STK WalkTaskStk[Walk_TASK_STK_SIZE];
 /*=====================================================全局变量声明===================================================*/
 
 //uint8_t g_camera = 0;					     //摄像头收到的数
-char				g_carState[50] = "";			//存储小车当前状态
+char g_carState[50] = "";							//存储小车状态
 int8_t      g_cameraAng[50] = { 0 };  //存储摄像头接受到的角度
 uint8_t     g_cameraDis[50] = { 0 };  //存储摄像头接受到的距离
 int8_t      g_cameraFin     = 0;      //摄像头接收到0xc9置1
@@ -54,6 +54,7 @@ u16         firstLine = 0;            //记录第一圈的目标直线
 uint8_t     circleFlag = 0;           //画圆标志位
 uint8_t     shootNum = 0;             //记录射球的个数
 extern float             angleError, xError , yError ;
+float carDeVel = 0;
 void TwoWheelVelControl(float vel, float rotateVel);
 float TwoWheelAngleControl(float targetAng);
 
@@ -94,43 +95,59 @@ void ConfigTask(void)
 	os_err = os_err;
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 
+	//蓝牙串口
+	UART5_Init(921600);
+
 	//1ms定时器用于控制WalkTask周期
+	LOG_NOTE JudgeState("TIM");
 	TIM_Init(TIM2, 99, 839, 0, 0);
+	LOG_NOTE JudgeState("adc");
 	AdcInit();            //初始化adc端口
+	LOG_NOTE JudgeState("beep");
 	BeepInit();           //初始化蜂鸣器端口
 //	BEEP_Init();
+	LOG_NOTE JudgeState("swtich");
 	LimitSwitch();        //行程开关初始化
+	LOG_NOTE JudgeState("Camera");
 	NumTypeInit();        //摄像头高低电平拉数据PE4 PE6初始化
+	LOG_NOTE JudgeState("kongzhika");
 	BufferZizeInit(400);  //控制卡初始化
+	LOG_NOTE JudgeState("Camerainit");
   CameraInit();
+	LOG_NOTE JudgeState("can");
 	//CAN初始化
 	CAN_Config(CAN1, 500, GPIOB, GPIO_Pin_8, GPIO_Pin_9);
 	CAN_Config(CAN2, 500, GPIOB, GPIO_Pin_5, GPIO_Pin_6);
 
+	LOG_NOTE JudgeState("USART1");
 	//射球转速
 	USART1_Init(115200);
 
+	LOG_NOTE JudgeState("USART2");
 	//树莓派
 	USART2_Init(115200);
 
+	LOG_NOTE JudgeState("USART3");
 	//坐标
 	USART3_Init(115200);
 
-	//蓝牙串口
-	UART5_Init(921600);
 
+	LOG_NOTE JudgeState("elmo");
 	//驱动器初始化
 	elmo_Init(CAN2);
 	elmo_Enable(CAN2, 1);
 	elmo_Enable(CAN2, 2);
 
 
+	LOG_NOTE JudgeState("Vel_cfg");
 	//收球电机初始化
 	Vel_cfg(CAN1, COLLECT_BALL_ID, 50000, 50000);
 
+	LOG_NOTE JudgeState("VelCrl");
 	VelCrl(CAN2, 1, 0);
 	VelCrl(CAN2, 2, 0);
 	
+	LOG_NOTE JudgeState("Photoelectricity");
 	//光电门初始化
 	PhotoelectricityInit();
 
@@ -147,6 +164,7 @@ extern float velocity;
 extern int leftfirst,rightfirst;
 int test=0;
 extern int waitTime,stopcount;
+int time1 = 0;
 /*******************************************************/
 
 
@@ -171,7 +189,7 @@ void WalkTask(void)
 	//延时，稳定定位系统
 	delay_s(12);
 	LOG_NOTE JudgeState("Init CollectBallVelCtr Shoot structure....");
-	//棍子，发射机构的初始速度
+	//棍子，发射机构的初始速度。
 	CollectBallVelCtr(60);
 	delay_s(3);	
 	ShootCtr(70);
@@ -180,6 +198,7 @@ void WalkTask(void)
 //	//鸣笛
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
 	LOG_NOTE JudgeState("Waiting for Laser break....");
+	
 	//激光触发
   firstLine = LaserTrigger();
 	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)g_plan,(int)firstLine);
@@ -192,6 +211,10 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
+		
+		//获取车当前的速度
+		carDeVel = RealVel();
+//		USART_OUT(UART5,(u8*)"SWITCH %d\t%d\r\n",(int)SWITCHE2,(int)SWITCHC0);
 		rightlaser = Get_Adc_Average(RIGHT_LASER, 20);
 		leftlaser  = Get_Adc_Average(LEFT_LASER, 20);
 		if(leftlaser<1000||rightlaser<1000)
@@ -203,7 +226,7 @@ void WalkTask(void)
 			fighting=1;
 		}
 //    USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
-		CountBall();
+//		CountBall();
 		//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
@@ -213,9 +236,25 @@ void WalkTask(void)
 //		V = RealVel();
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
 		
+	 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
+		if(carRun)
+		{
+			if(carDeVel < 50)
+			{
+				time1++;
+			}
+			else
+			{
+				time1 = 0;
+			}
+			if(time1 > 500)
+			{
+				time1 = 500;
+				ShootBallW();
+			}
+		}
 		//普通避障
 		 USART_OUT(UART5,(u8*)"TLY%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
-//普通避障
 		if(ifEscape)
 		{
 			LOG_NOTE JudgeState("Start Escape");
@@ -239,7 +278,7 @@ void WalkTask(void)
 			
 			LOG_NOTE JudgeState("Start Bigger Escape !!");
 			//更大幅度的避障
-			if(Escape(100,130))
+			if(Escape(80,140))
 			{
 				ifEscape2 = 0;
 			}
@@ -292,9 +331,6 @@ void WalkTask(void)
 				ifEscape = 1;
 			}
 		}
-
-	
-
 	}
 }
 

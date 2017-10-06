@@ -564,21 +564,16 @@ void First_Scan(void)
    函数定义	  ：    将场地分成内外，用于逃逸
    函数参数	  ：    无
 
-   函数返回值  ：	  0代表内圈 1代表外圈（以逆时针看，顺时针倒过来）
+   函数返回值  ：	  
    =======================================================================================*/
 
 int In_Or_Out(void)
 {
 	int finish = 0;
   //USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y);
-	//内部区域
-	if (Position_t.X > -1200 && Position_t.X < 1200 && Position_t.Y > 1200 && Position_t.Y < 3600)
-	{
-			finish = 0;
-	}
 	
 	//一号区域
-	else if(Position_t.X > 1200 && Position_t.Y < 1200)
+  if(Position_t.X > 1200 && Position_t.Y < 1200)
 	{
 		finish = 1;
 	}
@@ -600,10 +595,25 @@ int In_Or_Out(void)
 	{
 		finish = 4;
 	}
-	
+	else if (Position_t.X >= -875 && Position_t.X <= 275 && Position_t.Y >= 1100 && Position_t.Y <= 1700)
+	{
+			finish = 5;
+	}
+	else if(Position_t.X > 275 && Position_t.X < 875 && Position_t.Y < 3035.35 && Position_t.Y > 1100)
+	{
+		finish = 6;
+	}
+	else if(Position_t.X > -275 && Position_t.X < 875 && Position_t.Y > 3035.35 && Position_t.Y < 3635.35)
+	{
+		finish = 7;
+	}
+	else if(Position_t.X > -875 && Position_t.X < -275 && Position_t.Y > 1100 && Position_t.Y < 3035.35)
+	{
+		finish = 8;
+	}
 	else
 	{
-			finish = -1;
+			finish = 9;
 	}
 	return finish;
 }
@@ -942,12 +952,16 @@ int RunEdge(void)
 		}
 
 	}
-		if(sideTimes>=5)
+		if(sideTimes>=4)
 		{
-			zone = 0;
+			if(Position_t.X>-500)
+			{
+							zone = 0;
 			sideTimes = 0;
 			avoidBack=0;
 			finish = 1;
+			}
+
 		}	
   if(sideTimes==0&&avoidBack==0)
 	{
@@ -1084,6 +1098,8 @@ int RunEdge(void)
 	POS_NOTE USART_OUT(UART5,(u8*)"edge %d\t%d\t%d\t\r\n",zone,sideTimes,avoidBack);
 	return finish;
 }
+
+
 /*======================================================================================
    函数定义	  ：    计算判断球是否在车身范围内，就可以直接直走
    函数参数	  ：    di      球离摄像头的距离

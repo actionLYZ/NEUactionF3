@@ -158,7 +158,7 @@ int RunWithCamera2(void);
 bool FirstRoundW(void);
 
 //长方形扫场(第二套长方形方案,回字形中轴线不在X=0上)
-bool RunRectangleW(int length, int wide, float speed);
+bool RunRectangleW(int length, int wide,float firstLine);
 
 //通过陀螺仪的坐标计算右车头的坐标(顺时针跑场)
 POSXY_T RightHeadPos(void);
