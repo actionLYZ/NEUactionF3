@@ -163,7 +163,7 @@ extern float photoElectricityCount;//球的数量
 extern float velocity;
 extern int leftfirst,rightfirst;
 extern int waitTime,stopcount;
-int time1 = 0;
+int time1 = 0,test=0;
 extern int fullTime,begin2time;
 extern int changeState;
 /*******************************************************/
@@ -182,13 +182,14 @@ void WalkTask(void)
 		g_cameraPlan = 2;
 	
 	//
-		rightfirst = Get_Adc_Average(RIGHT_LASER, 100);
-		leftfirst  = Get_Adc_Average(LEFT_LASER, 100);
+
 	  
    stopcount=1;
 	
 	//延时，稳定定位系统
 	delay_s(12);
+	rightfirst = Get_Adc_Average(RIGHT_LASER, 100);
+	leftfirst  = Get_Adc_Average(LEFT_LASER, 100);
 	LOG_NOTE JudgeState("Init CollectBallVelCtr Shoot structure....");
 	//棍子，发射机构的初始速度。
 	CollectBallVelCtr(60);
@@ -228,7 +229,7 @@ void WalkTask(void)
 			fighting=1;
 		}
 //    USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
-//		CountBall();
+		CountBall();
 		//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
@@ -287,15 +288,24 @@ void WalkTask(void)
 		}
 		else
  		{
-			GoGoGo(firstLine,1);
-			if(fullTime>=150000)
-		  {
-			  GoGoGo(firstLine,4);
-				if(fullTime>=150000&&fullTime<=150100)
-				{
-					changeState=1;
-				}
-		  }
+//			GoGoGo(firstLine,1);
+//			if(fullTime>=160000)
+//		  {				
+//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
+//				if(fullTime>=160000&&fullTime<=160100)
+//				{
+//					changeState=1;
+//				}
+//			  GoGoGo(firstLine,4);
+
+//		  }
+			 test++;
+       RunEdge();
+			 if(test>=300)
+			 {
+			 	carRun=1;
+			 	test=0;
+			 }
 		}
 		
 		//开始逃逸计时

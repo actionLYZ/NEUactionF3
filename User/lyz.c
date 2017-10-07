@@ -73,12 +73,12 @@ int IfStart(void)
 	USART_OUT(UART5,(u8*)"r %d\tl %d\r\n",(int)right,(int)left);
 	if((leftfirst+rightfirst)>=4700)
 	{
-		if (right < 2000)     //右侧激光触发
+		if (right < 1000)     //右侧激光触发
 		{
 			return 1;
 		}
 			
-		else if (left < 2000) //左侧激光触发
+		else if (left < 1000) //左侧激光触发
 		{
 			return 1;
 		}
@@ -88,7 +88,7 @@ int IfStart(void)
 	}
 	else if((leftfirst+rightfirst)<4700&&leftfirst<700)
 	{
-		if (right < 2000)     //右侧激光触发
+		if (right < 1000)     //右侧激光触发
 		{
 			return 1;
 		}
@@ -98,7 +98,7 @@ int IfStart(void)
 	}
 	else if((leftfirst+rightfirst)<4700&&rightfirst<700)
 	{
-		if (left < 2000)     //右侧激光触发
+		if (left < 1000)     //右侧激光触发
 		{
 			return 1;
 		}
@@ -231,7 +231,9 @@ void GoGoGo(float fLine,int stat)
 	if(changeState==1)
 	{
 		changeState=0;
+		shootTime=0;
 		state = stat;
+		USART_OUT(UART5,(u8*)"changestate:%d\r\n",stat);
 	}
 	
 	switch (state)
@@ -385,7 +387,11 @@ void GoGoGo(float fLine,int stat)
 						state = 7;
 					break;						
 					
-				default: break;
+					default: 
+					{
+						state = 6;
+					}
+					break;
 				}
 	       
 				//球数等于进的减去射出去的

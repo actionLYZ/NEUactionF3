@@ -1061,7 +1061,7 @@ int RunEdge(void)
 				}break;
 				case 5:
 				{
-					ClLineAngle(180,1000);
+					ClLineAngle(180,1200);
 				}break;
 				case 7:
 				{
@@ -1080,7 +1080,7 @@ int RunEdge(void)
 
 				case 6:
 				{
-					ClLine(-2355, 0, 176, 1500);
+					ClLine(-2355, 0, 176, 1600);
 				} break;
 
 				case 8:
