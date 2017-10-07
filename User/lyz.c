@@ -534,7 +534,7 @@ bool FirstRound(float firstLine)
 		case 1:
 		{
 			StaightCLose(firstLine, 0, 0, speed);
-			if (Position_t.Y >= 3100 + WIDTH / 2 - advance)
+			if (Position_t.Y >= 3100 + WIDTH / 2 - FIR_ADV)
         state = 2;
 		} break;
 

@@ -242,6 +242,7 @@ void WalkTask(void)
 //		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int))
 		USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)carDeVel,(int)time1);
 
+		  
 			if(carDeVel < 500)
 			{
 				time1++;
@@ -291,7 +292,7 @@ void WalkTask(void)
 			GoGoGo(firstLine,1);
 			if(fullTime>=160000)
 		  {				
-				GPIO_SetBits(GPIOE,GPIO_Pin_7);
+//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
 				if(fullTime>=160000&&fullTime<=160100)
 				{
 					changeState=1;
