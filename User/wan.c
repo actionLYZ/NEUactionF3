@@ -1747,7 +1747,7 @@ int AfterCircle(uint16_t speed)
 			break;
 		case 3:
 			StaightCLose(0, 400, -90, speed);
-			if(Position_t.X > 1200)
+			if(Position_t.X > -400)
 			{
 				step = 5;
 				success = 1;
