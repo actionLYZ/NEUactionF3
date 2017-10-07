@@ -1013,10 +1013,10 @@ int RunEdge(void)
 		{
 			if(Position_t.X>-500)
 			{
-							zone = 0;
-			sideTimes = 0;
-			avoidBack=0;
-			finish = 1;
+				zone = 0;
+			  sideTimes = 0;
+			  avoidBack=0;
+			  finish = 1;
 			}
 
 		}	

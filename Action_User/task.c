@@ -242,22 +242,21 @@ void WalkTask(void)
 		
 		USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)carDeVel,(int)time1);
 
-			if(carDeVel < 500)
-			{
-				time1++;
-			}
-			else
-			{
-				time1 = 0;
-			}
-			if(time1 > 250)
-			{
-				time1 = 250;
-				ShootBallW();
-			}
+		if(carDeVel < 500)
+		{
+			time1++;
+		}
+		else
+		{
+			time1 = 0;
+		}
+		if(time1 > 250)
+		{
+			time1 = 250;
+			ShootBallW();
+		}
 		
 		//普通避障
-	  POS_NOTE USART_OUT(UART5,(u8*)"TLY%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 		if(ifEscape)
 		{
 			LOG_NOTE JudgeState("Start Escape");

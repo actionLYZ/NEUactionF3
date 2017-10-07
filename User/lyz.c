@@ -223,17 +223,16 @@ void GoGoGo(float fLine,int stat)
 	static int  state = 1, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
   static float aimAngle = 0,tempx = 0,tempy = 0;
-	if(ballNumber>35&&full==0)
-	{
-		state=4;
-	  full=1;
-	}
+//	if(ballNumber>35&&full==0)
+//	{
+//		state=4;
+//	  full=1;
+//	}
 	if(changeState==1)
 	{
 		changeState=0;
 		shootTime=0;
 		state = stat;
-
 	}
 	
 	switch (state)
@@ -358,28 +357,6 @@ void GoGoGo(float fLine,int stat)
 					case 3:
 					{
 						state = 6;
-						if (cameraScheme == 0)
-						{						
-							cameraScheme = 1;
-							GPIO_SetBits(GPIOE, GPIO_Pin_4);
-							GPIO_ResetBits(GPIOE, GPIO_Pin_6);
-						}
-						else if (cameraScheme == 1)
-						{
-							cameraScheme = 2;
-							GPIO_SetBits(GPIOE, GPIO_Pin_4);
-							GPIO_SetBits(GPIOE, GPIO_Pin_6);
-						}
-						else if (cameraScheme == 2)
-						{
-							cameraScheme = 3;
-							
-							GPIO_ResetBits(GPIOE, GPIO_Pin_4);
-							GPIO_SetBits(GPIOE, GPIO_Pin_6);
-						}
-						else
-						{
-						}
 					} 
 					break;
 
@@ -393,7 +370,7 @@ void GoGoGo(float fLine,int stat)
 					}break;
 					case 2:
 					{
-						state=10;
+						state=6;
 					}break;
 					default: 
 					{
@@ -489,7 +466,10 @@ void GoGoGo(float fLine,int stat)
 			break;
 		case 10:
 		{
-			SweepIn
+			if(SweepIn())
+			{
+				state=4;
+			}
 		}break;
 		default:
 		{
