@@ -288,24 +288,23 @@ void WalkTask(void)
 		}
 		else
  		{
-//			GoGoGo(firstLine,1);
-//			if(fullTime>=160000)
-//		  {				
-//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
-//				if(fullTime>=160000&&fullTime<=160100)
-//				{
-//					changeState=1;
-//				}
-//			  GoGoGo(firstLine,4);
-
-//		  }
-			 test++;
-       RunEdge();
-			 if(test>=300)
-			 {
-			 	carRun=1;
-			 	test=0;
-			 }
+			GoGoGo(firstLine,1);
+			if(fullTime>=160000)
+		  {				
+				GPIO_SetBits(GPIOE,GPIO_Pin_7);
+				if(fullTime>=160000&&fullTime<=160100)
+				{
+					changeState=1;
+				}
+			  GoGoGo(firstLine,4);
+		  }
+//			 test++;
+//       RunEdge();
+//			 if(test>=300)
+//			 {
+//			 	carRun=1;
+//			 	test=0;
+//			 }
 		}
 		
 		//开始逃逸计时

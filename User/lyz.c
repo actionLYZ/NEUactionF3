@@ -223,11 +223,11 @@ void GoGoGo(float fLine,int stat)
 	static int  state = 1, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
   static float aimAngle = 0,tempx = 0,tempy = 0;
-//	if(ballNumber>40&&full==0)
-//	{
-//		state=4;
-//	  full=1;
-//	}
+	if(ballNumber>35&&full==0)
+	{
+		state=4;
+	  full=1;
+	}
 	if(changeState==1)
 	{
 		changeState=0;
@@ -355,15 +355,7 @@ void GoGoGo(float fLine,int stat)
 				}
 				switch (shootTime)
 				{
-					case 4:
-					{
-						state = 6;
-					}
 					case 3:
-					{
-						state = 6;
-					}
-					case 2:
 					{
 						state = 6;
 						if (cameraScheme == 0)
@@ -394,7 +386,15 @@ void GoGoGo(float fLine,int stat)
 					case 1: 
 						state = 7;
 					break;						
-					
+					case 0:
+					{
+						state=7;
+						shootTime=1;
+					}break;
+					case 2:
+					{
+						state=10;
+					}break;
 					default: 
 					{
 						state = 6;
@@ -487,8 +487,14 @@ void GoGoGo(float fLine,int stat)
 			}
 		}
 			break;
+		case 10:
+		{
+			SweepIn
+		}break;
 		default:
-			break;
+		{
+			state=7;
+		}break;
 	}
 	 POS_NOTE USART_OUT(UART5,(u8*)"gogogostate %d\t%d\r\n",state,shootTime);
 }
