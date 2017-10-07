@@ -1053,11 +1053,11 @@ int RunEdge(void)
 			{
         case 1:
 				{
-					ClLineAngle(0,1000);
+					ClLineAngle(0,1200);
 				}break;
 				case 3:
 				{
-					ClLineAngle(90,1000);
+					ClLineAngle(90,1200);
 				}break;
 				case 5:
 				{
@@ -1065,27 +1065,27 @@ int RunEdge(void)
 				}break;
 				case 7:
 				{
-					ClLineAngle(-90,1000);
+					ClLineAngle(-90,1200);
 				}break;
 				
 				case 2:
 				{
-					ClLine(2155, 0, -4, 1500);
+					ClLine(2155, 0, -4, 1700);
 				} break;
 
 				case 4:
 				{
-					ClLine(0, 4555-POSYSTEM_TO_BACK, 86, 1500);
+					ClLine(0, 4555-POSYSTEM_TO_BACK, 86, 1700);
 				} break;
 
 				case 6:
 				{
-					ClLine(-2355, 0, 176, 1600);
+					ClLine(-2355, 0, 176, 1700);
 				} break;
 
 				case 8:
 				{
-					ClLine(0, 100-POSYSTEM_TO_BACK, -94, 1500);
+					ClLine(0, 100-POSYSTEM_TO_BACK, -94, 1700);
 				} break;
 				
 				default:

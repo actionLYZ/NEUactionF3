@@ -239,7 +239,7 @@ void WalkTask(void)
 //		V = RealVel();
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
 		
-	 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
+//	 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
 		if(carRun)
 		{
 			if(carDeVel < 50)

@@ -49,7 +49,7 @@ void JudgeState(char state[])
 	if(strcmp(g_carState,state))
 	{
 		
-		USART_OUT(UART5,(u8*)"%s:\t%s\r\n",__TIME__,state);
+//		USART_OUT(UART5,(u8*)"%s:\t%s\r\n",__TIME__,state);
 	}
 	strcpy(g_carState,state);
 }
@@ -70,7 +70,7 @@ int IfStart(void)
 	left = Get_Adc_Average(LEFT_LASER, 30);
 //	USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
 	
-	USART_OUT(UART5,(u8*)"r %d\tl %d\r\n",(int)right,(int)left);
+//	USART_OUT(UART5,(u8*)"r %d\tl %d\r\n",(int)right,(int)left);
 	if((leftfirst+rightfirst)>=4700)
 	{
 		if (right < 1000)     //右侧激光触发
@@ -233,7 +233,7 @@ void GoGoGo(float fLine,int stat)
 		changeState=0;
 		shootTime=0;
 		state = stat;
-		USART_OUT(UART5,(u8*)"changestate:%d\r\n",stat);
+
 	}
 	
 	switch (state)
@@ -317,7 +317,7 @@ void GoGoGo(float fLine,int stat)
 			time = time % 10;
 			if(time == 1)
 			{
-				USART_OUT(UART5,(u8*)"%d\r\n",(int)(laserRight - Get_Adc_Average(RIGHT_LASER, 100)));
+//				USART_OUT(UART5,(u8*)"%d\r\n",(int)(laserRight - Get_Adc_Average(RIGHT_LASER, 100)));
 				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 50 || (laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 50)
 				{
 					count++;
@@ -475,7 +475,7 @@ void GoGoGo(float fLine,int stat)
 			}
 			else
 			{
-				POS_NOTE	USART_OUT(UART5,(u8*)"hitNum3");
+//				POS_NOTE	USART_OUT(UART5,(u8*)"hitNum3");
 			}
 		}
 			break;
@@ -814,7 +814,7 @@ int CheckPosition(void)
 			LOG_NOTE JudgeState("Go back until against the wall");
 			carRun = 0;
 			StaightCLose(tempx, tempy, aimAngle, -500);
-			POS_NOTE USART_OUT(UART5,(u8*)"SWITCH %d\t%d\t%d\t%d\t%d\r\n",(int)switchNoError,(int)SWITCHC0,(int)SWITCHE2,(int)count,(int)state);
+//			POS_NOTE USART_OUT(UART5,(u8*)"SWITCH %d\t%d\t%d\t%d\t%d\r\n",(int)switchNoError,(int)SWITCHC0,(int)SWITCHE2,(int)count,(int)state);
 			//如果行程开关没有坏
 			if(switchNoError)
 			{
