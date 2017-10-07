@@ -573,43 +573,100 @@ int In_Or_Out(void)
   //USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y);
 	
 	//一号区域
-  if(Position_t.X > 1200 && Position_t.Y < 1200)
+  if(Position_t.X > 1700 && Position_t.Y < 600)
 	{
-		finish = 1;
+		if(Position_t.angle>-45&&Position_t.angle<135)
+			finish=9;
+		else
+			finish = 1;
+		
 	}
 	
 	//二号区域
-	else if(Position_t.X > 1200 && Position_t.Y > 3600)
+	else if(Position_t.X > 1700 && Position_t.Y > 4100)
 	{
-		finish = 2;
+		if(Position_t.angle>-135&&Position_t.angle<45)
+		  finish = 2;
+		else
+			finish=9;
 	}
 	
 	//三号区域
-	else if(Position_t.X < -1200 && Position_t.Y > 3600)
+	else if(Position_t.X < -1700 && Position_t.Y > 4100)
 	{
+		if(Position_t.angle>-45&&Position_t.angle<135 )
 		finish = 3;
+		else
+		finish = 9;
 	}
 	
 	//四号区域
-	else if(Position_t.X < -1200 && Position_t.Y < 1200)
+	else if(Position_t.X < -1700 && Position_t.Y < 600)
 	{
-		finish = 4;
+		if(Position_t.angle> -135&&Position_t.angle<45)
+		finish = 9;
+		else
+		finish= 4;
 	}
-	else if (Position_t.X >= -875 && Position_t.X <= 275 && Position_t.Y >= 1100 && Position_t.Y <= 1700)
+	else if (Position_t.X >= -875 && Position_t.X <= 275 && Position_t.Y >= 1100 && Position_t.Y < 1700)
 	{
 			finish = 5;
 	}
-	else if(Position_t.X > 275 && Position_t.X < 875 && Position_t.Y < 3035.35 && Position_t.Y > 1100)
+	else if(Position_t.X > 275 && Position_t.X <= 875 && Position_t.Y <= 3035.35 && Position_t.Y >= 1100)
 	{
 		finish = 6;
 	}
-	else if(Position_t.X > -275 && Position_t.X < 875 && Position_t.Y > 3035.35 && Position_t.Y < 3635.35)
+	else if(Position_t.X >= -275 && Position_t.X <= 875 && Position_t.Y > 3035.35 && Position_t.Y <= 3635.35)
 	{
 		finish = 7;
 	}
-	else if(Position_t.X > -875 && Position_t.X < -275 && Position_t.Y > 1100 && Position_t.Y < 3035.35)
+	else if(Position_t.X >= -875 && Position_t.X < -275 && Position_t.Y >= 1700 && Position_t.Y <= 3635.35)
 	{
 		finish = 8;
+	}
+	else if(Position_t.X > 1700 && Position_t.Y < 4100 && Position_t.Y > 600)
+	{
+		if(Position_t.angle > -110 && Position_t.angle < -70)
+		{
+			finish = 11;
+		}
+		else
+		{
+			finish = 9;
+		}
+	}
+	else if(Position_t.Y > 4100 && Position_t.X < 1700 && Position_t.X > -1700)
+	{
+		if(Position_t.angle > -20 && Position_t.angle < 20)
+		{
+			finish = 12;
+		}
+		else
+		{
+			finish = 9;
+		}
+	}
+	else if(Position_t.X < -1700 && Position_t.Y < 4100 && Position_t.Y > 600)
+	{
+		if(Position_t.angle > 70 && Position_t.angle < 110)
+		{
+			finish = 13;
+		}
+		else
+		{
+			finish = 9;
+		}
+	}
+	else if(Position_t.Y < 600 && Position_t.X > -1700 && Position_t.X < 1700)
+	{
+		if(Position_t.angle > 160 || Position_t.angle < -160)
+		{
+			finish = 14;
+		}
+		else
+		{
+			finish = 9;
+		}
 	}
 	else
 	{
