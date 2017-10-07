@@ -239,7 +239,7 @@ void WalkTask(void)
 //		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 //		V = RealVel();
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
-		
+//		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int))
 		USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)carDeVel,(int)time1);
 
 			if(carDeVel < 500)
@@ -288,24 +288,23 @@ void WalkTask(void)
 		}
 		else
  		{
-//			GoGoGo(firstLine,1);
-//			if(fullTime>=160000)
-//		  {				
-//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
-//				if(fullTime>=160000&&fullTime<=160100)
-//				{
-//					changeState=1;
-//				}
-//			  GoGoGo(firstLine,4);
-
-//		  }
-			 test++;
-       RunEdge();
-			 if(test>=300)
-			 {
-			 	carRun=1;
-			 	test=0;
-			 }
+			GoGoGo(firstLine,1);
+			if(fullTime>=160000)
+		  {				
+				GPIO_SetBits(GPIOE,GPIO_Pin_7);
+				if(fullTime>=160000&&fullTime<=160100)
+				{
+					changeState=1;
+				}
+			  GoGoGo(firstLine,4);
+		  }
+//			 test++;
+//       RunEdge();
+//			 if(test>=300)
+//			 {
+//			 	carRun=1;
+//			 	test=0;
+//			 }
 		}
 		
 		//开始逃逸计时
