@@ -162,9 +162,10 @@ extern float blindTime;
 extern float photoElectricityCount;//球的数量
 extern float velocity;
 extern int leftfirst,rightfirst;
-int test=0;
 extern int waitTime,stopcount;
 int time1 = 0;
+extern int fullTime,begin2time;
+extern int changeState;
 /*******************************************************/
 
 
@@ -211,7 +212,8 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		
+		begin2time=1;
+
 		//获取车当前的速度
 		carDeVel = RealVel();
 //		USART_OUT(UART5,(u8*)"SWITCH %d\t%d\r\n",(int)SWITCHE2,(int)SWITCHC0);
@@ -285,15 +287,15 @@ void WalkTask(void)
 		}
 		else
  		{
-//			RunWithCamera1(2);
-			GoGoGo(firstLine);
-//			 test++;
-//       RunEdge();
-//			 if(test>=300)
-//			 {
-//			 	carRun=1;
-//			 	test=0;
-//			 }
+			GoGoGo(firstLine,1);
+			if(fullTime>=150000)
+		  {
+			  GoGoGo(firstLine,4);
+				if(fullTime>=150000&&fullTime<=150100)
+				{
+					changeState=1;
+				}
+		  }
 		}
 		
 		//开始逃逸计时

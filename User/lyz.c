@@ -212,12 +212,13 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	}
 }
 extern int carRun,fighting;
+int changeState=0;
 /*======================================================================================
    函数定义	：		开始跑场
    函数参数	：		方案：暂定1为逆时针(右侧激光触发)，-1为顺时针(左侧激光触发)
    函数返回值：		无
    =======================================================================================*/
-void GoGoGo(float fLine)
+void GoGoGo(float fLine,int stat)
 {
 	static int  state = 1, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
@@ -227,6 +228,11 @@ void GoGoGo(float fLine)
 //		state=4;
 //	  full=1;
 //	}
+	if(changeState==1)
+	{
+		changeState=0;
+		state = stat;
+	}
 	
 	switch (state)
 	{
@@ -1436,6 +1442,7 @@ int RunCamera(void)
 	if(cameratime>=3000)
 	{
 		cameratime=0;
+		run = 0; stagger = 0;
 		finish = 1;
 	}
   g_plan=1;
@@ -1527,7 +1534,7 @@ int RunCamera(void)
 				chuqu=0;
 			}
 			//到达中间危险区域的标志
-			if(fabs(Position_t.X)<800&&Position_t.Y>1300&&Position_t.Y<3500)
+			if(fabs(Position_t.X)<1000&&Position_t.Y>1000&&Position_t.Y<3800)
 				haveBall = 0;
 			switch (haveBall)
 			{
