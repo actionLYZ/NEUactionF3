@@ -41,6 +41,7 @@ extern int32_t     g_leftPulse ;
 extern int32_t     g_collectVel;
 extern int32_t     g_pushPosition;
 extern int         g_plan;
+extern int         lastPlan;
 extern uint8_t    circleFlag;
 extern uint8_t     shootNum;
 extern float             angleError, xError, yError;
@@ -1196,7 +1197,7 @@ int ShootBallW(void)
 	int      success = 0;
 	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
 	static int32_t lastPosition = 0, notMove = 0,lastPosition1 = 0,notMove1 = 0;
-	static int8_t step = 0, ifCount = 0;
+	static int8_t step = 0, ifCount = 0, numFlag = 1,lastNumFlag = 0;
 
 			//检测是否被卡死
 		if(abs(g_pushPosition - lastPosition1) < 10)
@@ -1215,7 +1216,7 @@ int ShootBallW(void)
 		{
 			noBall = 0;
 		
-			//射球完成，shootNum置0
+			//射球完成
 			notMove = 0;
 			step = 0;
 			time = 0;
@@ -1228,7 +1229,7 @@ int ShootBallW(void)
 	{
 		noBall = 0;
 		
-			//射球完成，shootNum置0
+			//射球完成
 			notMove = 0;
 			step = 0;
 			time = 0;
@@ -1280,7 +1281,7 @@ int ShootBallW(void)
 
 				//枪顺时针转为正，逆时针为负
 				aimAngle = AvoidOverAngle(aimAngle);
-				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 3;
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2;
 			}
 
 			//球是黑球
@@ -1293,7 +1294,7 @@ int ShootBallW(void)
 				aimAngle  = atan2(BALLY - posShoot.Y, BLACKX - posShoot.X);
 				aimAngle  = RADTOANG(aimAngle) - 90;
 				aimAngle  = AvoidOverAngle(aimAngle);
-				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 3;
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2;
 			}
 		
 			// 没球,来回拨动几次
@@ -1318,7 +1319,7 @@ int ShootBallW(void)
 				{
 					noBall = 0;
 		
-					//射球完成，shootNum置0
+					//射球完成
 					notMove = 0;
 					step = 0;
 					time = 0;
@@ -1331,7 +1332,8 @@ int ShootBallW(void)
 			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 			
 			//自己测的关系
-			rps = 0.01499f * V - 7.494f;
+			rps = 0.01490f * V - 7.494f;
+//			rps = 0.01499f * V - 7.494f;
 //			rps = 0.01402f * V - 5.457f + 2.8;
 		
 			
@@ -1349,22 +1351,22 @@ int ShootBallW(void)
 				YawAngleCtr(shootAngle);
 			}
 			
-		  //记录射球的个数
-			if(fabs(rps + (g_shootFactV / 4096)) < 1)
-			{
-				ifCount = 1;
-			}
-			if(ifCount)
-			{
-				if(rps + (g_shootFactV / 4096) > 2.7)
-				{
-					shootNum++;
-					ifCount = 0;
-				}
-			}
+//		  //记录射球的个数
+//			if(fabs(rps + (g_shootFactV / 4096)) < 1)
+//			{
+//				ifCount = 1;
+//			}
+//			if(ifCount)
+//			{
+//				if(rps + (g_shootFactV / 4096) > 2.7)
+//				{
+//					shootNum++;
+//					ifCount = 0;
+//				}
+//			}
 			
 			//车速
-			if(carDeVel < 100)
+			if(carDeVel < 500)
 			{
 				//枪的角度和转速到位,推球
 				if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 2.0f && fabs(rps + g_shootFactV / 4096) < 2 && ballColor)
@@ -1372,14 +1374,22 @@ int ShootBallW(void)
 					//位置正常，reset推球电机
 					if(g_pushPosition > 4000)
 					{
+						//numFlag取反
+						numFlag = 0;
 						PushBallReset();
 					}
 					
 					//位置正常，push推球电机
 					if(g_pushPosition < 400)
 					{
+						numFlag = 1;
 						PushBall();
 					}
+					if(lastNumFlag != numFlag)
+					{
+						shootNum++;
+					}
+					lastNumFlag = numFlag;
 				}
 			}
 			//判断球是否卡死
@@ -1431,6 +1441,7 @@ int ShootBallW(void)
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
 	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t %d\tf%d\t%d\tf%d\t%d\t%d\r\n",(int)step,(int)notMove,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)(g_shootFactV/4096),(int)ballColor,(int)success);
+	USART_OUT(UART5,(u8*)"%d\r\n",(int)shootNum);
 	return success;
 }
 
@@ -1736,7 +1747,7 @@ int AfterCircle(uint16_t speed)
 			break;
 		case 3:
 			StaightCLose(0, 400, -90, speed);
-			if(Position_t.X > -400)
+			if(Position_t.X > 1200)
 			{
 				step = 5;
 				success = 1;
@@ -1775,6 +1786,8 @@ u16 LaserTrigger(void)
 		g_plan = IfStart();
 	}while(g_plan == 0);
   GPIO_ResetBits(GPIOE,GPIO_Pin_7);
+	
+	lastPlan = g_plan;
 	//等待激光值稳定
 	if(g_plan == 1)
 	{
@@ -1820,6 +1833,7 @@ int Escape(u16 back,u16 turn)
 	switch(step)
 	{
 		case 0:
+		{
 			status = In_Or_Out();
 		
 			//车子在中间
@@ -1840,9 +1854,10 @@ int Escape(u16 back,u16 turn)
 			{
 				step = 3;
 			}
+		}
 			break;
 		case 1:
-			
+		{
 			//后退
 			time++;
 			angClose(-700,aimAngle,100);	
@@ -1851,8 +1866,10 @@ int Escape(u16 back,u16 turn)
 				step = 2;
 				time = 0;
 			}
+		}
 			break;
 		case 2:
+		{
 			time++;
 		
 			//内圈转弯
@@ -1872,30 +1889,34 @@ int Escape(u16 back,u16 turn)
 				step = 0;
 				success = 1;
 			}
+		}
 		 break;
 		case 3:
-			if(status == 1)
+		{
+			if(status == 1 || status == 14)
 			{
 				aimAngle = -90;
 				step = 4;
 			}
-			else if(status == 2)
+			else if(status == 2 || status == 11)
 			{
 				aimAngle = 0;
 				step = 4;
 			}
-			else if(status == 3)
+			else if(status == 3 || status == 12)
 			{
 				aimAngle = 90;
 				step = 4;
 			}
-			else
+			else if(status == 4 || status == 13)
 			{	
 				aimAngle = 180;
 				step = 4;			
 			}
+		}
 			break;
 		case 4:
+		{
 			time++;
 			angClose(-1200,aimAngle,120);
 		
@@ -1905,26 +1926,28 @@ int Escape(u16 back,u16 turn)
 				time = 0;
 				
 				//计算下一刻的目标角度
-				if(status == 1)
+				if(status == 1 || status == 11)
 				{
 					aimAngle = 0;
 				}
-				else if(status == 2)
+				else if(status == 2 || status == 12)
 				{
 					aimAngle = 90;
 				}
-				else if(status == 3)
+				else if(status == 3 || status == 13)
 				{
 					aimAngle = 180;
 				}
-				else
+				else if(status == 4 || status == 14)
 				{
 					aimAngle = -90;
 				}
 				step = 5;
 			}
+		}
 			break;
 		case 5:
+		{
 			time++;
 			angClose(800,aimAngle,120);
 		
@@ -1935,8 +1958,10 @@ int Escape(u16 back,u16 turn)
 				step = 0;
 				success = 1;
 			}
+		}
 			break;
 		case 6:
+		{
 			time++;
 
 			//计算下一刻的目标角度
@@ -1964,8 +1989,10 @@ int Escape(u16 back,u16 turn)
 				time = 0;
 				step = 7;
 			}
+		}
 			break;
 		case 7:
+		{
 			time++;
 		  if(time > 80)
 			{
@@ -1974,6 +2001,7 @@ int Escape(u16 back,u16 turn)
 				success = 1;
 			}
 			angClose(800,aimAngle-40,120);
+		}
 		break;			
 	}
 	return success;
@@ -2075,6 +2103,33 @@ int AngleStuck(void)
 	{
 		count++;
 		if(count > 20)
+		{
+			count = 0;
+			success = 1;
+		}
+	}
+	else
+	{
+		count = 0;
+	}
+	lastAngle = Position_t.angle;
+	return success;
+}
+/*======================================================================================
+   函数定义		：	检测车是否疯狂自转	  
+   函数参数		：		  
+   
+   函数返回值	：	疯狂自转时返回1    
+ =====================================================================================*/
+int CrazyRotate(void)
+{
+	int success = 0;
+	static float lastAngle = 0;
+	static u16 count = 0;
+	if(fabs(Position_t.angle - lastAngle) > 1)
+	{
+		count++;
+		if(count > 100)
 		{
 			count = 0;
 			success = 1;

@@ -53,6 +53,7 @@ int32_t     g_pushPosition = 0;       //推球装置的位置
 u16         firstLine = 0;            //记录第一圈的目标直线
 uint8_t     circleFlag = 0;           //画圆标志位
 uint8_t     shootNum = 0;             //记录射球的个数
+int lastPlan = 0;
 extern float             angleError, xError , yError ;
 float carDeVel = 0;
 void TwoWheelVelControl(float vel, float rotateVel);
@@ -181,13 +182,14 @@ void WalkTask(void)
 		g_cameraPlan = 2;
 	
 	//
-		rightfirst = Get_Adc_Average(RIGHT_LASER, 100);
-		leftfirst  = Get_Adc_Average(LEFT_LASER, 100);
+
 	  
    stopcount=1;
 	
 	//延时，稳定定位系统
 	delay_s(12);
+	rightfirst = Get_Adc_Average(RIGHT_LASER, 100);
+	leftfirst  = Get_Adc_Average(LEFT_LASER, 100);
 	LOG_NOTE JudgeState("Init CollectBallVelCtr Shoot structure....");
 	//棍子，发射机构的初始速度。
 	CollectBallVelCtr(60);
@@ -236,10 +238,9 @@ void WalkTask(void)
 //		V = RealVel();
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
 		
-	 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
-		if(carRun)
-		{
-			if(carDeVel < 50)
+		USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)carDeVel,(int)time1);
+
+			if(carDeVel < 500)
 			{
 				time1++;
 			}
@@ -247,14 +248,14 @@ void WalkTask(void)
 			{
 				time1 = 0;
 			}
-			if(time1 > 500)
+			if(time1 > 250)
 			{
-				time1 = 500;
+				time1 = 250;
 				ShootBallW();
 			}
-		}
+		
 		//普通避障
-		 USART_OUT(UART5,(u8*)"TLY%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+	  POS_NOTE USART_OUT(UART5,(u8*)"TLY%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 		if(ifEscape)
 		{
 			LOG_NOTE JudgeState("Start Escape");
@@ -264,7 +265,7 @@ void WalkTask(void)
 			escapeCount = 1;
 			
 			//逃逸完成后，ifEscape清零
-			if(Escape(80,100))
+			if(Escape(100,120))
 			{
 				LOG_NOTE JudgeState("Escape Successful !!");
 				ifEscape = 0;
@@ -278,7 +279,7 @@ void WalkTask(void)
 			
 			LOG_NOTE JudgeState("Start Bigger Escape !!");
 			//更大幅度的避障
-			if(Escape(80,140))
+			if(Escape(110,140))
 			{
 				ifEscape2 = 0;
 			}
@@ -308,6 +309,7 @@ void WalkTask(void)
 				if(hitNum >= 2)
 				{
 					//ifEscape2置1，开启2阶段逃逸
+					hitNum = 0;
 					ifEscape2 = 1;
 					ifEscape = 0;
 				}
