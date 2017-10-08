@@ -189,13 +189,13 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	// 	Ainput = 250 * Dangle;
 	// else
 	// 	Ainput = 260 * Dangle;
-	if(speed < 1900)
+	if(speed < 1500)
 	{
 		Ainput = 260 * Dangle;
 	}
 	else
 	{
-		Ainput = 410 * Dangle;
+		Ainput = 400 * Dangle;
 	}
 
 

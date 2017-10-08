@@ -1506,13 +1506,13 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
-		  R1 += 400;
+		  R1 += 500;
 		}
 		
 		//否则,缩小扫场
 		else
 		{
-			R1 -= 400;
+			R1 -= 500;
 		}
 		
 		//达到预定圈数,success置1,acceSpeed置0
@@ -1737,11 +1737,11 @@ int AfterCircle(uint16_t speed)
 			break;
 		case 1:
 			StaightCLose(0, 4400, 90, speed);
-			if(Position_t.X < -300)
+			if(Position_t.X < -200)
 				step++;
 			break;
 		case 2:
-			StaightCLose(-2100, 0, 180, speed);
+			StaightCLose(-2000, 0, 180, speed);
 			if(Position_t.Y < 2200)
 				step++;
 			break;
