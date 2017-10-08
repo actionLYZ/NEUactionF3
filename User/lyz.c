@@ -36,6 +36,7 @@ static bool ifPrintPositionCheck = true;
 extern char g_carState[50];
 int leftfirst=2400,rightfirst=2400;
 extern float carDeVel;
+extern int triggerTime,beginTrigger;
 /*================================================函数定义区==============================================*/
 
 /*======================================================================================
@@ -67,6 +68,7 @@ void JudgeState(char state[])
 int IfStart(void)
 {
 	u16 right = 0, left = 0;
+	int success=0;
 	right = Get_Adc_Average(RIGHT_LASER, 30);
 	left = Get_Adc_Average(LEFT_LASER, 30);
 //	USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
@@ -76,46 +78,79 @@ int IfStart(void)
 	{
 		if (right < 1000)     //右侧激光触发
 		{
-			return 1;
+			beginTrigger=1;
+			if(triggerTime>50)
+			{
+				success= 1;
+			}
+			
 		}
 			
 		else if (left < 1000) //左侧激光触发
 		{
-			return -1;
+			beginTrigger=1;
+			if(triggerTime>50)
+			{
+				success= -1;
+			}
 		}
 			
 		else
-			return 0;		
+		{
+			beginTrigger=0;
+			success= 0;
+		}
+					
 	}
 	else if((leftfirst+rightfirst)<4700&&leftfirst<700)
 	{
 		if (right < 1000)     //右侧激光触发
 		{
-			return 1;
+			beginTrigger=1;
+			if(triggerTime>50)
+			{
+				success= 1;
+			}
 		}
 		else
-			return 0;				
+		{
+			beginTrigger=0;
+			success= 0;
+		}		
 	}
 	else if((leftfirst+rightfirst)<4700&&rightfirst<700)
 	{
-		if (left < 1000)     //右侧激光触发
-		{
-			return 1;
-		}
+			beginTrigger=1;
+			if(triggerTime>50)
+			{
+				success= -1;
+			}
 			
 		else
-			return 0;				
+		{
+			beginTrigger=0;
+			success= 0;
+		}		
 	}  
 	else if((leftfirst+rightfirst)<4700&&leftfirst<700&&rightfirst<700)
 	{
 		if (SWITCHE2 == 1 || SWITCHC0 == 1)     
 		{
-			return 1;
+			beginTrigger=1;
+			if(triggerTime>50)
+			{
+				success= 1;
+			}
 		}
 			
 		else
-			return 0;						
+		{
+			beginTrigger=0;
+			success= 0;
+		}					
 	}
+//	 USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)beginTrigger,(int)triggerTime);
+	return success;
 }
 
 
@@ -189,7 +224,7 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	// 	Ainput = 250 * Dangle;
 	// else
 	// 	Ainput = 260 * Dangle;
-	if(speed < 1900)
+	if(speed < 1500)
 	{
 		Ainput = 260 * Dangle;
 	}
@@ -218,9 +253,10 @@ int changeState=0;
    函数参数	：		方案：暂定1为逆时针(右侧激光触发)，-1为顺时针(左侧激光触发)
    函数返回值：		无
    =======================================================================================*/
+
 void GoGoGo(float fLine,int stat)
 {
-	static int  state = 1, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0; //应该执行的状态
+	static int  state = 10, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
   static float aimAngle = 0,tempx = 0,tempy = 0;
 //	if(ballNumber>35&&full==0)
@@ -278,7 +314,7 @@ void GoGoGo(float fLine,int stat)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(1800, 1000, 3, 1))
+			if(sweepYuan(2000, 1000, 3, 1))
 				state = 3;
 		}
 		break;
@@ -289,7 +325,7 @@ void GoGoGo(float fLine,int stat)
 			LOG_NOTE JudgeState("Rectangle running....");//开始第一圈跑场
 			carRun = 1;
 			g_plan = lastPlan;
-			if(AfterCircle(1800))
+			if(AfterCircle(2000))
 			{
 				//之后的矫正坐标函数令g_plan = 1;
 				g_plan = 1;
@@ -476,7 +512,7 @@ void GoGoGo(float fLine,int stat)
 			state=7;
 		}break;
 	}
-	 POS_NOTE USART_OUT(UART5,(u8*)"gogogostate %d\t%d\r\n",state,shootTime);
+  USART_OUT(UART5,(u8*)"gogogostate %d\r\n",state);
 }
 
 /*======================================================================================
@@ -503,7 +539,7 @@ bool FirstRound(float firstLine)
 	//第一圈贴框走成功极限条件
 	if(firstLine < 650)
 	{
-		firstLine = 620;
+		firstLine = 600;
 	}
 	switch (state)
 	{
@@ -541,7 +577,7 @@ bool FirstRound(float firstLine)
 			}
 			else if(fighting==1)
 			{
-				StaightCLose(-1200, 0, 180, speed);
+				StaightCLose(-800, 0, 180, speed);
 			}
 			if (Position_t.Y <= 1200 + FIR_ADV)
 				state = 4;
@@ -1509,7 +1545,7 @@ int CheckPosition(void)
 		}
 		break;
 	}
-	USART_OUT(UART5,(u8*)"%d\r\n",(int)state);
+//	USART_OUT(UART5,(u8*)"%d\r\n",(int)state);
 	return keepgo;
 }
 

@@ -2337,10 +2337,12 @@ void CountBall(void)
 	}
 	
 	//检测辊子是否被卡住了 pass
-
+	if(ballNumber>50)
+	{
+		ballNumber=50;
+	}
 	
-	
-	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
+	USART_OUT(UART5,(u8*)" \t \t \t \t \t%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
 
 }
 /*======================================================================================

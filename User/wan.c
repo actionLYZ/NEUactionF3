@@ -1332,7 +1332,7 @@ int ShootBallW(void)
 			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 			
 			//自己测的关系
-			rps = 0.01490f * V - 7.494f;
+			rps = 0.01499f * V - 8.0f;
 //			rps = 0.01499f * V - 7.494f;
 //			rps = 0.01402f * V - 5.457f + 2.8;
 		
@@ -1372,7 +1372,7 @@ int ShootBallW(void)
 				if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 2.0f && fabs(rps + g_shootFactV / 4096) < 2 && ballColor)
 				{
 					//位置正常，reset推球电机
-					if(g_pushPosition > 4000)
+					if(g_pushPosition > 3800)
 					{
 						//numFlag取反
 						numFlag = 0;
@@ -1380,7 +1380,7 @@ int ShootBallW(void)
 					}
 					
 					//位置正常，push推球电机
-					if(g_pushPosition < 400)
+					if(g_pushPosition < 200)
 					{
 						numFlag = 1;
 						PushBall();
@@ -1440,8 +1440,8 @@ int ShootBallW(void)
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
-	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t %d\tf%d\t%d\tf%d\t%d\t%d\r\n",(int)step,(int)notMove,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)(g_shootFactV/4096),(int)ballColor,(int)success);
-	USART_OUT(UART5,(u8*)"%d\r\n",(int)shootNum);
+//	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t %d\tf%d\t%d\tf%d\t%d\t%d\r\n",(int)step,(int)notMove,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)(g_shootFactV/4096),(int)ballColor,(int)success);
+//	USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)ballColor,(int)shootNum);
 	return success;
 }
 
@@ -1506,13 +1506,13 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
-		  R1 += 400;
+		  R1 += 600;
 		}
 		
 		//否则,缩小扫场
 		else
 		{
-			R1 -= 400;
+			R1 -= 600;
 		}
 		
 		//达到预定圈数,success置1,acceSpeed置0

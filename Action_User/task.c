@@ -167,6 +167,7 @@ extern int waitTime,stopcount;
 int time1 = 0,test=0;
 extern int fullTime,begin2time;
 extern int changeState;
+extern int triggerTime,beginTrigger;
 /*******************************************************/
 
 
@@ -196,7 +197,7 @@ void WalkTask(void)
 	CollectBallVelCtr(60);
 	delay_s(3);	
 	ShootCtr(70);
-
+  
   stopcount=0;
 //	//鸣笛
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
@@ -236,11 +237,10 @@ void WalkTask(void)
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
 //		ShootBallW(); 
 //		RunWithCamera1(2);
-//		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 //		V = RealVel();
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
-		
-		USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)carDeVel,(int)time1);
+//		USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)carDeVel,(int)time1);
 
 		if(carDeVel < 500)
 		{
