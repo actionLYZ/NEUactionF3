@@ -318,7 +318,7 @@ void GoGoGo(float fLine,int stat)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(2000, 1000, 3, 1))
+			if(sweepYuan(2000, 1400, 2, 1))
 				state = 3;
 		}
 		break;
@@ -590,14 +590,14 @@ bool FirstRound(float firstLine)
 			{
 				StaightCLose(-800, 0, 180, speed);
 			}
-			if (Position_t.Y <= 1200 + FIR_ADV)
+			if (Position_t.Y <= 1400 + FIR_ADV)
 				state = 4;
 		} break;
 
 	//	//下边，目标角度-90度
 		case 4:
 		{
-			StaightCLose(0, 1200, -90, speed);
+			StaightCLose(0, 1400, -90, speed);
 //			if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
 			if (Position_t.X >= 0)
 				return true;
