@@ -121,11 +121,11 @@ int IfStart(void)
 	}
 	else if((leftfirst+rightfirst)<4700&&rightfirst<700)
 	{
-			beginTrigger=1;
-			if(triggerTime>50)
-			{
-				success= -1;
-			}
+		beginTrigger=1;
+		if(triggerTime>50)
+		{
+			success= -1;
+		}
 			
 		else
 		{
@@ -150,13 +150,8 @@ int IfStart(void)
 			success= 0;
 		}					
 	}
-<<<<<<< HEAD
-	else return 0;
-	return 0;
-=======
 //	 USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)beginTrigger,(int)triggerTime);
 	return success;
->>>>>>> 诗玲
 }
 
 
