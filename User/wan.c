@@ -10,7 +10,7 @@
 #include "stm32f4xx_adc.h"
 #include "stdlib.h"
 /*==============================================全局变量声明区============================================*/
-
+extern POSITION_T  getPosition_t;
 extern POSITION_T Position_t;
 extern int8_t     g_cameraFin;
 extern int8_t     g_cameraNum;
@@ -1198,7 +1198,9 @@ int ShootBallW(void)
 	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
 	static int32_t lastPosition = 0, notMove = 0,lastPosition1 = 0,notMove1 = 0;
 	static int8_t step = 0,numFlag = 1,lastNumFlag = 0;
-
+	static float distance1 = 0, distance2 = 0;
+  distance1 = sqrt((Position_t.X - WHITEX) * (Position_t.X - WHITEX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
+	distance2 = sqrt((Position_t.X - BLACKX) * (Position_t.X - BLACKX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
 			//检测是否被卡死
 		if(abs(g_pushPosition - lastPosition1) < 10)
 		{
@@ -1240,27 +1242,28 @@ int ShootBallW(void)
   ReadActualPos(CAN1, GUN_YAW_ID);
 	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
 	ReadActualPos(CAN1, PUSH_BALL_ID);
-	 
+	
+	USART_OUT(UART5,(u8*)"S%d\t%d\r\n",(int)SWITCHC0,(int)SWITCHE2);
 	//行程开关都触发，一直进行角度矫正
   if(SWITCHC0 == 1 && SWITCHE2 == 1)
 	{
 		//靠的墙是Y=0
-		if (Position_t.angle < 45 && Position_t.angle > -45)
+		if (Position_t.angle <= 45 && Position_t.angle > -45)
 		{
-			angleError += Position_t.angle;  //纠正角度坐标
+			angleError = getPosition_t.angle;  //纠正角度坐标
 		}
-		else if (Position_t.angle < 135 && Position_t.angle > 45)
+		else if (Position_t.angle <= 135 && Position_t.angle > 45)
 		{
-			angleError  += Position_t.angle - 90;
+			angleError  = getPosition_t.angle - 90;
 		}
-		else if (Position_t.angle > 135 || Position_t.angle < -135)
+		else if (Position_t.angle >= 135 || Position_t.angle <= -135)
 		{
-			angleError  += Position_t.angle - 180;
+			angleError  = getPosition_t.angle - 180;
 			angleError  = AvoidOverAngle(angleError);
 		}
 		else
 		{
-			angleError  += Position_t.angle + 90;
+			angleError  = getPosition_t.angle + 90;
 		}
 	}
 	//计算投球点的坐标
@@ -1332,7 +1335,7 @@ int ShootBallW(void)
 			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 			
 			//自己测的关系
-			rps = 0.01499f * V - 8.5f;
+			rps = 0.01499f * V - 9.0f;
 //			rps = 0.01499f * V - 7.494f;
 //			rps = 0.01402f * V - 5.457f + 2.8;
 		
@@ -1350,46 +1353,35 @@ int ShootBallW(void)
 			{
 				YawAngleCtr(shootAngle);
 			}
-			
-//		  //记录射球的个数
-//			if(fabs(rps + (g_shootFactV / 4096)) < 1)
-//			{
-//				ifCount = 1;
-//			}
-//			if(ifCount)
-//			{
-//				if(rps + (g_shootFactV / 4096) > 2.7)
-//				{
-//					shootNum++;
-//					ifCount = 0;
-//				}
-//			}
-			
+						
 			//车速
 			if(carDeVel < 500)
 			{
-				//枪的角度和转速到位,推球
-				if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 2.0f && fabs(rps + g_shootFactV / 4096) < 2 && ballColor)
+				if(distance1 > 1000 && distance2 > 1000)
 				{
-					//位置正常，reset推球电机
-					if(g_pushPosition > 3800)
+					//枪的角度和转速到位,推球
+					if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 2.0f && fabs(rps + g_shootFactV / 4096) < 2 && ballColor)
 					{
-						//numFlag取反
-						numFlag = 0;
-						PushBallReset();
+						//位置正常，reset推球电机
+						if(g_pushPosition > 3800)
+						{
+							//numFlag取反
+							numFlag = 0;
+							PushBallReset();
+						}
+						
+						//位置正常，push推球电机
+						if(g_pushPosition < 200)
+						{
+							numFlag = 1;
+							PushBall();
+						}
+						if(lastNumFlag != numFlag)
+						{
+							shootNum++;
+						}
+						lastNumFlag = numFlag;
 					}
-					
-					//位置正常，push推球电机
-					if(g_pushPosition < 200)
-					{
-						numFlag = 1;
-						PushBall();
-					}
-					if(lastNumFlag != numFlag)
-					{
-						shootNum++;
-					}
-					lastNumFlag = numFlag;
 				}
 			}
 			//判断球是否卡死
@@ -1408,7 +1400,7 @@ int ShootBallW(void)
 			{
 				notShoot = 0;
 			}
-			POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)g_pushPosition,(int)lastPosition,(int)(g_pushPosition - lastPosition));
+//			POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)g_pushPosition,(int)lastPosition,(int)(g_pushPosition - lastPosition));
 //			USART_OUT(UART5,(u8*)"l%d\t%d\t%d\r\n",(int)g_pushPosition,(int)lastPosition,(int)notMove);
 			lastPosition = g_pushPosition;
 			break;
@@ -1506,7 +1498,7 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
-		  R1 += 600;
+		  R1 += 700;
 		}
 		
 		//否则,缩小扫场

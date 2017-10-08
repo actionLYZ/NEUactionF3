@@ -49,8 +49,9 @@ void JudgeState(char state[])
 	//如果当前状态不为state
 	if(strcmp(g_carState,state))
 	{
-		
-//		USART_OUT(UART5,(u8*)"%s:\t%s\r\n",__TIME__,state);
+		USART_OUT(UART5,(u8*)"==============================================================\r\n");
+		USART_OUT(UART5,(u8*)"note%s:\t%s\r\n",__TIME__,state);
+		USART_OUT(UART5,(u8*)"==============================================================\r\n");
 	}
 	strcpy(g_carState,state);
 }
@@ -116,6 +117,8 @@ int IfStart(void)
 		else
 			return 0;						
 	}
+	else return 0;
+	return 0;
 }
 
 
@@ -278,7 +281,7 @@ void GoGoGo(float fLine,int stat)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(1800, 1000, 3, 1))
+			if(sweepYuan(2000, 1000, 3, 1))
 				state = 3;
 		}
 		break;
@@ -289,7 +292,7 @@ void GoGoGo(float fLine,int stat)
 			LOG_NOTE JudgeState("Rectangle running....");//开始第一圈跑场
 			carRun = 1;
 			g_plan = lastPlan;
-			if(AfterCircle(1800))
+			if(AfterCircle(2000))
 			{
 				//之后的矫正坐标函数令g_plan = 1;
 				g_plan = 1;
@@ -1765,181 +1768,8 @@ int RunCamera(void)
 				}
 		} break;
 
-		case 2:
-		{
-			cameraX = Position_t.X - CAMERATOGYRO * sin(Position_t.angle);
-			cameraY = Position_t.Y + CAMERATOGYRO * cos(Position_t.angle);
-			if (go == 1)
-			{
-				go = 0;
-				if (gone == 1)
-				{
-					basePoint.X     = cameraX;
-					basePoint.Y     = cameraY;
-					basePoint.angle = Position_t.angle;
-				}
-				//判断是否已走过该区域，继续扫面下一个区域
-				if (P2P(cameraX, cameraY, basePoint.X, basePoint.Y) >= 1900 || Position_t.angle >= basePoint.angle + 25 || Position_t.angle <= basePoint.angle - 25)
-					gone = 1;
-				else
-					gone = 0;
-			}
-			if (go == 1 && gone == 1)
-			{
-				if (arr_number == 0)
-				{
-					haveBall = 0;
-				}
-				else
-				{
-					haveBall = 1;
-					PathPlan(cameraX, cameraY);
-					ClearRingBuffer();
-					for(circulate=0;circulate<bestSum;circulate++)
-					{
-						bestTra[circulate].point.x = bestTraX[circulate];
-						bestTra[circulate].point.y = bestTraY[circulate];
-					}	    
-				}
-			}
-			//到边界要拐弯了
-			if (fabs(Position_t.X) >= 1500 || Position_t.Y <= 900 || Position_t.Y >= 3900)
-			{
-				if(chuqu==0)
-				{
-					haveBall = 0;
-					if(run>2)
-					{
-						border=1;
-						if(edge[0]==1&&edge[1]==1&&edge[2]==1&&edge[3]==1)
-						{
-							border=0;
-						}					
-					}
-				}				
-			}
-			else
-			{
-				border=0;
-				chuqu=0;
-			}
-			//到达中间危险区域的标志
-			if(fabs(Position_t.X)<800&&Position_t.Y>1300&&Position_t.Y<3500)
-				haveBall = 0;
-			switch (haveBall)
-			{
-				case 0:
-				{
-					if(border==0)
-					{
-						if (run < 2)
-							First_Scan();
-						else
-							New_Route(down, right, up, left);
-					}
-					else
-					{
-						if(Position_t.Y<=1100&&Position_t.X<1300)
-						{
-							edge[1]=1;
-              switch(porm)
-							{
-								case 0:
-								{
-									StaightCLose(0, 450, -90, cameraSpeed);
-								}break;
-								case 1:
-								{
-									chuqu=1;
-								}break;
-								case -1:
-								{
-									StaightCLose(0, 300, -90, cameraSpeed);
-								}break;
-								default:
-								 break;
-							}
-						}
-						if(Position_t.X>=1300&&Position_t.Y<3600)
-						{
-							edge[2]=1;
-              switch(porm)
-							{
-								case 0:
-								{
-									StaightCLose(1950, 0, 0, cameraSpeed);
-								}break;
-								case 1:
-								{
-									chuqu=1;
-								}break;
-								case -1:
-								{
-									StaightCLose(2100, 0, 0, cameraSpeed);
-								}break;
-								default:
-								 break;
-							}							
-						}
-						if(Position_t.Y>=3600&&Position_t.X>-1200)
-						{
-							edge[3]=1;
-              switch(porm)
-							{
-								case 0:
-								{
-									StaightCLose(0, 4200, 90, cameraSpeed);
-								}break;
-								case 1:
-								{
-									chuqu=1;
-								}break;
-								case -1:
-								{
-									StaightCLose(0, 4400, 90, cameraSpeed);
-								}break;
-								default:
-								 break;
-							}							
-						}
-						if(Position_t.X<=-1200&&Position_t.Y>1100)
-						{
-							edge[0]=1;
-							switch(porm)
-							{
-								case 0:
-								{
-									StaightCLose(-1800, 0, 180, cameraSpeed);
-								}break;
-								case 1:
-								{
-									chuqu=1;
-								}break;
-								case -1:
-								{
-									StaightCLose(-2000, 0, 180, cameraSpeed);
-								}break;
-								default:
-								 break;
-							}
-						}
-					}
-
-				} break;
-
-			case 1:
-			{
-					InputPoints2RingBuffer(bestTra,bestSum);
-					CaculatePath();
-					PathFollowing(1);
-			} break;
-
-			default:
-				break;
-			}
-		} break;
-
-		case 3:
+	
+			case 3:
 		{
 			if (go)
 			{
