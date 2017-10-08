@@ -34,8 +34,8 @@ int8_t      g_cameraAng[50] = { 0 };  //存储摄像头接受到的角度
 uint8_t     g_cameraDis[50] = { 0 };  //存储摄像头接受到的距离
 int8_t      g_cameraFin     = 0;      //摄像头接收到0xc9置1
 int8_t      g_cameraNum     = 0;      //摄像头接收到的数据的个数
-POSITION_T  Position_t;               //矫正的定位
-POSITION_T  getPosition_t;            //获得的定位
+POSITION_T  Position_t = {0,0,0};               //矫正的定位
+POSITION_T  getPosition_t = { 0,0,0};            //获得的定位
 int         g_plan        = 1;        //跑场方案（顺逆时针）
 int8_t      whiteBall     = 1;        //白球信号
 int8_t      blackBall     = 0;        //黑球信号
@@ -112,7 +112,6 @@ void ConfigTask(void)
 	LOG_NOTE JudgeState("Camera");
 	NumTypeInit();        //摄像头高低电平拉数据PE4 PE6初始化
 	LOG_NOTE JudgeState("kongzhika");
-	BufferZizeInit(400);  //控制卡初始化
 	LOG_NOTE JudgeState("Camerainit");
   CameraInit();
 	LOG_NOTE JudgeState("can");
@@ -167,6 +166,8 @@ extern int waitTime,stopcount;
 int time1 = 0,test=0;
 extern int fullTime,begin2time;
 extern int changeState;
+int zjyc=1,stoppp=0,crazy=0;
+int shootBegin = 1;
 extern int triggerTime,beginTrigger;
 /*******************************************************/
 
@@ -231,32 +232,36 @@ void WalkTask(void)
 			fighting=1;
 		}
 //    USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
-		CountBall();
+//		CountBall();
 		//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
 //		ShootBallW(); 
 //		RunWithCamera1(2);
-		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 //		V = RealVel();
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
-//		USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)carDeVel,(int)time1);
-
-		if(carDeVel < 500)
-		{
-			time1++;
-		}
-		else
-		{
-			time1 = 0;
-		}
-		if(time1 > 250)
-		{
-			time1 = 250;
-			ShootBallW();
-		}
+//		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int))
+		 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)g_plan,(int)carDeVel);
+		 USART_OUT(UART5,(u8*)"ZD  %d\t%d\t%d\r\n",(int)getPosition_t.X,(int)getPosition_t.Y,(int)getPosition_t.angle);
+      if(shootBegin)
+			{
+				if(carDeVel < 500)
+				{
+					time1++;
+				}
+				else
+				{
+					time1 = 0;
+				}
+				if(time1 > 250)
+				{
+					time1 = 250;
+					ShootBallW();
+				}
+			}
 		
 		//普通避障
+	  
 		if(ifEscape)
 		{
 			LOG_NOTE JudgeState("Start Escape");
@@ -265,7 +270,7 @@ void WalkTask(void)
 			//开始逃逸计时
 			escapeCount = 1;
 			
-			//逃逸完成后，ifEscape清零
+			//逃逸完成后，ifEscape清零(注意铁框的后退时间自己给的)
 			if(Escape(100,120))
 			{
 				LOG_NOTE JudgeState("Escape Successful !!");
@@ -287,23 +292,61 @@ void WalkTask(void)
 		}
 		else
  		{
-			GoGoGo(firstLine,1);
-			if(fullTime>=160000)
-		  {				
-				GPIO_SetBits(GPIOE,GPIO_Pin_7);
-				if(fullTime>=160000&&fullTime<=160100)
+			//疯狂自转
+			if(crazy == 0)
+			{
+				GoGoGo(firstLine,1);
+				
+				//两分四十立马矫正射球
+				if(fullTime>=160000)
+				{				
+	//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
+					if(fullTime>=160000&&fullTime<=160100)
+					{
+						changeState=1;
+					}
+					GoGoGo(firstLine,4);
+				}
+			}
+			if(CrazyRotate())
+			{
+				crazy=1;zjyc=1;							 			
+			}
+			if(crazy == 1)
+			{
+				carRun = 0;
+				stoppp++;
+				if(stoppp < 100)
 				{
+					VelCrl(CAN2, 1, 0);
+					VelCrl(CAN2, 2, 0);	
+				}
+				else
+				{
+					stoppp = 0;
+					crazy = 2;
+				}
+			}
+			if(crazy==2)
+			{			
+				if(zjyc==1)
+				{
+					zjyc=0;			
 					changeState=1;
 				}
-			  GoGoGo(firstLine,4);
-		  }
-//			 test++;
-//       RunEdge();
-//			 if(test>=300)
-//			 {
-//			 	carRun=1;
-//			 	test=0;
-//			 }
+			  GoGoGo(firstLine,4);	
+				
+				//两分四十立马矫正射球
+				if(fullTime>=160000)
+				{				
+	//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
+					if(fullTime>=160000&&fullTime<=160100)
+					{
+						changeState=1;
+					}
+					GoGoGo(firstLine,4);
+				}
+			}
 		}
 		
 		//开始逃逸计时

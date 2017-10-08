@@ -37,6 +37,7 @@ extern char g_carState[50];
 int leftfirst=2400,rightfirst=2400;
 extern float carDeVel;
 extern int triggerTime,beginTrigger;
+extern int shootBegin;
 /*================================================函数定义区==============================================*/
 
 /*======================================================================================
@@ -50,8 +51,9 @@ void JudgeState(char state[])
 	//如果当前状态不为state
 	if(strcmp(g_carState,state))
 	{
-		
-//		USART_OUT(UART5,(u8*)"%s:\t%s\r\n",__TIME__,state);
+		USART_OUT(UART5,(u8*)"==============================================================\r\n");
+		USART_OUT(UART5,(u8*)"note%s:\t%s\r\n",__TIME__,state);
+		USART_OUT(UART5,(u8*)"==============================================================\r\n");
 	}
 	strcpy(g_carState,state);
 }
@@ -120,11 +122,11 @@ int IfStart(void)
 	}
 	else if((leftfirst+rightfirst)<4700&&rightfirst<700)
 	{
-			beginTrigger=1;
-			if(triggerTime>50)
-			{
-				success= -1;
-			}
+		beginTrigger=1;
+		if(triggerTime>50)
+		{
+			success= -1;
+		}
 			
 		else
 		{
@@ -230,7 +232,7 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 	}
 	else
 	{
-		Ainput = 410 * Dangle;
+		Ainput = 400 * Dangle;
 	}
 
 
@@ -256,7 +258,7 @@ int changeState=0;
 
 void GoGoGo(float fLine,int stat)
 {
-	static int  state = 10, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0; //应该执行的状态
+	static int  state = 1, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
   static float aimAngle = 0,tempx = 0,tempy = 0;
 //	if(ballNumber>35&&full==0)
@@ -277,6 +279,7 @@ void GoGoGo(float fLine,int stat)
 		case 1:
 		{
 			g_plan = lastPlan;
+			shootBegin = 1;
 			//先启动3s
 			count++;
 			if(count >= 300)
@@ -300,6 +303,7 @@ void GoGoGo(float fLine,int stat)
 		//向外扩散扫场
 		case 2:
 		{
+			shootBegin = 1;
 			g_plan = lastPlan;
 			LOG_NOTE JudgeState("Circle running....");//开始第一圈跑场
 			carRun = 1;
@@ -322,6 +326,7 @@ void GoGoGo(float fLine,int stat)
 		//紧随画圆后矩形扫场
 		case 3:
 		{
+			shootBegin = 1;
 			LOG_NOTE JudgeState("Rectangle running....");//开始第一圈跑场
 			carRun = 1;
 			g_plan = lastPlan;
@@ -336,6 +341,7 @@ void GoGoGo(float fLine,int stat)
 		//进行坐标校正
 		case 4:
 		{
+			shootBegin = 0;
 			carRun = 0;
 			count=0;
 			g_plan = 1;
@@ -349,6 +355,7 @@ void GoGoGo(float fLine,int stat)
 		} break;
 		case 5:
 		{
+			shootBegin = 0;
 			carRun      = 0;
 			shootStart  = 1;
 			VelCrl(CAN2, 1, 0);
@@ -361,7 +368,7 @@ void GoGoGo(float fLine,int stat)
 			if(time == 1)
 			{
 				POS_NOTE USART_OUT(UART5,(u8*)"%d\r\n",(int)(laserRight - Get_Adc_Average(RIGHT_LASER, 100)));
-				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 50 || (laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 50)
+				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 40 || (laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 40)
 				{
 					count++;
 					if(count > 5)
@@ -427,6 +434,7 @@ void GoGoGo(float fLine,int stat)
 
 		case 6: 
 		{
+			shootBegin = 1;
 			//先启动3s
 			count++;
 			if(count >= 300)
@@ -445,6 +453,7 @@ void GoGoGo(float fLine,int stat)
 
 		case 7:
 		{
+			shootBegin = 1;
 			count++;
 			if(count >= 300)
 			{
@@ -462,6 +471,7 @@ void GoGoGo(float fLine,int stat)
 		
 		case 8:
 		{
+			shootBegin = 1;
 			 count++;
 			 RunWithCamera1(2);
 			 if(count>=300)
@@ -502,6 +512,7 @@ void GoGoGo(float fLine,int stat)
 			break;
 		case 10:
 		{
+
 			 count++;			 
 			 if(count>=300)
 			 {
@@ -509,6 +520,7 @@ void GoGoGo(float fLine,int stat)
 			 	carRun=1;
 			 	count=300;
 			 }
+			shootBegin = 1;
 			if(SweepIn())
 			{
 				state=4;
@@ -840,6 +852,7 @@ int CheckPosition(void)
 		//判断距离哪面墙最近
 		case 1:
 		{
+			shootBegin = 0;
 			LOG_NOTE JudgeState("Judge which wall is the nearest");
 			carRun = 0;
 			side = JudgeSide();
@@ -865,6 +878,7 @@ int CheckPosition(void)
 		//原地旋转至目标角度
 		case 2:
 		{
+			shootBegin = 0;
 			LOG_NOTE JudgeState("Turn to right angle");
 			carRun = 0;
 			TurnAngle(aimAngle, 15000);
@@ -880,6 +894,7 @@ int CheckPosition(void)
 		//后退靠墙
 		case 3:
 		{
+			shootBegin = 0;
 			LOG_NOTE JudgeState("Go back until against the wall");
 			carRun = 0;
 			StaightCLose(tempx, tempy, aimAngle, -700);
@@ -977,6 +992,7 @@ int CheckPosition(void)
 		//激光校正
 		case 4:
 		{
+			shootBegin = 0;
 			LOG_NOTE JudgeState("Position Check with laser");
 			carRun = 0;
 		  int laserCheck = 0;
@@ -1068,6 +1084,7 @@ int CheckPosition(void)
 		//继续矫正,前进
 		case 5:
 			{
+				shootBegin = 1;
 				LOG_NOTE JudgeState("continue Check , go ahead");
 				carRun = 1;
 				angClose(1800, aimAngle, 250);
@@ -1147,6 +1164,7 @@ int CheckPosition(void)
 		//通过坐标判断车距离哪面墙近
 		case 6:
 		{
+			shootBegin = 0;
 			LOG_NOTE JudgeState("Judge which wall is the nearest");
 			carRun = 0;
 			side = JudgeSide();
@@ -1173,6 +1191,7 @@ int CheckPosition(void)
 		//转向目标角度
 		case 7:
 		{
+			shootBegin = 0;
 			LOG_NOTE JudgeState("Turn to right angle");
 			carRun = 0;
 			TurnAngle(aimAngle, 5000);
@@ -1187,6 +1206,7 @@ int CheckPosition(void)
 		//后退
 		case 8:
 		{
+			shootBegin = 0;
 			LOG_NOTE JudgeState("GO back until against the wall");
 			carRun = 0;
 			StaightCLose(tempx, tempy, aimAngle, -700);
@@ -1226,7 +1246,9 @@ int CheckPosition(void)
 		 break;
 		case 9:
 		{
+			shootBegin = 0;
 			carRun = 0;
+			shootBegin = 0;
 //		  side = JudgeSide();
 //			tempx = Position_t.X;
 //			tempy = Position_t.Y;
@@ -1294,11 +1316,12 @@ int CheckPosition(void)
 				checkError = 0;
 				state = 10;
 			}
-			angClose(1000,aimAngle,150);
+			angClose(1000,(aimAngle - 45),150);
 		}
 			break;
 		case 10:
 		{
+			shootBegin = 0;
 			carRun = 0;
 			if(side == 1)
 			{
@@ -1350,6 +1373,7 @@ int CheckPosition(void)
 			break;
 		case 11:
 		{
+			shootBegin = 1;
 			carRun = 1;
 			angClose(1800, aimAngle, 250);
 		
@@ -1427,6 +1451,7 @@ int CheckPosition(void)
 		break;
 		case 12:
 		{
+			shootBegin = 1;
 			carRun = 1;
 			//判断车在哪面墙
 			side = JudgeSide();
@@ -1438,6 +1463,7 @@ int CheckPosition(void)
 			break;
 		case 13:
 		{
+			shootBegin = 1;
 			carRun = 1;
 			angClose(1500,aimAngle,150);
 		  
@@ -1475,6 +1501,7 @@ int CheckPosition(void)
 			break;
 		case 14:
 		{
+			shootBegin = 1;
 			carRun = 1;
 			count++;
 		  if(count > 200 || sqrt(PF(tempx - Position_t.X) + PF(tempy - Position_t.Y)) > 500)
@@ -1499,6 +1526,7 @@ int CheckPosition(void)
 		//确保不在角落中投球
 		case 15:
 		{
+			shootBegin = 1;
 			carRun = 1;
 			if(corner == 1)
 			{
@@ -1796,181 +1824,8 @@ int RunCamera(void)
 				}
 		} break;
 
-		case 2:
-		{
-			cameraX = Position_t.X - CAMERATOGYRO * sin(Position_t.angle);
-			cameraY = Position_t.Y + CAMERATOGYRO * cos(Position_t.angle);
-			if (go == 1)
-			{
-				go = 0;
-				if (gone == 1)
-				{
-					basePoint.X     = cameraX;
-					basePoint.Y     = cameraY;
-					basePoint.angle = Position_t.angle;
-				}
-				//判断是否已走过该区域，继续扫面下一个区域
-				if (P2P(cameraX, cameraY, basePoint.X, basePoint.Y) >= 1900 || Position_t.angle >= basePoint.angle + 25 || Position_t.angle <= basePoint.angle - 25)
-					gone = 1;
-				else
-					gone = 0;
-			}
-			if (go == 1 && gone == 1)
-			{
-				if (arr_number == 0)
-				{
-					haveBall = 0;
-				}
-				else
-				{
-					haveBall = 1;
-					PathPlan(cameraX, cameraY);
-					ClearRingBuffer();
-					for(circulate=0;circulate<bestSum;circulate++)
-					{
-						bestTra[circulate].point.x = bestTraX[circulate];
-						bestTra[circulate].point.y = bestTraY[circulate];
-					}	    
-				}
-			}
-			//到边界要拐弯了
-			if (fabs(Position_t.X) >= 1500 || Position_t.Y <= 900 || Position_t.Y >= 3900)
-			{
-				if(chuqu==0)
-				{
-					haveBall = 0;
-					if(run>2)
-					{
-						border=1;
-						if(edge[0]==1&&edge[1]==1&&edge[2]==1&&edge[3]==1)
-						{
-							border=0;
-						}					
-					}
-				}				
-			}
-			else
-			{
-				border=0;
-				chuqu=0;
-			}
-			//到达中间危险区域的标志
-			if(fabs(Position_t.X)<800&&Position_t.Y>1300&&Position_t.Y<3500)
-				haveBall = 0;
-			switch (haveBall)
-			{
-				case 0:
-				{
-					if(border==0)
-					{
-						if (run < 2)
-							First_Scan();
-						else
-							New_Route(down, right, up, left);
-					}
-					else
-					{
-						if(Position_t.Y<=1100&&Position_t.X<1300)
-						{
-							edge[1]=1;
-              switch(porm)
-							{
-								case 0:
-								{
-									StaightCLose(0, 450, -90, cameraSpeed);
-								}break;
-								case 1:
-								{
-									chuqu=1;
-								}break;
-								case -1:
-								{
-									StaightCLose(0, 300, -90, cameraSpeed);
-								}break;
-								default:
-								 break;
-							}
-						}
-						if(Position_t.X>=1300&&Position_t.Y<3600)
-						{
-							edge[2]=1;
-              switch(porm)
-							{
-								case 0:
-								{
-									StaightCLose(1950, 0, 0, cameraSpeed);
-								}break;
-								case 1:
-								{
-									chuqu=1;
-								}break;
-								case -1:
-								{
-									StaightCLose(2100, 0, 0, cameraSpeed);
-								}break;
-								default:
-								 break;
-							}							
-						}
-						if(Position_t.Y>=3600&&Position_t.X>-1200)
-						{
-							edge[3]=1;
-              switch(porm)
-							{
-								case 0:
-								{
-									StaightCLose(0, 4200, 90, cameraSpeed);
-								}break;
-								case 1:
-								{
-									chuqu=1;
-								}break;
-								case -1:
-								{
-									StaightCLose(0, 4400, 90, cameraSpeed);
-								}break;
-								default:
-								 break;
-							}							
-						}
-						if(Position_t.X<=-1200&&Position_t.Y>1100)
-						{
-							edge[0]=1;
-							switch(porm)
-							{
-								case 0:
-								{
-									StaightCLose(-1800, 0, 180, cameraSpeed);
-								}break;
-								case 1:
-								{
-									chuqu=1;
-								}break;
-								case -1:
-								{
-									StaightCLose(-2000, 0, 180, cameraSpeed);
-								}break;
-								default:
-								 break;
-							}
-						}
-					}
-
-				} break;
-
-			case 1:
-			{
-					InputPoints2RingBuffer(bestTra,bestSum);
-					CaculatePath();
-					PathFollowing(1);
-			} break;
-
-			default:
-				break;
-			}
-		} break;
-
-		case 3:
+	
+			case 3:
 		{
 			if (go)
 			{

@@ -119,7 +119,6 @@ void SendUint8(void);
 
 
 void GivenPoint(float pointX, float pointY, float givenSpeed);
-void PathPlan(float camX, float camY);
 void CountBall(void);
 int SweepIn(void);
 

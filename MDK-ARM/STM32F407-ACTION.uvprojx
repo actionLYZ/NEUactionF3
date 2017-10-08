@@ -631,46 +631,6 @@
             </File>
           </Files>
         </Group>
-        <Group>
-          <GroupName>Motion</GroupName>
-          <Files>
-            <File>
-              <FileName>Bspline.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\pathplan\motion\Bspline.c</FilePath>
-            </File>
-            <File>
-              <FileName>calculate.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\pathplan\motion\calculate.c</FilePath>
-            </File>
-            <File>
-              <FileName>flash.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\pathplan\motion\flash.c</FilePath>
-            </File>
-            <File>
-              <FileName>pathFollowing.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\pathplan\motion\pathFollowing.c</FilePath>
-            </File>
-            <File>
-              <FileName>posSystem.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\pathplan\motion\posSystem.c</FilePath>
-            </File>
-            <File>
-              <FileName>ringbuffer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\pathplan\motion\ringbuffer.c</FilePath>
-            </File>
-            <File>
-              <FileName>SpeedPlaning.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\pathplan\motion\SpeedPlaning.c</FilePath>
-            </File>
-          </Files>
-        </Group>
       </Groups>
     </Target>
   </Targets>
