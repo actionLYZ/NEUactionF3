@@ -2354,51 +2354,89 @@ void CountBall(void)
 =======================================================================================*/
 int SweepIn(void)
 {
-	static int inarea1=0,inarea2=0,squareNumber=1,check1[4]={0},check2[4]={0},walkTime=0;
+	static int inarea1=0,inarea2=0,squareNumber=1,check1=0,check2=0,walkTime=0,areaTime=0;
 	int success=0;
-	if(Position_t.X>=0&&Position_t.Y<2335.35)
+	if(squareNumber==1)
 	{
-		inarea1=1;check1[0]=1;
+		if(Position_t.X>=-50&&Position_t.Y<2335.35)
+		{
+			if(check1!=1)
+			{
+				areaTime++;
+			}		
+      inarea1=1;check1=1;			
+		}
+		else if(Position_t.X>0&&Position_t.Y>=2335.35)
+		{
+			if(check1!=2)
+			{
+				areaTime++;
+			}		
+			inarea1=2;check1=2;
+		}
+		else if(Position_t.X<=0&&Position_t.Y>2035.35)
+		{
+			if(check1!=3)
+			{
+				areaTime++;
+			}
+			inarea1=3;check1=3;
+		}
+		else if(Position_t.X<-50&&Position_t.Y<=2035.35)
+		{
+			if(check1!=4)
+			{
+				areaTime++;
+			}
+			inarea1=4;check1=4;
+		}
+		else
+		{
+      success=1;
+			USART_OUT(UART5,(u8*)"sweepin_area_error\r\n");
+		}		
 	}
-	else if(Position_t.X>0&&Position_t.Y>=2335.35)
+  else if(squareNumber==2)
 	{
-		inarea1=2;check1[1]=1;
-	}
-	else if(Position_t.X<=0&&Position_t.Y>2335.35)
-	{
-    inarea1=3;check1[2]=1;
-	}
-	else if(Position_t.X<0&&Position_t.Y<=2335.35)
-	{
-		inarea1=4;check1[3]=1;
-	}
-	else
-	{
-		VelCrl(CAN2, 1, 5000);
-	  VelCrl(CAN2, 2, -5000);
+		if(Position_t.X>=0&&Position_t.Y<2335.35)
+		{
+			if(check2!=1)
+			{
+			  areaTime++;
+			}
+			inarea1=1;check2=1;
+		}
+		else if(Position_t.X>0&&Position_t.Y>=2335.35)
+		{			
+			if(check2!=2)
+			{
+				areaTime++;
+			}
+			inarea1=2;check2=2;
+		}
+		else if(Position_t.X<=0&&Position_t.Y>2335.35)
+		{			
+			if(check2!=3)
+			{
+			  areaTime++;
+			}
+			inarea1=3;check2=3;
+		}
+		else if(Position_t.X<0&&Position_t.Y<=2335.35)
+		{			
+			if(check2!=4)
+			{
+				areaTime++;
+			}
+			inarea1=4;check2=4;
+		}
+		else
+		{
+      success=1;
+			USART_OUT(UART5,(u8*)"sweepin_area_error\r\n");
+		}			
 	}
 	
-	if(Position_t.X>=0&&Position_t.Y<2335.35)
-	{
-		inarea1=1;check2[0]=1;
-	}
-	else if(Position_t.X>0&&Position_t.Y>=2335.35)
-	{
-		inarea1=2;check2[1]=1;
-	}
-	else if(Position_t.X<=0&&Position_t.Y>2335.35)
-	{
-    inarea1=3;check2[2]=1;
-	}
-	else if(Position_t.X<0&&Position_t.Y<=2335.35)
-	{
-		inarea1=4;check2[3]=1;
-	}
-	else
-	{
-		VelCrl(CAN2, 1, 5000);
-	  VelCrl(CAN2, 2, -5000);
-	}	
 	if(squareNumber==1)
 	{
 		switch(inarea1)
@@ -2423,8 +2461,9 @@ int SweepIn(void)
 			 break;
 		}		
 	}
-	if(check1[0]==1&&check1[1]==1&&check1[2]==1&&check1[3]==1)
+	if(areaTime>=5&&squareNumber==1)
 	{
+		areaTime=0;
 		squareNumber=2;
 	}
 	if(squareNumber==2)
@@ -2451,8 +2490,9 @@ int SweepIn(void)
 			 break;			
 		}
 	}
-	if(check2[0]==1&&check2[1]==1&&check2[2]==1&&check2[3]==1)
+	if(areaTime>=5&&squareNumber==2)
 	{
+		areaTime=0;
 		squareNumber=3;
 	}
 	if(squareNumber==3)
@@ -2467,9 +2507,10 @@ int SweepIn(void)
 			squareNumber=0;
 			inarea1=0;
       inarea2=0;
-      check1[0]=0;check1[1]=0;check1[2]=0;check1[3]=0;
-      check2[0]=0;check2[1]=0;check2[2]=0;check2[3]=0;
+      check1=0;
+      check2=0;
 		}
 	}
+	USART_OUT(UART5,(u8*)"%d\t%d\r\n",squareNumber,areaTime);
 	return success;
 }

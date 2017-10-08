@@ -502,9 +502,17 @@ void GoGoGo(float fLine,int stat)
 			break;
 		case 10:
 		{
+			 count++;			 
+			 if(count>=300)
+			 {
+				 shootStart  = 0;
+			 	carRun=1;
+			 	count=300;
+			 }
 			if(SweepIn())
 			{
 				state=4;
+				count=0;
 			}
 		}break;
 		default:
