@@ -550,7 +550,7 @@ bool FirstRound(float firstLine)
 	//第一圈贴框走成功极限条件
 	if(firstLine < 650)
 	{
-		firstLine = 600;
+		firstLine = 700;
 	}
 	switch (state)
 	{
@@ -872,6 +872,11 @@ int CheckPosition(void)
 			shootBegin = 0;
 			LOG_NOTE JudgeState("Turn to right angle");
 			carRun = 0;
+			if(AngleStuck())
+			{
+				aimAngle = Position_t.angle;
+				//state = 16;
+			}
 			TurnAngle(aimAngle, 15000);
 			if (fabs(Position_t.angle - aimAngle) <= 25)
 			{
@@ -1569,6 +1574,17 @@ int CheckPosition(void)
 					state = 2;
 				}
 			}
+		}
+		break;
+		case 16:
+		{
+			count++;
+			if(count >= 80)
+			{
+				state = 2;
+				count = 0;
+			}
+			angClose(-1000,aimAngle,150);
 		}
 		break;
 	}

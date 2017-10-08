@@ -1213,11 +1213,11 @@ int ShootBallW(void)
 //			USART_OUT(UART5,(u8*)"notM%d\t%d\t%d\r\n",(int)g_pushPosition,(int)lastPosition,(int)notMove);
 		lastPosition1 = g_pushPosition;
 		
-		//6s不动，切换下一状态
+		//6s不动或者射了10个球，切换下一状态
 		if (notMove1 > 600)
 		{
 			noBall = 0;
-		
+			shootNum = 0;
 			//射球完成
 			notMove = 0;
 			step = 0;
@@ -1230,7 +1230,7 @@ int ShootBallW(void)
 	if(time > 2000)
 	{
 		noBall = 0;
-		
+		shootNum = 0;
 			//射球完成
 			notMove = 0;
 			step = 0;
@@ -1243,7 +1243,7 @@ int ShootBallW(void)
 	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
 	ReadActualPos(CAN1, PUSH_BALL_ID);
 	
-	USART_OUT(UART5,(u8*)"S%d\t%d\r\n",(int)SWITCHC0,(int)SWITCHE2);
+	USART_OUT(UART5,(u8*)"shootNum %d\r\n",(int)shootNum);
 	//行程开关都触发，一直进行角度矫正
   if(SWITCHC0 == 1 && SWITCHE2 == 1)
 	{
@@ -1284,7 +1284,7 @@ int ShootBallW(void)
 
 				//枪顺时针转为正，逆时针为负
 				aimAngle = AvoidOverAngle(aimAngle);
-				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2;
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2.5;
 			}
 
 			//球是黑球
@@ -1297,7 +1297,7 @@ int ShootBallW(void)
 				aimAngle  = atan2(BALLY - posShoot.Y, BLACKX - posShoot.X);
 				aimAngle  = RADTOANG(aimAngle) - 90;
 				aimAngle  = AvoidOverAngle(aimAngle);
-				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2;
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2.5;
 			}
 		
 			// 没球,来回拨动几次
@@ -1318,10 +1318,10 @@ int ShootBallW(void)
 						PushBall();	
 				}
 
-				if(noBall > 520)
+				if(noBall > 500)
 				{
 					noBall = 0;
-		
+		      shootNum = 0;
 					//射球完成
 					notMove = 0;
 					step = 0;
@@ -1498,13 +1498,13 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
-		  R1 += 700;
+		  R1 += 650;
 		}
 		
 		//否则,缩小扫场
 		else
 		{
-			R1 -= 600;
+			R1 -= 650;
 		}
 		
 		//达到预定圈数,success置1,acceSpeed置0
@@ -1729,21 +1729,21 @@ int AfterCircle(uint16_t speed)
 			break;
 		case 1:
 			StaightCLose(0, 4200, 90, speed);
-			if(Position_t.X < -400)
+			if(Position_t.X < -300)
 				step++;
 			break;
 		case 2:
-			StaightCLose(-1900, 0, 180, speed);
-			if(Position_t.Y < 2400)
+			StaightCLose(-2100, 0, 180, speed);
+			if(Position_t.Y < 2200)
 				step++;
 			break;
 		case 3:
-			StaightCLose(0, 600, -90, speed);
+			StaightCLose(0, 400, -90, speed);
 			if(Position_t.X > 300)
 			  step++;
 			break;
 		case 4:
-			StaightCLose(2000, 0, 0, speed);
+			StaightCLose(2100, 0, 0, speed);
 			if(Position_t.Y > 2000)
 			{
 				step = 5;
@@ -1844,6 +1844,7 @@ int Escape(u16 back,u16 turn)
 				step = 3;
 			}
 		}
+		USART_OUT(UART5,(u8*)"status%d\t%d\r\n",(int)status,(int)step);
 			break;
 		case 1:
 		{
@@ -1956,19 +1957,19 @@ int Escape(u16 back,u16 turn)
 			//计算下一刻的目标角度
 			if(status == 6)
 			{
-				aimAngle = -10;
+				aimAngle = -30;
 			}
 			else if(status == 7)
 			{
-				aimAngle = 80;
+				aimAngle = 60;
 			}
 			else if(status == 8)
 			{
-				aimAngle = 170;
+				aimAngle = 150;
 			}
 			else
 			{
-				aimAngle = -100;
+				aimAngle = -120;
 			}
 			angClose(-800,aimAngle,120);
 			
@@ -1989,7 +1990,7 @@ int Escape(u16 back,u16 turn)
 				step = 0;
 				success = 1;
 			}
-			angClose(800,aimAngle-40,120);
+			angClose(800,aimAngle-30,120);
 		}
 		break;			
 	}
@@ -2101,6 +2102,7 @@ int AngleStuck(void)
 	{
 		count = 0;
 	}
+	USART_OUT(UART5,(u8*)"stuck%d\r\n",(int)(Position_t.angle - lastAngle));
 	lastAngle = Position_t.angle;
 	return success;
 }

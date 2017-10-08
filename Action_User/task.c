@@ -255,6 +255,7 @@ void WalkTask(void)
 				}
 				if(time1 > 250)
 				{
+					shootNum = 0;
 					time1 = 250;
 					ShootBallW();
 				}

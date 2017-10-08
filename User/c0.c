@@ -959,7 +959,7 @@ int RunEdge(void)
 
   if(!ifEscape)
 	{
-		if(Position_t.X>=1200&&Position_t.Y<=1200)
+		if(Position_t.X>=1100&&Position_t.Y<=1300)
 		{
 			if(zone!=1)
 			{
@@ -967,11 +967,11 @@ int RunEdge(void)
 			}
 			zone=1;
 		}
-		else if(Position_t.Y>1200&Position_t.Y<3600&&(Position_t.Y-Position_t.X-2400)<0&&(Position_t.Y+Position_t.X-2400)>=0)
+		else if(Position_t.Y>1300&Position_t.Y<3500&&(Position_t.Y-Position_t.X-2400)<0&&(Position_t.Y+Position_t.X-2400)>=0)
 		{
 			zone=2;
 		}
-		else if(Position_t.X>=1200&&Position_t.Y>=3600)
+		else if(Position_t.X>=1100&&Position_t.Y>=3500)
 		{
 			if(zone!=3)
 			{
@@ -979,11 +979,11 @@ int RunEdge(void)
 			}
 			zone=3;
 		}
-		else if(Position_t.X<1200&&Position_t.X>-1200&&(Position_t.Y-Position_t.X-2400)>=0&&(Position_t.Y+Position_t.X-2400)>0)
+		else if(Position_t.X<1100&&Position_t.X>-1100&&(Position_t.Y-Position_t.X-2400)>=0&&(Position_t.Y+Position_t.X-2400)>0)
 		{
 			zone=4;
 		}
-		else if(Position_t.X<=-1200&&Position_t.Y>=3600)
+		else if(Position_t.X<=-1100&&Position_t.Y>=3500)
 		{
 			if(zone!=5)
 			{
@@ -991,11 +991,11 @@ int RunEdge(void)
 			}
 			zone=5;
 		}
-		else if(Position_t.Y>1200&Position_t.Y<3600&&(Position_t.Y-Position_t.X-2400)>0&&(Position_t.Y+Position_t.X-2400)<=0)
+		else if(Position_t.Y>1100&Position_t.Y<3500&&(Position_t.Y-Position_t.X-2400)>0&&(Position_t.Y+Position_t.X-2400)<=0)
 		{
 			zone=6;
 		}
-		else if(Position_t.X<=-1200&&Position_t.Y<=1200)
+		else if(Position_t.X<=-1100&&Position_t.Y<=1300)
 		{
 			if(zone!=7)
 			{
@@ -1003,7 +1003,7 @@ int RunEdge(void)
 			}
 			zone=7;
 		}
-		else if(Position_t.X<1200&&Position_t.X>-1200&&(Position_t.Y-Position_t.X-2400)<=0&&(Position_t.Y+Position_t.X-2400)<0)
+		else if(Position_t.X<1100&&Position_t.X>-1100&&(Position_t.Y-Position_t.X-2400)<=0&&(Position_t.Y+Position_t.X-2400)<0)
 		{
 			zone=8;
 		}
