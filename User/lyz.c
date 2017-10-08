@@ -233,7 +233,6 @@ void GoGoGo(float fLine,int stat)
 		changeState=0;
 		shootTime=0;
 		state = stat;
-
 	}
 	
 	switch (state)
@@ -534,7 +533,7 @@ bool FirstRound(float firstLine)
 		case 1:
 		{
 			StaightCLose(firstLine, 0, 0, speed);
-			if (Position_t.Y >= 3100 + WIDTH / 2 - FIR_ADV)
+			if (Position_t.Y >= 3100 + WIDTH / 2 - advance)
         state = 2;
 		} break;
 
@@ -1264,7 +1263,7 @@ int CheckPosition(void)
 				checkError = 0;
 				state = 10;
 			}
-			angClose(1000,aimAngle,150);
+			angClose(1000,(aimAngle - 45),150);
 		}
 			break;
 		case 10:

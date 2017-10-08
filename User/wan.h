@@ -224,3 +224,6 @@ int Escape(u16 back,u16 turn);
 int AngleStuck(void);
 
 int Escape1(void);
+
+//检测疯狂自转
+int CrazyRotate(void);

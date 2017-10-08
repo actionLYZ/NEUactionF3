@@ -167,6 +167,7 @@ extern int waitTime,stopcount;
 int time1 = 0,test=0;
 extern int fullTime,begin2time;
 extern int changeState;
+int zjyc=1,stoppp=0,crazy=0;
 /*******************************************************/
 
 
@@ -243,7 +244,7 @@ void WalkTask(void)
 		 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)carDeVel,(int)time1);
 		 POS_NOTE USART_OUT(UART5,(u8*)"ZD  %d\t%d\t%d\r\n",(int)getPosition_t.X,(int)getPosition_t.Y,(int)getPosition_t.angle);
 
-		  
+
 			if(carDeVel < 500)
 			{
 				time1++;
@@ -290,23 +291,61 @@ void WalkTask(void)
 		}
 		else
  		{
-			GoGoGo(firstLine,1);
-			if(fullTime>=160000)
-		  {				
-//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
-				if(fullTime>=160000&&fullTime<=160100)
+			//疯狂自转
+			if(crazy == 0)
+			{
+				GoGoGo(firstLine,1);
+				
+				//两分四十立马矫正射球
+				if(fullTime>=160000)
+				{				
+	//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
+					if(fullTime>=160000&&fullTime<=160100)
+					{
+						changeState=1;
+					}
+					GoGoGo(firstLine,4);
+				}
+			}
+			if(CrazyRotate())
+			{
+				crazy=1;zjyc=1;							 			
+			}
+			if(crazy == 1)
+			{
+				carRun = 0;
+				stoppp++;
+				if(stoppp < 100)
 				{
+					VelCrl(CAN2, 1, 0);
+					VelCrl(CAN2, 2, 0);	
+				}
+				else
+				{
+					stoppp = 0;
+					crazy = 2;
+				}
+			}
+			if(crazy==2)
+			{			
+				if(zjyc==1)
+				{
+					zjyc=0;			
 					changeState=1;
 				}
-			  GoGoGo(firstLine,4);
-		  }
-//			 test++;
-//       RunEdge();
-//			 if(test>=300)
-//			 {
-//			 	carRun=1;
-//			 	test=0;
-//			 }
+			  GoGoGo(firstLine,4);	
+				
+				//两分四十立马矫正射球
+				if(fullTime>=160000)
+				{				
+	//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
+					if(fullTime>=160000&&fullTime<=160100)
+					{
+						changeState=1;
+					}
+					GoGoGo(firstLine,4);
+				}
+			}
 		}
 		
 		//开始逃逸计时
