@@ -167,7 +167,7 @@ int time1 = 0,test=0;
 extern int fullTime,begin2time;
 extern int changeState;
 int zjyc=1,stoppp=0,crazy=0;
-
+int shootBegin = 1;
 extern int triggerTime,beginTrigger;
 /*******************************************************/
 
@@ -232,20 +232,18 @@ void WalkTask(void)
 			fighting=1;
 		}
 //    USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
-		CountBall();
+//		CountBall();
 		//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
 //		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
 //		ShootBallW(); 
 //		RunWithCamera1(2);
-		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 //		V = RealVel();
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
 //		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int))
 		 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)g_plan,(int)carDeVel);
 		 USART_OUT(UART5,(u8*)"ZD  %d\t%d\t%d\r\n",(int)getPosition_t.X,(int)getPosition_t.Y,(int)getPosition_t.angle);
-      
-      if(carRun)
+      if(shootBegin)
 			{
 				if(carDeVel < 500)
 				{
@@ -272,7 +270,7 @@ void WalkTask(void)
 			//开始逃逸计时
 			escapeCount = 1;
 			
-			//逃逸完成后，ifEscape清零
+			//逃逸完成后，ifEscape清零(注意铁框的后退时间自己给的)
 			if(Escape(100,120))
 			{
 				LOG_NOTE JudgeState("Escape Successful !!");

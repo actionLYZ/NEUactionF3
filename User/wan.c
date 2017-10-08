@@ -1739,20 +1739,17 @@ int AfterCircle(uint16_t speed)
 			break;
 		case 3:
 			StaightCLose(0, 600, -90, speed);
-			if(Position_t.X > -500)
+			if(Position_t.X > 300)
+			  step++;
+			break;
+		case 4:
+			StaightCLose(2000, 0, 0, speed);
+			if(Position_t.Y > 2000)
 			{
 				step = 5;
 				success = 1;
 			}
 			break;
-//		case 4:
-//			StaightCLose(2200, 0, 0, speed);
-//			if(Position_t.Y > 2100)
-//			{
-//				step = 5;
-//				success = 1;
-//			}
-//			break;
 			
 			//记录当前的X坐标，以便更好的切换到矩形扫场
 		case 5:
@@ -1976,7 +1973,7 @@ int Escape(u16 back,u16 turn)
 			angClose(-800,aimAngle,120);
 			
 			//后退一定的时间或者转到了目标角度
-		  if(time > turn || AvoidOverAngle(Position_t.angle - aimAngle) < -5)
+		  if(time > 120 || AvoidOverAngle(Position_t.angle - aimAngle) < -5)
 			{
 				time = 0;
 				step = 7;
