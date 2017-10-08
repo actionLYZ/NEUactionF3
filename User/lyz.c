@@ -36,6 +36,7 @@ static bool ifPrintPositionCheck = true;
 extern char g_carState[50];
 int leftfirst=2400,rightfirst=2400;
 extern float carDeVel;
+extern int triggerTime,beginTrigger;
 /*================================================函数定义区==============================================*/
 
 /*======================================================================================
@@ -68,6 +69,7 @@ void JudgeState(char state[])
 int IfStart(void)
 {
 	u16 right = 0, left = 0;
+	int success=0;
 	right = Get_Adc_Average(RIGHT_LASER, 30);
 	left = Get_Adc_Average(LEFT_LASER, 30);
 //	USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
@@ -77,48 +79,84 @@ int IfStart(void)
 	{
 		if (right < 1000)     //右侧激光触发
 		{
-			return 1;
+			beginTrigger=1;
+			if(triggerTime>50)
+			{
+				success= 1;
+			}
+			
 		}
 			
 		else if (left < 1000) //左侧激光触发
 		{
-			return -1;
+			beginTrigger=1;
+			if(triggerTime>50)
+			{
+				success= -1;
+			}
 		}
 			
 		else
-			return 0;		
+		{
+			beginTrigger=0;
+			success= 0;
+		}
+					
 	}
 	else if((leftfirst+rightfirst)<4700&&leftfirst<700)
 	{
 		if (right < 1000)     //右侧激光触发
 		{
-			return 1;
+			beginTrigger=1;
+			if(triggerTime>50)
+			{
+				success= 1;
+			}
 		}
 		else
-			return 0;				
+		{
+			beginTrigger=0;
+			success= 0;
+		}		
 	}
 	else if((leftfirst+rightfirst)<4700&&rightfirst<700)
 	{
-		if (left < 1000)     //右侧激光触发
-		{
-			return 1;
-		}
+			beginTrigger=1;
+			if(triggerTime>50)
+			{
+				success= -1;
+			}
 			
 		else
-			return 0;				
+		{
+			beginTrigger=0;
+			success= 0;
+		}		
 	}  
 	else if((leftfirst+rightfirst)<4700&&leftfirst<700&&rightfirst<700)
 	{
 		if (SWITCHE2 == 1 || SWITCHC0 == 1)     
 		{
-			return 1;
+			beginTrigger=1;
+			if(triggerTime>50)
+			{
+				success= 1;
+			}
 		}
 			
 		else
-			return 0;						
+		{
+			beginTrigger=0;
+			success= 0;
+		}					
 	}
+<<<<<<< HEAD
 	else return 0;
 	return 0;
+=======
+//	 USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)beginTrigger,(int)triggerTime);
+	return success;
+>>>>>>> 诗玲
 }
 
 
@@ -221,12 +259,13 @@ int changeState=0;
    函数参数	：		方案：暂定1为逆时针(右侧激光触发)，-1为顺时针(左侧激光触发)
    函数返回值：		无
    =======================================================================================*/
+
 void GoGoGo(float fLine,int stat)
 {
-	static int  state = 1, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0; //应该执行的状态
+	static int  state = 10, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
   static float aimAngle = 0,tempx = 0,tempy = 0;
-//	if(ballNumber>40&&full==0)
+//	if(ballNumber>35&&full==0)
 //	{
 //		state=4;
 //	  full=1;
@@ -357,46 +396,24 @@ void GoGoGo(float fLine,int stat)
 				}
 				switch (shootTime)
 				{
-					case 4:
-					{
-						state = 6;
-					}
 					case 3:
 					{
 						state = 6;
-					}
-					case 2:
-					{
-						state = 6;
-						if (cameraScheme == 0)
-						{						
-							cameraScheme = 1;
-							GPIO_SetBits(GPIOE, GPIO_Pin_4);
-							GPIO_ResetBits(GPIOE, GPIO_Pin_6);
-						}
-						else if (cameraScheme == 1)
-						{
-							cameraScheme = 2;
-							GPIO_SetBits(GPIOE, GPIO_Pin_4);
-							GPIO_SetBits(GPIOE, GPIO_Pin_6);
-						}
-						else if (cameraScheme == 2)
-						{
-							cameraScheme = 3;
-							
-							GPIO_ResetBits(GPIOE, GPIO_Pin_4);
-							GPIO_SetBits(GPIOE, GPIO_Pin_6);
-						}
-						else
-						{
-						}
 					} 
 					break;
 
 					case 1: 
 						state = 7;
 					break;						
-					
+					case 0:
+					{
+						state=7;
+						shootTime=1;
+					}break;
+					case 2:
+					{
+						state=6;
+					}break;
 					default: 
 					{
 						state = 6;
@@ -489,10 +506,19 @@ void GoGoGo(float fLine,int stat)
 			}
 		}
 			break;
+		case 10:
+		{
+			if(SweepIn())
+			{
+				state=4;
+			}
+		}break;
 		default:
-			break;
+		{
+			state=7;
+		}break;
 	}
-	 POS_NOTE USART_OUT(UART5,(u8*)"gogogostate %d\t%d\r\n",state,shootTime);
+  USART_OUT(UART5,(u8*)"gogogostate %d\r\n",state);
 }
 
 /*======================================================================================
@@ -519,7 +545,7 @@ bool FirstRound(float firstLine)
 	//第一圈贴框走成功极限条件
 	if(firstLine < 650)
 	{
-		firstLine = 620;
+		firstLine = 600;
 	}
 	switch (state)
 	{
@@ -557,7 +583,7 @@ bool FirstRound(float firstLine)
 			}
 			else if(fighting==1)
 			{
-				StaightCLose(-1200, 0, 180, speed);
+				StaightCLose(-800, 0, 180, speed);
 			}
 			if (Position_t.Y <= 1200 + FIR_ADV)
 				state = 4;
@@ -1525,7 +1551,7 @@ int CheckPosition(void)
 		}
 		break;
 	}
-	USART_OUT(UART5,(u8*)"%d\r\n",(int)state);
+//	USART_OUT(UART5,(u8*)"%d\r\n",(int)state);
 	return keepgo;
 }
 

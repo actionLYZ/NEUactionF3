@@ -212,6 +212,7 @@ float photoElectricityCount = 0.0f;//球的数量
 float velocity = 0;
 int waitTime=0,stopcount=0;
 int fullTime=0,begin2time=0;
+int triggerTime=0,beginTrigger=0;
 /**********************************/
 
 extern OS_EVENT *PeriodSem;
@@ -240,6 +241,18 @@ void TIM2_IRQHandler(void)
 			fullTime++;
 		}
 		
+		if(beginTrigger==1)
+		{
+			triggerTime++;
+		}
+		else 
+		{
+			triggerTime=0;
+		}
+		if(triggerTime>5000)
+		{
+			triggerTime=0;
+		}
 		
 		//实现10ms 发送1次信号量
 		

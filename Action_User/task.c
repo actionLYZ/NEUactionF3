@@ -166,8 +166,12 @@ extern int waitTime,stopcount;
 int time1 = 0,test=0;
 extern int fullTime,begin2time;
 extern int changeState;
+<<<<<<< HEAD
 int zjyc=1,stoppp=0,crazy=0;
 
+=======
+extern int triggerTime,beginTrigger;
+>>>>>>> 诗玲
 /*******************************************************/
 
 
@@ -197,7 +201,7 @@ void WalkTask(void)
 	CollectBallVelCtr(60);
 	delay_s(3);	
 	ShootCtr(70);
-
+  
   stopcount=0;
 //	//鸣笛
 	GPIO_SetBits(GPIOE,GPIO_Pin_7);
@@ -237,9 +241,10 @@ void WalkTask(void)
 //		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
 //		ShootBallW(); 
 //		RunWithCamera1(2);
-//		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
+		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle);
 //		V = RealVel();
 //		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
+<<<<<<< HEAD
 //		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int))
 		 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)g_plan,(int)carDeVel);
 		 USART_OUT(UART5,(u8*)"ZD  %d\t%d\t%d\r\n",(int)getPosition_t.X,(int)getPosition_t.Y,(int)getPosition_t.angle);
@@ -263,6 +268,25 @@ void WalkTask(void)
 		
 		//普通避障
 	  
+=======
+//		USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)carDeVel,(int)time1);
+
+		if(carDeVel < 500)
+		{
+			time1++;
+		}
+		else
+		{
+			time1 = 0;
+		}
+		if(time1 > 250)
+		{
+			time1 = 250;
+			ShootBallW();
+		}
+		
+		//普通避障
+>>>>>>> 诗玲
 		if(ifEscape)
 		{
 			LOG_NOTE JudgeState("Start Escape");
@@ -293,6 +317,7 @@ void WalkTask(void)
 		}
 		else
  		{
+<<<<<<< HEAD
 			//疯狂自转
 			if(crazy == 0)
 			{
@@ -348,6 +373,25 @@ void WalkTask(void)
 					GoGoGo(firstLine,4);
 				}
 			}
+=======
+			GoGoGo(firstLine,1);
+			if(fullTime>=160000)
+		  {				
+				GPIO_SetBits(GPIOE,GPIO_Pin_7);
+				if(fullTime>=160000&&fullTime<=160100)
+				{
+					changeState=1;
+				}
+			  GoGoGo(firstLine,4);
+		  }
+//			 test++;
+//       RunEdge();
+//			 if(test>=300)
+//			 {
+//			 	carRun=1;
+//			 	test=0;
+//			 }
+>>>>>>> 诗玲
 		}
 		
 		//开始逃逸计时

@@ -1013,10 +1013,10 @@ int RunEdge(void)
 		{
 			if(Position_t.X>-500)
 			{
-							zone = 0;
-			sideTimes = 0;
-			avoidBack=0;
-			finish = 1;
+				zone = 0;
+			  sideTimes = 0;
+			  avoidBack=0;
+			  finish = 1;
 			}
 
 		}	
@@ -1473,14 +1473,140 @@ void CountBall(void)
 		sum=0;
 	}
 	
-	//检测辊子是否被卡住了
-	if(g_gather<=4)
+	//检测辊子是否被卡住了 pass
+	if(ballNumber>50)
 	{
-		
+		ballNumber=50;
 	}
 	
-	
-	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
+	USART_OUT(UART5,(u8*)" \t \t \t \t \t%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
 
 }
-
+/*======================================================================================
+函数定义	  ：
+函数参数	  ：    
+                  
+                           
+函数返回值  ：	  无
+=======================================================================================*/
+int SweepIn(void)
+{
+	static int inarea1=0,inarea2=0,squareNumber=1,check1[4]={0},check2[4]={0},walkTime=0;
+	int success=0;
+	if(Position_t.X>=0&&Position_t.Y<2335.35)
+	{
+		inarea1=1;check1[0]=1;
+	}
+	else if(Position_t.X>0&&Position_t.Y>=2335.35)
+	{
+		inarea1=2;check1[1]=1;
+	}
+	else if(Position_t.X<=0&&Position_t.Y>2335.35)
+	{
+    inarea1=3;check1[2]=1;
+	}
+	else if(Position_t.X<0&&Position_t.Y<=2335.35)
+	{
+		inarea1=4;check1[3]=1;
+	}
+	else
+	{
+		VelCrl(CAN2, 1, 5000);
+	  VelCrl(CAN2, 2, -5000);
+	}
+	
+	if(Position_t.X>=0&&Position_t.Y<2335.35)
+	{
+		inarea1=1;check2[0]=1;
+	}
+	else if(Position_t.X>0&&Position_t.Y>=2335.35)
+	{
+		inarea1=2;check2[1]=1;
+	}
+	else if(Position_t.X<=0&&Position_t.Y>2335.35)
+	{
+    inarea1=3;check2[2]=1;
+	}
+	else if(Position_t.X<0&&Position_t.Y<=2335.35)
+	{
+		inarea1=4;check2[3]=1;
+	}
+	else
+	{
+		VelCrl(CAN2, 1, 5000);
+	  VelCrl(CAN2, 2, -5000);
+	}	
+	if(squareNumber==1)
+	{
+		switch(inarea1)
+		{
+			case 1:
+			{
+				StaightCLose(800,0,0,1500);
+			}break;
+			case 2:
+			{
+				StaightCLose(0,3535.35,90,1500);
+			}break;
+			case 3:
+			{
+				StaightCLose(-800,0,180,1500);
+			}break;
+			case 4:
+			{
+				StaightCLose(0,1135.35,-90,1500);
+			}break;
+			default:
+			 break;
+		}		
+	}
+	if(check1[0]==1&&check1[1]==1&&check1[2]==1&&check1[3]==1)
+	{
+		squareNumber=2;
+	}
+	if(squareNumber==2)
+	{
+		switch(inarea2)
+		{
+			case 1:
+			{
+				StaightCLose(600,0,0,1000);
+			}break;
+			case 2:
+			{
+				StaightCLose(0,3400.35,90,1000);
+			}break;
+			case 3:
+			{
+				StaightCLose(-600,0,180,1000);
+			}break;
+			case 4:
+			{
+				StaightCLose(0,1255.35,-90,1000);
+			}break;
+			default:
+			 break;			
+		}
+	}
+	if(check2[0]==1&&check2[1]==1&&check2[2]==1&&check2[3]==1)
+	{
+		squareNumber=3;
+	}
+	if(squareNumber==3)
+	{
+		walkTime++;
+		VelCrl(CAN2, 1, 15000);
+	  VelCrl(CAN2, 2, -15000);		
+		if(walkTime>50)
+		{
+			success=1;
+			walkTime=0;
+			squareNumber=0;
+			inarea1=0;
+      inarea2=0;
+      check1[0]=0;check1[1]=0;check1[2]=0;check1[3]=0;
+      check2[0]=0;check2[1]=0;check2[2]=0;check2[3]=0;
+		}
+	}
+	return success;
+}

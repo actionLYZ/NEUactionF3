@@ -1335,7 +1335,11 @@ int ShootBallW(void)
 			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 			
 			//自己测的关系
+<<<<<<< HEAD
 			rps = 0.01499f * V - 9.0f;
+=======
+			rps = 0.01499f * V - 8.0f;
+>>>>>>> 诗玲
 //			rps = 0.01499f * V - 7.494f;
 //			rps = 0.01402f * V - 5.457f + 2.8;
 		
@@ -1359,8 +1363,26 @@ int ShootBallW(void)
 			{
 				if(distance1 > 1000 && distance2 > 1000)
 				{
+<<<<<<< HEAD
 					//枪的角度和转速到位,推球
 					if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 2.0f && fabs(rps + g_shootFactV / 4096) < 2 && ballColor)
+=======
+					//位置正常，reset推球电机
+					if(g_pushPosition > 3800)
+					{
+						//numFlag取反
+						numFlag = 0;
+						PushBallReset();
+					}
+					
+					//位置正常，push推球电机
+					if(g_pushPosition < 200)
+					{
+						numFlag = 1;
+						PushBall();
+					}
+					if(lastNumFlag != numFlag)
+>>>>>>> 诗玲
 					{
 						//位置正常，reset推球电机
 						if(g_pushPosition > 3800)
@@ -1432,8 +1454,13 @@ int ShootBallW(void)
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
+<<<<<<< HEAD
 	 USART_OUT(UART5,(u8*)"%d\t%d\t %d\tf%d\t%d\tf%d\t%d\t%d\r\n",(int)step,(int)notMove,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)(g_shootFactV/4096),(int)ballColor,(int)success);
 //	USART_OUT(UART5,(u8*)"%d\r\n",(int)shootNum);
+=======
+//	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t %d\tf%d\t%d\tf%d\t%d\t%d\r\n",(int)step,(int)notMove,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)(g_shootFactV/4096),(int)ballColor,(int)success);
+//	USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)ballColor,(int)shootNum);
+>>>>>>> 诗玲
 	return success;
 }
 
@@ -1498,7 +1525,11 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
+<<<<<<< HEAD
 		  R1 += 700;
+=======
+		  R1 += 600;
+>>>>>>> 诗玲
 		}
 		
 		//否则,缩小扫场
@@ -1724,10 +1755,11 @@ int AfterCircle(uint16_t speed)
 	{
 		case 0:
 			StaightCLose(tempx, 0, 0, speed);
-			if(Position_t.Y > 2600)
+			if(Position_t.Y > 2500)
 				step++;
 			break;
 		case 1:
+<<<<<<< HEAD
 			StaightCLose(0, 4400, 90, speed);
 			if(Position_t.X < -200)
 				step++;
@@ -1740,6 +1772,20 @@ int AfterCircle(uint16_t speed)
 		case 3:
 			StaightCLose(0, 400, -90, speed);
 			if(Position_t.X > -400)
+=======
+			StaightCLose(0, 4200, 90, speed);
+			if(Position_t.X < -400)
+				step++;
+			break;
+		case 2:
+			StaightCLose(-1900, 0, 180, speed);
+			if(Position_t.Y < 2400)
+				step++;
+			break;
+		case 3:
+			StaightCLose(0, 600, -90, speed);
+			if(Position_t.X > -500)
+>>>>>>> 诗玲
 			{
 				step = 5;
 				success = 1;

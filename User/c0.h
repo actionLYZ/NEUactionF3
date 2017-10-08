@@ -120,5 +120,6 @@ void SendUint8(void);
 
 void GivenPoint(float pointX, float pointY, float givenSpeed);
 void CountBall(void);
+int SweepIn(void);
 
 /*=====================================================函数定义（万典学长的函数）===================================================*/
