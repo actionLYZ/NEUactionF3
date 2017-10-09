@@ -1336,7 +1336,7 @@ int ShootBallW(void)
 			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 			
 			//自己测的关系
-			rps = 0.01499f * V - 10.0f;
+			rps = 0.01499f * V - 9.8f;
 //			rps = 0.01499f * V - 7.494f;
 //			rps = 0.01402f * V - 5.457f + 2.8;
 		
