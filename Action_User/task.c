@@ -219,6 +219,49 @@ void WalkTask(void)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
 		begin2time=1;
+
+		//获取车当前的速度
+		carDeVel = RealVel();
+//		USART_OUT(UART5,(u8*)"SWITCH %d\t%d\r\n",(int)SWITCHE2,(int)SWITCHC0);
+		rightlaser = Get_Adc_Average(RIGHT_LASER, 20);
+		leftlaser  = Get_Adc_Average(LEFT_LASER, 20);
+		if(leftlaser<1000||rightlaser<1000)
+		{
+			triggertime++;
+		}
+		if(triggertime>=300)
+		{
+			fighting=1;
+		}
+//    USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
+//		CountBall();
+		//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
+//		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
+//		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
+//		ShootBallW(); 
+//		RunWithCamera1(2);
+//		V = RealVel();
+//		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
+//		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int))
+		 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)g_plan,(int)carDeVel);
+		 USART_OUT(UART5,(u8*)"ZD  %d\t%d\t%d\r\n",(int)getPosition_t.X,(int)getPosition_t.Y,(int)getPosition_t.angle);
+      if(shootBegin)
+			{
+				if(carDeVel < 500)
+				{
+					time1++;
+				}
+				else
+				{
+					time1 = 0;
+				}
+				if(time1 > 250)
+				{
+					shootNum = 0;
+					time1 = 250;
+					ShootBallW();
+				}
+			}
 		
 		//用长度为20的数组记录坐标值
     count++;

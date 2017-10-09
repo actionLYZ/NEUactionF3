@@ -579,10 +579,6 @@ bool FirstRound(float firstLine)
 {
 	static int state = 0;
   static float speed = 1500;
-	float advance = 0;
-	
-	//第一条目标直线距离铁框太近,就让它贴铁框走
-	advance = 900;
 	speed += 5;
 	if(speed > 1800)
 	{
@@ -914,6 +910,11 @@ int CheckPosition(void)
 			shootBegin = 0;
 			LOG_NOTE JudgeState("Turn to right angle");
 			carRun = 0;
+			if(AngleStuck())
+			{
+				aimAngle = Position_t.angle;
+				//state = 16;
+			}
 			TurnAngle(aimAngle, 15000);
 			if (fabs(Position_t.angle - aimAngle) <= 25)
 			{
@@ -1613,6 +1614,17 @@ int CheckPosition(void)
 			}
 		}
 		break;
+		case 16:
+		{
+			count++;
+			if(count >= 80)
+			{
+				state = 2;
+				count = 0;
+			}
+			angClose(-1000,aimAngle,150);
+		}
+		break;
 	}
 //	USART_OUT(UART5,(u8*)"%d\r\n",(int)state);
 	return keepgo;
@@ -2261,9 +2273,4 @@ float Angel2PI(float angel)
 
 	res = PI * (angel) / 180;
 	return res;
-}
-
-int DealAngleError(void)
-{
-	
 }
