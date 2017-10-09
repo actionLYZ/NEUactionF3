@@ -1499,13 +1499,13 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
-		  R1 += 700;
+		  R1 += 400;
 		}
 		
 		//否则,缩小扫场
 		else
 		{
-			R1 -= 600;
+			R1 -= 400;
 		}
 		
 		//达到预定圈数,success置1,acceSpeed置0

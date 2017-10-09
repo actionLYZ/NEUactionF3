@@ -272,7 +272,14 @@ void GoGoGo(float fLine,int stat)
 		shootTime=0;
 		state = stat;
 	}
-	
+	if(carRun)
+	{
+		if (stuckCar(70,250))
+		{
+			aimAngle = Position_t.angle;
+			state = 11;
+		}
+	}	
 	switch (state)
 	{
 		//第一圈放球区附近跑场
@@ -318,7 +325,7 @@ void GoGoGo(float fLine,int stat)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(2000, 1000, 3, 1))
+			if(sweepYuan(1800, 1300, 3, 1))
 				state = 3;
 		}
 		break;
@@ -330,7 +337,7 @@ void GoGoGo(float fLine,int stat)
 			LOG_NOTE JudgeState("Rectangle running....");//开始第一圈跑场
 			carRun = 1;
 			g_plan = lastPlan;
-			if(AfterCircle(2000))
+			if(AfterCircle(1800))
 			{
 				//之后的矫正坐标函数令g_plan = 1;
 				g_plan = 1;
@@ -368,7 +375,7 @@ void GoGoGo(float fLine,int stat)
 			if(time == 1)
 			{
 				POS_NOTE USART_OUT(UART5,(u8*)"%d\r\n",(int)(laserRight - Get_Adc_Average(RIGHT_LASER, 100)));
-				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 40 || (laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 40)
+				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 30 || (laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 30)
 				{
 					count++;
 					if(count > 5)
@@ -527,6 +534,16 @@ void GoGoGo(float fLine,int stat)
 				count=0;
 			}
 		}break;
+		case 11:
+		{
+			carRun = 1;
+			angClose(-1100,aimAngle,150);
+			if (stuckCar(100,100))
+			{
+				state = 4;
+			}
+		}
+			break;
 		default:
 		{
 			state=7;
@@ -551,21 +568,21 @@ bool FirstRound(float firstLine)
 	//第一条目标直线距离铁框太近,就让它贴铁框走
 	advance = 900;
 	speed += 5;
-	if(speed > 2000)
+	if(speed > 1800)
 	{
-		speed = 2000;
+		speed = 1800;
 	}
 	
 	//第一圈贴框走成功极限条件
 	if(firstLine < 650)
 	{
-		firstLine = 600;
+		firstLine = 650;
 	}
 	switch (state)
 	{
 		case 0:
 		{
-			angClose(1500,-45,200);
+			angClose(1200,-45,200);
 			if(Position_t.Y > 500)
 			{
 				state = 1;
@@ -576,7 +593,7 @@ bool FirstRound(float firstLine)
 		case 1:
 		{
 			StaightCLose(firstLine, 0, 0, speed);
-			if (Position_t.Y >= 3100 + WIDTH / 2 - FIR_ADV)
+			if (Position_t.Y >= 3100 + WIDTH / 2 - 1200)
         state = 2;
 		} break;
 
@@ -599,14 +616,14 @@ bool FirstRound(float firstLine)
 			{
 				StaightCLose(-800, 0, 180, speed);
 			}
-			if (Position_t.Y <= 1200 + FIR_ADV)
+			if (Position_t.Y <= 1100 + FIR_ADV)
 				state = 4;
 		} break;
 
 	//	//下边，目标角度-90度
 		case 4:
 		{
-			StaightCLose(0, 1200, -90, speed);
+			StaightCLose(0, 1100, -90, speed);
 //			if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
 			if (Position_t.X >= 0)
 				return true;
