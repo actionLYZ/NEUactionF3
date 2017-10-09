@@ -1285,7 +1285,7 @@ int ShootBallW(void)
 
 				//枪顺时针转为正，逆时针为负
 				aimAngle = AvoidOverAngle(aimAngle);
-				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2;
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2.8;
 			}
 
 			//球是黑球
@@ -1298,7 +1298,7 @@ int ShootBallW(void)
 				aimAngle  = atan2(BALLY - posShoot.Y, BLACKX - posShoot.X);
 				aimAngle  = RADTOANG(aimAngle) - 90;
 				aimAngle  = AvoidOverAngle(aimAngle);
-				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2;
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2.8;
 			}
 		
 			// 没球,来回拨动几次
@@ -1306,20 +1306,20 @@ int ShootBallW(void)
 			{
 //				USART_OUT(UART5,(u8*)"n%d\t%d\r\n",(int)noBall,(int)success);
 				noBall++;
-				if(noBall > 160 && noBall < 180)
+				if(noBall > 180 && noBall < 190)
 				{
 						PushBall();
 				}
-				if(noBall > 320 && noBall < 340)
+				if(noBall > 360 && noBall < 370)
 				{		
 						PushBallReset();	
 				}
-				if(noBall > 480 && noBall < 500)
+				if(noBall > 540 && noBall < 550)
 				{	
 						PushBall();	
 				}
 
-				if(noBall > 520)
+				if(noBall > 550)
 				{
 					noBall = 0;
 		
@@ -1361,7 +1361,7 @@ int ShootBallW(void)
 				if(distance1 > 1000 && distance2 > 1000)
 				{
 					//枪的角度和转速到位,推球
-					if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 2.0f && fabs(rps + g_shootFactV / 4096) < 2 && ballColor)
+					if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 1 && ballColor)
 					{
 						//位置正常，reset推球电机
 						if(g_pushPosition > 3800)

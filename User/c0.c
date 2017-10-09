@@ -1127,22 +1127,22 @@ int RunEdge(void)
 				
 				case 2:
 				{
-					ClLine(2155, 0, -4, 1700);
+					ClLine(2155, 0, -4, 1400);
 				} break;
 
 				case 4:
 				{
-					ClLine(0, 4555-POSYSTEM_TO_BACK, 86, 1700);
+					ClLine(0, 4555-POSYSTEM_TO_BACK, 86, 1400);
 				} break;
 
 				case 6:
 				{
-					ClLine(-2355, 0, 176, 1700);
+					ClLine(-2355, 0, 176, 1400);
 				} break;
 
 				case 8:
 				{
-					ClLine(0, 100-POSYSTEM_TO_BACK, -94, 1700);
+					ClLine(0, 100-POSYSTEM_TO_BACK, -94, 1400);
 				} break;
 				
 				default:
