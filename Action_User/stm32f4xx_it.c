@@ -442,6 +442,7 @@ void USART1_IRQHandler(void)
 	OSIntExit();
 }
 
+float angleSpeed=0;
 //定位系统
 void USART3_IRQHandler(void) //更新频率200Hz
 {
@@ -509,10 +510,10 @@ void USART3_IRQHandler(void) //更新频率200Hz
 			if (ch == 0x0d)
 			{
 				//获取当前坐标
-				getPosition_t.angle = -posture.ActVal[0];
+				getPosition_t.angle = posture.ActVal[0];
 				getPosition_t.X     = posture.ActVal[3];
 				getPosition_t.Y     = posture.ActVal[4];
-
+				angleSpeed=posture.ActVal[5];
 				//矫正角度
 				Position_t.angle = getPosition_t.angle - angleError;
 				if (Position_t.angle > 180)

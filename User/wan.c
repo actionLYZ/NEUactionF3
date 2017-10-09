@@ -46,6 +46,7 @@ extern uint8_t    circleFlag;
 extern uint8_t     shootNum;
 extern float             angleError, xError, yError;
 extern float carDeVel;
+extern POSITION_T  lastPosition[20];
 /*======================================================================================
    函数定义	  ：		Send Get函数
    函数参数	  ：
@@ -1243,7 +1244,7 @@ int ShootBallW(void)
 	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
 	ReadActualPos(CAN1, PUSH_BALL_ID);
 	
-	USART_OUT(UART5,(u8*)"S%d\t%d\r\n",(int)SWITCHC0,(int)SWITCHE2);
+//	USART_OUT(UART5,(u8*)"S%d\t%d\r\n",(int)SWITCHC0,(int)SWITCHE2);
 	//行程开关都触发，一直进行角度矫正
   if(SWITCHC0 == 1 && SWITCHE2 == 1)
 	{
@@ -1335,7 +1336,7 @@ int ShootBallW(void)
 			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 			
 			//自己测的关系
-			rps = 0.01499f * V - 9.0f;
+			rps = 0.01499f * V - 10.0f;
 //			rps = 0.01499f * V - 7.494f;
 //			rps = 0.01402f * V - 5.457f + 2.8;
 		
@@ -1432,7 +1433,7 @@ int ShootBallW(void)
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
-	 USART_OUT(UART5,(u8*)"%d\t%d\t %d\tf%d\t%d\tf%d\t%d\t%d\r\n",(int)step,(int)notMove,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)(g_shootFactV/4096),(int)ballColor,(int)success);
+//	 USART_OUT(UART5,(u8*)"%d\t%d\t %d\tf%d\t%d\tf%d\t%d\t%d\r\n",(int)step,(int)notMove,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)(g_shootFactV/4096),(int)ballColor,(int)success);
 //	USART_OUT(UART5,(u8*)"%d\r\n",(int)shootNum);
 	return success;
 }
@@ -1910,7 +1911,7 @@ int Escape(u16 back,u16 turn)
 			angClose(-1200,aimAngle,120);
 		
 			//后退一定的时间或者转到了目标角度
-		  if(time > turn || fabs(Position_t.angle - aimAngle) < 5)
+		  if(time > turn )
 			{
 				time = 0;
 				
@@ -1973,7 +1974,7 @@ int Escape(u16 back,u16 turn)
 			angClose(-800,aimAngle,120);
 			
 			//后退一定的时间或者转到了目标角度
-		  if(time > 120 || AvoidOverAngle(Position_t.angle - aimAngle) < -5)
+		  if(time > 120 )
 			{
 				time = 0;
 				step = 7;
@@ -2129,7 +2130,19 @@ int CrazyRotate(void)
 	{
 		count = 0;
 	}
-	USART_OUT(UART5,(u8*)"cra%d\r\n",(int)(Position_t.angle - lastAngle));
+//	USART_OUT(UART5,(u8*)"cra%d\r\n",(int)(Position_t.angle - lastAngle));
 	lastAngle = Position_t.angle;
 	return success;
 }
+/*======================================================================================
+   函数定义		：	当车的角度偏差过大的处理步骤	  
+   函数参数		：		  
+   
+   函数返回值	：	矫正完成之后返回1    
+ =====================================================================================*/
+int HandleHit(void)
+{
+	int success = 0;
+	
+}
+

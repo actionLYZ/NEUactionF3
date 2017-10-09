@@ -36,6 +36,7 @@ int8_t      g_cameraFin     = 0;      //摄像头接收到0xc9置1
 int8_t      g_cameraNum     = 0;      //摄像头接收到的数据的个数
 POSITION_T  Position_t = {0,0,0};               //矫正的定位
 POSITION_T  getPosition_t = { 0,0,0};            //获得的定位
+POSITION_T   lastPosition[20] ={0};              //记录200ms之前的坐标
 int         g_plan        = 1;        //跑场方案（顺逆时针）
 int8_t      whiteBall     = 1;        //白球信号
 int8_t      blackBall     = 0;        //黑球信号
@@ -163,12 +164,13 @@ extern float photoElectricityCount;//球的数量
 extern float velocity;
 extern int leftfirst,rightfirst;
 extern int waitTime,stopcount;
-int time1 = 0,test=0;
+int time1 = 0,test=0,count = 0;
 extern int fullTime,begin2time;
 extern int changeState;
 int zjyc=1,stoppp=0,crazy=0;
-int shootBegin = 1;
+int shootBegin = 1,tlyError=0;
 extern int triggerTime,beginTrigger;
+extern float angleSpeed;
 /*******************************************************/
 
 
@@ -209,7 +211,7 @@ void WalkTask(void)
 	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)g_plan,(int)firstLine);
 	
 	LOG_NOTE JudgeState("Laser has broken");
-	//关蜂鸣器
+	//关蜂鸣器USART_OUT
 	GPIO_ResetBits(GPIOE,GPIO_Pin_7);
 	finishShoot=1;
 	OSSemSet(PeriodSem, 0, &os_err);
@@ -217,174 +219,196 @@ void WalkTask(void)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
 		begin2time=1;
-
-		//获取车当前的速度
-		carDeVel = RealVel();
-//		USART_OUT(UART5,(u8*)"SWITCH %d\t%d\r\n",(int)SWITCHE2,(int)SWITCHC0);
-		rightlaser = Get_Adc_Average(RIGHT_LASER, 20);
-		leftlaser  = Get_Adc_Average(LEFT_LASER, 20);
-		if(leftlaser<1000||rightlaser<1000)
-		{
-			triggertime++;
-		}
-		if(triggertime>=300)
-		{
-			fighting=1;
-		}
-//    USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
-//		CountBall();
-		//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
-//		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
-//		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
-//		ShootBallW(); 
-//		RunWithCamera1(2);
-//		V = RealVel();
-//		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
-//		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int))
-		 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)g_plan,(int)carDeVel);
-		 USART_OUT(UART5,(u8*)"ZD  %d\t%d\t%d\r\n",(int)getPosition_t.X,(int)getPosition_t.Y,(int)getPosition_t.angle);
-      if(shootBegin)
-			{
-				if(carDeVel < 500)
-				{
-					time1++;
-				}
-				else
-				{
-					time1 = 0;
-				}
-				if(time1 > 250)
-				{
-					time1 = 250;
-					ShootBallW();
-				}
-			}
 		
-		//普通避障
-	  
-		if(ifEscape)
+		//用长度为20的数组记录坐标值
+    count++;
+		count = count % 20;
+		lastPosition[count].angle = Position_t.angle;
+		
+		if(angleSpeed>250)
 		{
-			LOG_NOTE JudgeState("Start Escape");
-			carRun = 0;
-			
-			//开始逃逸计时
-			escapeCount = 1;
-			
-			//逃逸完成后，ifEscape清零(注意铁框的后退时间自己给的)
-			if(Escape(100,120))
-			{
-				LOG_NOTE JudgeState("Escape Successful !!");
-				ifEscape = 0;
-			}
+			//用200ms之前的角度-当前的角度，进行一次角度矫正
+			angleError += (Position_t.angle - lastPosition[((count+1)%20)].angle);
 		}
 		
-		//连续撞击后切换到此模式，大幅度避障
-		else if(ifEscape2)
+//		if(tlyError==1)
+//		{
+//			if(0)
+//			{
+//				tlyError=0;
+//			}
+//		}
+//		else 
 		{
-			carRun = 0;
-			
-			LOG_NOTE JudgeState("Start Bigger Escape !!");
-			//更大幅度的避障
-			if(Escape(110,140))
-			{
-				ifEscape2 = 0;
-			}
-		}
-		else
- 		{
-			//疯狂自转
-			if(crazy == 0)
-			{
-				GoGoGo(firstLine,1);
-				
-				//两分四十立马矫正射球
-				if(fullTime>=160000)
-				{				
-	//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
-					if(fullTime>=160000&&fullTime<=160100)
+					//获取车当前的速度
+					carDeVel = RealVel();
+			//		USART_OUT(UART5,(u8*)"SWITCH %d\t%d\r\n",(int)SWITCHE2,(int)SWITCHC0);
+					rightlaser = Get_Adc_Average(RIGHT_LASER, 20);
+					leftlaser  = Get_Adc_Average(LEFT_LASER, 20);
+					if(leftlaser<1000||rightlaser<1000)
 					{
-						changeState=1;
+						triggertime++;
 					}
-					GoGoGo(firstLine,4);
-				}
-			}
-			if(CrazyRotate())
-			{
-				crazy=1;zjyc=1;							 			
-			}
-			if(crazy == 1)
-			{
-				carRun = 0;
-				stoppp++;
-				if(stoppp < 100)
-				{
-					VelCrl(CAN2, 1, 0);
-					VelCrl(CAN2, 2, 0);	
-				}
-				else
-				{
-					stoppp = 0;
-					crazy = 2;
-				}
-			}
-			if(crazy==2)
-			{			
-				if(zjyc==1)
-				{
-					zjyc=0;			
-					changeState=1;
-				}
-			  GoGoGo(firstLine,4);	
-				
-				//两分四十立马矫正射球
-				if(fullTime>=160000)
-				{				
-	//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
-					if(fullTime>=160000&&fullTime<=160100)
+					if(triggertime>=300)
 					{
-						changeState=1;
+						fighting=1;
 					}
-					GoGoGo(firstLine,4);
-				}
-			}
-		}
-		
-		//开始逃逸计时
-		if(escapeCount)
-		{
-			countTime++;
+			//    USART_OUT(UART5,(u8*)"r%d\tl%d\r\n",(int)right,(int)left);
+			//		CountBall();
+					//USART_OUT(UART5,"%d\t%d\t%d\r\n",(int)blindTime,(int)velocity,(int)photoElectricityCount);
+			//		ReadActualVel(CAN2,RIGHT_MOTOR_WHEEL_ID);
+			//		ReadActualVel(CAN2,LEFT_MOTOR_WHEEL_ID);
+			//		ShootBallW(); 
+			//		RunWithCamera1(2);
+			//		V = RealVel();
+			//		USART_OUT(UART5,(u8*)"%d\r\n",(int)V);
+			//		USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int))
+//					 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)g_plan,(int)carDeVel);
+					 USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\r\n",(int)getPosition_t.X,(int)getPosition_t.Y,(int)getPosition_t.angle,(int)angleSpeed);
+						if(shootBegin)
+						{
+							if(carDeVel < 500)
+							{
+								time1++;
+							}
+							else
+							{
+								time1 = 0;
+							}
+							if(time1 > 250)
+							{
+								time1 = 250;
+								ShootBallW();
+							}
+						}
+					
+					//普通避障
+					
+					if(ifEscape)
+					{
+						LOG_NOTE JudgeState("Start Escape");
+						carRun = 0;
+						
+						//开始逃逸计时
+						escapeCount = 1;
+						
+						//逃逸完成后，ifEscape清零(注意铁框的后退时间自己给的)
+						if(Escape(100,120))
+						{
+							LOG_NOTE JudgeState("Escape Successful !!");
+							ifEscape = 0;
+						}
+					}
+					
+					//连续撞击后切换到此模式，大幅度避障
+					else if(ifEscape2)
+					{
+						carRun = 0;
+						
+						LOG_NOTE JudgeState("Start Bigger Escape !!");
+						//更大幅度的避障
+						if(Escape(110,140))
+						{
+							ifEscape2 = 0;
+						}
+					}
+					else
+					{
+						//疯狂自转
+						if(crazy == 0)
+						{
+							GoGoGo(firstLine,1);
+							
+							//两分四十立马矫正射球
+							if(fullTime>=160000)
+							{				
+				//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
+								if(fullTime>=160000&&fullTime<=160100)
+								{
+									changeState=1;
+								}
+								GoGoGo(firstLine,4);
+							}
+						}
+						if(CrazyRotate())
+						{
+							crazy=1;zjyc=1;							 			
+						}
+						if(crazy == 1)
+						{
+							carRun = 0;
+							stoppp++;
+							if(stoppp < 100)
+							{
+								VelCrl(CAN2, 1, 0);
+								VelCrl(CAN2, 2, 0);	
+							}
+							else
+							{
+								stoppp = 0;
+								crazy = 2;
+							}
+						}
+						if(crazy==2)
+						{			
+							if(zjyc==1)
+							{
+								zjyc=0;			
+								changeState=1;
+							}
+							GoGoGo(firstLine,4);	
+							
+							//两分四十立马矫正射球
+							if(fullTime>=160000)
+							{				
+				//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
+								if(fullTime>=160000&&fullTime<=160100)
+								{
+									changeState=1;
+								}
+								GoGoGo(firstLine,4);
+							}
+						}
+					}
+					
+					//开始逃逸计时
+					if(escapeCount)
+					{
+						countTime++;
 
-			//6s之内
-			if(countTime < 600)
-			{
-				//撞击次数超过2次
-				if(hitNum >= 2)
-				{
-					//ifEscape2置1，开启2阶段逃逸
-					hitNum = 0;
-					ifEscape2 = 1;
-					ifEscape = 0;
-				}
-			}
-			else
-			{
-				//各种清零
-				escapeCount = 0;
-				countTime = 0;
-				hitNum = 0;
-			}
+						//6s之内
+						if(countTime < 600)
+						{
+							//撞击次数超过2次
+							if(hitNum >= 2)
+							{
+								//ifEscape2置1，开启2阶段逃逸
+								hitNum = 0;
+								ifEscape2 = 1;
+								ifEscape = 0;
+							}
+						}
+						else
+						{
+							//各种清零
+							escapeCount = 0;
+							countTime = 0;
+							hitNum = 0;
+						}
+					}
+					
+					//车跑时才判断是否被困
+					if(carRun)
+					{
+						if (stuckCar(200,200))
+						{
+							//记录撞击次数
+							hitNum++;
+							ifEscape = 1;
+						}
+					}			
 		}
-		
-		//车跑时才判断是否被困
-		if(carRun)
-		{
-			if (stuckCar(200,200))
-			{
-				//记录撞击次数
-				hitNum++;
-				ifEscape = 1;
-			}
-		}
+
 	}
 }
 

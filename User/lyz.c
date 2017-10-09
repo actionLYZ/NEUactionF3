@@ -532,7 +532,7 @@ void GoGoGo(float fLine,int stat)
 			state=7;
 		}break;
 	}
-  USART_OUT(UART5,(u8*)"gogogostate %d\r\n",state);
+//  USART_OUT(UART5,(u8*)"gogogostate %d\r\n",state);
 }
 
 /*======================================================================================
@@ -2228,4 +2228,9 @@ float Angel2PI(float angel)
 
 	res = PI * (angel) / 180;
 	return res;
+}
+
+int DealAngleError(void)
+{
+	
 }

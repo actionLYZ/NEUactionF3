@@ -1479,7 +1479,7 @@ void CountBall(void)
 		ballNumber=50;
 	}
 	
-	USART_OUT(UART5,(u8*)" \t \t \t \t \t%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
+//	USART_OUT(UART5,(u8*)" \t \t \t \t \t%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
 
 }
 /*======================================================================================
@@ -1530,7 +1530,7 @@ int SweepIn(void)
 		else
 		{
       success=1;
-			USART_OUT(UART5,(u8*)"sweepin_area_error\r\n");
+//			USART_OUT(UART5,(u8*)"sweepin_area_error\r\n");
 		}		
 	}
   else if(squareNumber==2)
@@ -1570,7 +1570,7 @@ int SweepIn(void)
 		else
 		{
       success=1;
-			USART_OUT(UART5,(u8*)"sweepin_area_error\r\n");
+//			USART_OUT(UART5,(u8*)"sweepin_area_error\r\n");
 		}			
 	}
 	
@@ -1648,6 +1648,6 @@ int SweepIn(void)
       check2=0;
 		}
 	}
-	USART_OUT(UART5,(u8*)"%d\t%d\r\n",squareNumber,areaTime);
+//	USART_OUT(UART5,(u8*)"%d\t%d\r\n",squareNumber,areaTime);
 	return success;
 }
