@@ -166,13 +166,14 @@ extern float photoElectricityCount;//球的数量
 extern float velocity;
 extern int leftfirst,rightfirst;
 extern int waitTime,stopcount;
-int time1 = 0,test=0,count = 0;
+int time1 = 0,test=0,count = 0,time2 = 0;
 extern int fullTime,begin2time;
 extern int changeState;
 int zjyc=1,stoppp=0,crazy=0;
 int shootBegin = 1,tlyError=0;
 extern int triggerTime,beginTrigger;
 extern float angleSpeed;
+float distance11 = 0, distance12 = 0;
 /*******************************************************/
 
 
@@ -222,7 +223,8 @@ void WalkTask(void)
 		OSSemPend(PeriodSem, 0, &os_err);
 		begin2time=1;
     blueTooth--;
-		
+		distance11 = sqrt((Position_t.X - WHITEX) * (Position_t.X - WHITEX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
+		distance12 = sqrt((Position_t.X - BLACKX) * (Position_t.X - BLACKX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
 		//减到0，表明蓝牙坏了
 		if(blueTooth == 0)
 		{
@@ -254,19 +256,39 @@ void WalkTask(void)
 		USART_OUT(UART5,(u8*)"ZD  %d\t%d\t%d\t%d\r\n",(int)getPosition_t.X,(int)getPosition_t.Y,(int)getPosition_t.angle,(int)angleSpeed);
 		if(shootBegin)
 		{
-			if(carDeVel < 500)
+			if(distance11 > 1000 && distance12 > 1000)
 			{
-				time1++;
+				if(carDeVel < 500)
+				{
+					time1++;
+				}
+				else
+				{
+					time1 = 0;
+				}
+				if(time1 > 250)
+				{
+					shootNum = 0;
+					time1 = 250;
+					ShootBallW();
+				}
 			}
 			else
 			{
-				time1 = 0;
-			}
-			if(time1 > 250)
-			{
-				shootNum = 0;
-				time1 = 250;
-				ShootBallW();
+				if(carDeVel < 500)
+				{
+					time2++;
+				}
+				else
+				{
+					time2 = 0;
+				}
+				if(time2 > 400)
+				{
+					shootNum = 0;
+					time2 = 400;
+					ShootBallW();
+				}
 			}
 		}
 		
