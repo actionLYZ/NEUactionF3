@@ -44,6 +44,7 @@ extern int         g_plan;
 extern int         lastPlan;
 extern uint8_t    circleFlag;
 extern uint8_t     shootNum;
+extern uint8_t     blueToothError;
 extern float             angleError, xError, yError;
 extern float carDeVel;
 extern POSITION_T  lastPosition[20];
@@ -1241,7 +1242,6 @@ int ShootBallW(void)
 	}
 	//问询航向电机角度、收球电机速度、推球电机的位置
   ReadActualPos(CAN1, GUN_YAW_ID);
-	ReadActualVel(CAN1, COLLECT_MOTOR_ID);
 	ReadActualPos(CAN1, PUSH_BALL_ID);
 	
 //	USART_OUT(UART5,(u8*)"S%d\t%d\r\n",(int)SWITCHC0,(int)SWITCHE2);
@@ -1388,28 +1388,60 @@ int ShootBallW(void)
 			{
 				if(distance1 > 1000 && distance2 > 1000)
 				{
-					//枪的角度和转速到位,推球
-					if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 1 && ballColor)
+					//如果蓝牙坏了
+					if(blueToothError)
 					{
-						//位置正常，reset推球电机
-						if(g_pushPosition > 3800)
+						//枪的角度到位,推球
+						if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && ballColor)
 						{
-							//numFlag取反
-							numFlag = 0;
-							PushBallReset();
+							//位置正常，reset推球电机
+							if(g_pushPosition > 3800)
+							{
+								//numFlag取反
+								numFlag = 0;
+								PushBallReset();
+							}
+							
+							//位置正常，push推球电机
+							if(g_pushPosition < 200)
+							{
+								numFlag = 1;
+								PushBall();
+							}
+							if(lastNumFlag != numFlag)
+							{
+								shootNum++;
+							}
+							lastNumFlag = numFlag;
 						}
-						
-						//位置正常，push推球电机
-						if(g_pushPosition < 200)
+					}
+					
+					//蓝牙没有坏
+					else
+					{
+						//枪的角度和转速到位,推球
+						if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 1 && ballColor)
 						{
-							numFlag = 1;
-							PushBall();
+							//位置正常，reset推球电机
+							if(g_pushPosition > 3800)
+							{
+								//numFlag取反
+								numFlag = 0;
+								PushBallReset();
+							}
+							
+							//位置正常，push推球电机
+							if(g_pushPosition < 200)
+							{
+								numFlag = 1;
+								PushBall();
+							}
+							if(lastNumFlag != numFlag)
+							{
+								shootNum++;
+							}
+							lastNumFlag = numFlag;
 						}
-						if(lastNumFlag != numFlag)
-						{
-							shootNum++;
-						}
-						lastNumFlag = numFlag;
 					}
 				}
 			}
@@ -1768,8 +1800,26 @@ int AfterCircle(uint16_t speed)
 			break;
 		case 3:
 			StaightCLose(0, 400, -90, speed);
-			if(Position_t.X > 300)
-			  step++;
+		
+		  //蓝牙坏了
+		  if(blueToothError)
+			{
+				//在出发点附近停车矫正
+				if(Position_t.X > -450)
+				{
+					step = 5;
+					success = 1;
+				}
+			}
+			
+			//蓝牙没坏，正常走形
+			else
+			{
+				if(Position_t.X > 300)
+				{
+					step++;
+				}
+			}
 			break;
 		case 4:
 			StaightCLose(2100, 0, 0, speed);

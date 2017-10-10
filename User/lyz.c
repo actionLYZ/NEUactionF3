@@ -38,6 +38,7 @@ int leftfirst=2400,rightfirst=2400;
 extern float carDeVel;
 extern int triggerTime,beginTrigger;
 extern int shootBegin;
+extern uint8_t     blueToothError;
 /*================================================函数定义区==============================================*/
 
 /*======================================================================================
@@ -274,7 +275,7 @@ void GoGoGo(float fLine,int stat)
 	}
 	if(carRun)
 	{
-		if (stuckCar(70,250))
+		if (stuckCar(70,300))
 		{
 			side = JudgeSide();
 			if(side == 1)
@@ -370,7 +371,17 @@ void GoGoGo(float fLine,int stat)
 			g_plan = 1;
 			if (CheckPosition())
 			{
-				state = 5;
+				//如果蓝牙坏了,矫正完成后，进入state12,准备倒车进入出发区
+				if(blueToothError)
+				{
+					//计算当前坐标和(0,1000)目标点坐标的角度，作为目标角度
+					aimAngle = AvoidOverAngle(atan2(Position_t.Y - 1000,Position_t.X - 1000) - 90);
+					state = 12;
+				}
+				else
+				{
+					state = 5;
+				}
 				VelCrl(CAN2, 1, 0);
 				VelCrl(CAN2, 2, 0);
 			}
@@ -559,6 +570,26 @@ void GoGoGo(float fLine,int stat)
 				state = 4;
 			}
 		}
+			break;
+		case 12:
+			//目标点(0,1000)
+		  StaightCLose(0, 1000, aimAngle, 1200);
+		
+			//快到目标点了
+			if(sqrt((Position_t.Y - 1000) * (Position_t.Y - 1000) + Position_t.X * Position_t.X) < 200)
+			{
+				state = 13;
+			}
+			break;	
+		case 13:
+			//倒车进入出发区
+			StaightCLose(0, 0, 0, -800);
+		
+			//行程开关触发，开始射球
+	    if(SWITCHC0 && SWITCHE2)
+			{
+				state = 5;
+			}
 			break;
 		default:
 		{

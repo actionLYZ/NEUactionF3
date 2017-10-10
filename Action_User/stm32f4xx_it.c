@@ -67,6 +67,7 @@ extern int32_t     g_rightPulse ;
 extern int32_t     g_leftPulse ;
 extern int32_t     g_collectVel;
 extern int32_t     g_pushPosition;
+extern int16_t        blueTooth;
 extern float carDeVel;
 int               shootStart = 0, ballColor = 0,youqiu=0;
 int32_t g_gather;
@@ -371,7 +372,7 @@ void USART1_IRQHandler(void)
 	OS_ENTER_CRITICAL(); /* Tell uC/OS-II that we are starting an ISR*/
 	OSIntNesting++;
 	OS_EXIT_CRITICAL();
-
+  blueTooth = 500;
 	if (USART_GetITStatus(USART1, USART_IT_RXNE) == SET)
 	{
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);

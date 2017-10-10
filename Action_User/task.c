@@ -54,6 +54,8 @@ int32_t     g_pushPosition = 0;       //推球装置的位置
 u16         firstLine = 0;            //记录第一圈的目标直线
 uint8_t     circleFlag = 0;           //画圆标志位
 uint8_t     shootNum = 0;             //记录射球的个数
+int16_t     blueTooth = 500;
+uint8_t     blueToothError = 0;
 int lastPlan = 0;
 extern float             angleError, xError , yError ;
 float carDeVel = 0;
@@ -219,7 +221,19 @@ void WalkTask(void)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
 		begin2time=1;
-
+    blueTooth--;
+		
+		//减到0，表明蓝牙坏了
+		if(blueTooth == 0)
+		{
+			blueToothError = 1;
+		}
+		
+		//表明蓝牙中断可以一直进入，蓝牙没有坏
+		if(blueTooth > 300)
+		{
+			blueToothError = 0;
+		}
 		//获取车当前的速度
 		carDeVel = RealVel();
 //		USART_OUT(UART5,(u8*)"SWITCH %d\t%d\r\n",(int)SWITCHE2,(int)SWITCHC0);
