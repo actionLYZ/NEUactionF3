@@ -250,8 +250,8 @@ void WalkTask(void)
 //		CountBall();
 //		ShootBallW(); 
 //		RunWithCamera1(2);
-	 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)g_plan,(int)carDeVel);
-	 USART_OUT(UART5,(u8*)"ZD  %d\t%d\t%d\r\n",(int)getPosition_t.X,(int)getPosition_t.Y,(int)getPosition_t.angle);
+//	 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)g_plan,(int)carDeVel);
+		USART_OUT(UART5,(u8*)"ZD  %d\t%d\t%d\t%d\r\n",(int)getPosition_t.X,(int)getPosition_t.Y,(int)getPosition_t.angle,(int)angleSpeed);
 		if(shootBegin)
 		{
 			if(carDeVel < 500)
@@ -408,7 +408,6 @@ void WalkTask(void)
 				ifEscape = 1;
 			}
 		}			
-
 	}
 }
 

@@ -277,6 +277,7 @@ void GoGoGo(float fLine,int stat)
 	{
 		if (stuckCar(70,300))
 		{
+			USART_OUT(UART5,(u8*)"CarV%d\r\n",(int)carDeVel);
 			side = JudgeSide();
 			if(side == 1)
 			{
@@ -644,7 +645,7 @@ bool FirstRound(float firstLine)
 		case 2:
 		{
 			StaightCLose(0, 3200 + WIDTH / 2 + 50, 90, speed);
-			if (Position_t.X <= -1100 + FIR_ADV)
+			if (Position_t.X <= -1000 + FIR_ADV)
 				state = 3;
 		} break;
 
@@ -653,11 +654,11 @@ bool FirstRound(float firstLine)
 		{
 			if(fighting==0)
 			{
-        StaightCLose(-1100, 0, 180, speed);
+        StaightCLose(-1000, 0, 180, speed);
 			}
 			else if(fighting==1)
 			{
-				StaightCLose(-1100, 0, 180, speed);
+				StaightCLose(-1000, 0, 180, speed);
 			}
 			if (Position_t.Y <= 1150 + FIR_ADV)
 				state = 4;
@@ -903,11 +904,12 @@ int CheckPosition(void)
 				if(stuckCar(200,2000))
 				{
 					POS_NOTE USART_OUT(UART5,(u8*)"stuckCar %d\t%d\r\n",(int)SWITCHC0,(int)SWITCHE2);
+					
 					//行程开关没有全部触发
 					if(SWITCHE2 == 0 || SWITCHC0 == 0)
 					{
 						switchError++;
-						if(switchError >= 6)
+						if(switchError >= 4)
 						{
 							state = 3;
 							switchNoError = 0;
@@ -923,6 +925,7 @@ int CheckPosition(void)
 				//两个行程开关触发,则进入下一次状态进行激光矫正
 				if(SWITCHE2 == 1 && SWITCHC0 == 1)
 				{
+					switchError = 0;
 					count++;
 				}
 				if(count >= 10)
@@ -1381,7 +1384,7 @@ int CheckPosition(void)
 				carRun = 0;
 			}
 			
-			angClose(1800, aimAngle, 250);
+			angClose(1600, aimAngle, 250);
 		
 			//判断距离第二面墙1米时准备靠墙
 			if(side == 1)
@@ -1512,7 +1515,7 @@ int CheckPosition(void)
 				}
 			}
 		}
-			break;
+		break;
 		case 14:
 		{
 			shootBegin = 1;
