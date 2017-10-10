@@ -1199,7 +1199,7 @@ int ShootBallW(void)
 	int      success = 0;
 	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
 	static int32_t lastPosition = 0, notMove = 0,lastPosition1 = 0,notMove1 = 0;
-	static int8_t step = 0,numFlag = 1,lastNumFlag = 0;
+	static int8_t step = 0,numFlag = 1,lastNumFlag = 0,Flag = 1;
 	static float distance1 = 0, distance2 = 0;
   distance1 = sqrt((Position_t.X - WHITEX) * (Position_t.X - WHITEX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
 	distance2 = sqrt((Position_t.X - BLACKX) * (Position_t.X - BLACKX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
@@ -1214,7 +1214,21 @@ int ShootBallW(void)
 		}
 //			USART_OUT(UART5,(u8*)"notM%d\t%d\t%d\r\n",(int)g_pushPosition,(int)lastPosition,(int)notMove);
 		lastPosition1 = g_pushPosition;
-		
+//		if(Flag)
+//		{
+//			if(shootNum > 14)
+//			{
+//			noBall = 0;
+//			shootNum = 0;
+//			//射球完成
+//			notMove = 0;
+//			step = 0;
+//			time = 0;
+//			notMove1 = 0;
+//			success = 1;
+//				Flag
+//			}
+	
 		//6s不动或者射了10个球，切换下一状态
 		if (notMove1 > 600)
 		{
@@ -1559,13 +1573,13 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
-		  R1 += 400;
+		  R1 += 350;
 		}
 		
 		//否则,缩小扫场
 		else
 		{
-			R1 -= 400;
+			R1 -= 350;
 		}
 		
 		//达到预定圈数,success置1,acceSpeed置0

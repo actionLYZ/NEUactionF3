@@ -214,6 +214,7 @@ float velocity = 0;
 int waitTime=0,stopcount=0;
 int fullTime=0,begin2time=0;
 int triggerTime=0,beginTrigger=0;
+float photoElectricity = 0;
 /**********************************/
 
 extern OS_EVENT *PeriodSem;
@@ -267,8 +268,8 @@ void TIM2_IRQHandler(void)
 		{
 			if(blindTime > 0)
 			{
-				photoElectricityCount += (int)((blindTime * RealVel() / 1000) / 35) + 0.7;
-				carDeVel = RealVel();
+				photoElectricity = (int)((blindTime * carDeVel / 1000) / 35) + 0.7;
+				photoElectricity >= 5 ? photoElectricityCount++: (photoElectricityCount += photoElectricity);
 			}
 			blindTime = 0;
 		}

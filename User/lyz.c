@@ -458,6 +458,7 @@ void GoGoGo(float fLine,int stat)
 	       
 				//球数等于进的减去射出去的
         ballNumber=ballNumber-shootNum;
+				photoElectricityCount=photoElectricityCount-shootNum;
 				shootNum=0;
 				full=0;
 			}

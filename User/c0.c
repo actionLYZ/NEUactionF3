@@ -1386,7 +1386,7 @@ int ballNumber;
 =======================================================================================*/
 void CountBall(void)
 {
-	static int ballN=0,sum=0,beginSum=0,pass=0;
+	static int ballN=0,sum=0,beginSum=0,pass=0,kunziBall=0;
 	ReadActualVel(CAN1, COLLECT_BALL_ID);
 	if(pass==2)
 	{
@@ -1409,7 +1409,7 @@ void CountBall(void)
 	if(g_gather>=250)
 	{
 		beginSum = 0;
-		if(sum>=50&&sum<=230)
+		if(sum>=90&&sum<=230)
 		{
 			ballN=1;
 		}
@@ -1439,23 +1439,26 @@ void CountBall(void)
 	{
 		finishShoot=0;
 		ballNumber=0;
+		kunziBall=0;
 		ballN=0;
 	}
 
 	if(ballN)
 	{
-		ballNumber +=ballN;
+		kunziBall +=ballN;
+		//加上光电
+		ballNumber =(kunziBall + photoElectricityCount) / 2;
 		ballN=0;
 		sum=0;
 	}
 	
-	//检测辊子是否被卡住了 pass
+	//给数球一个上限
 	if(ballNumber>50)
 	{
 		ballNumber=50;
 	}
-	
-//	USART_OUT(UART5,(u8*)" \t \t \t \t \t%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
+		
+	USART_OUT(UART5,(u8*)" \t \t \t \t \t%d\t%d\t%d\t%d\r\n",g_gather,ballNumber,sum,(int)photoElectricityCount);
 
 }
 /*======================================================================================

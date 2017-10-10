@@ -247,7 +247,7 @@ void WalkTask(void)
 		{
 			fighting=1;
 		}
-//		CountBall();
+		CountBall();
 //		ShootBallW(); 
 //		RunWithCamera1(2);
 	 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)g_plan,(int)carDeVel);
