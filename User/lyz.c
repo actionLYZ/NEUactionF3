@@ -596,7 +596,7 @@ void GoGoGo(float fLine,int stat)
 			state=7;
 		}break;
 	}
-//  USART_OUT(UART5,(u8*)"gogogostate %d\r\n",state);
+  USART_OUT(UART5,(u8*)"gogogostate %d\r\n",state);
 }
 
 /*======================================================================================
@@ -675,76 +675,7 @@ bool FirstRound(float firstLine)
 //	USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)state,(int)speed);
 	return false;
 }
-//bool FirstRound(float firstLine)
-//{
-//	static int state = 0;
-//  static float speed = 1500;
-//	
-//	//第一条目标直线距离铁框太近,就让它贴铁框走
-//	speed += 5;
-//	if(speed > 2000)
-//	{
-//		speed = 2000;
-//	}
-//	
-//	//第一圈贴框走成功极限条件
-//	if(firstLine < 650)
-//	{
-//		firstLine = 570;
-//	}
-//	switch (state)
-//	{
-//		case 0:
-//		{
-//			angClose(1500,-45,200);
-//			if(Position_t.Y > 500)
-//			{
-//				state = 1;
-//			}
-//		}
-//		break;
-//		//右边，目标角度0度
-//		case 1:
-//		{
-//			StaightCLose(firstLine, 0, 0, speed);
-//			if (Position_t.Y >= 3900 - FIR_ADV)
-//        state = 2;
-//		} break;
 
-//		//上边，目标角度90度
-//		case 2:
-//		{
-//			StaightCLose(0, 3900, 90, speed);
-//			if (Position_t.X <= -1200 + FIR_ADV)
-//				state = 3;
-//		} break;
-
-//	//	//左边，目标角度180度
-//		case 3:
-//		{
-//			if(fighting==0)
-//			{
-//        StaightCLose(-1200, 0, 180, speed);
-//			}
-//			else if(fighting==1)
-//			{
-//				StaightCLose(-1200, 0, 180, speed);
-//			}
-//			if (Position_t.Y <= 1100 + FIR_ADV)
-//				state = 4;
-//		} break;
-
-//	//	//下边，目标角度-90度
-//		case 4:
-//		{
-//			StaightCLose(0, 1100, -90, speed);
-//			if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
-//				return true;
-//		} break;
-//	}
-////	USART_OUT(UART5,(u8*)"%d\t%d\r\n",(int)state,(int)speed);
-//	return false;
-//}
 /*======================================================================================
    函数定义		：			判断小车是否卡住不动，
    函数参数		：			无
@@ -1438,8 +1369,18 @@ int CheckPosition(void)
 			break;
 		case 11:
 		{
-			shootBegin = 1;
-			carRun = 1;
+			count++;
+			if(count >= 300)
+			{
+				count = 300;
+				shootBegin = 1;
+				carRun = 1;
+			}
+			else
+			{
+				carRun = 0;
+			}
+			
 			angClose(1800, aimAngle, 250);
 		
 			//判断距离第二面墙1米时准备靠墙
@@ -1447,16 +1388,18 @@ int CheckPosition(void)
 			{
 				if(aimAngle > 0)
 				{
-					if(Position_t.X < -1600)
+					if(Position_t.X < -1400)
 					{
 						//返回状态1，从新矫正
+						count = 0;
 						state = 1;
 					}
 				}
 				else
 				{
-					if(Position_t.X > 1600)
+					if(Position_t.X > 1400)
 					{
+						count = 0;
 						state = 1;
 					}
 				}
@@ -1465,15 +1408,17 @@ int CheckPosition(void)
 			{
 				if(aimAngle > 90)
 				{
-					if(Position_t.Y < 750)
+					if(Position_t.Y < 950)
 					{
+						count = 0;
 						state = 1;
 					}
 				}
 				else
 				{
-					if(Position_t.Y > 3900)
+					if(Position_t.Y > 3750)
 					{
+						count = 0;
 						state = 1;
 					}
 				}
@@ -1484,6 +1429,7 @@ int CheckPosition(void)
 				{
 					if(Position_t.X > 1400)
 					{
+						count = 0;
 						state = 1;
 					}
 				}
@@ -1491,6 +1437,7 @@ int CheckPosition(void)
 				{
 					if(Position_t.X < -1400)
 					{
+						count = 0;
 						state = 1;
 					}
 				}
@@ -1501,13 +1448,15 @@ int CheckPosition(void)
 				{
 					if(Position_t.Y < 950)
 					{
+						count = 0;
 						state = 1;
 					}
 				}
 				else
 				{
-					if(Position_t.Y > 3700)
+					if(Position_t.Y > 3750)
 					{
+						count = 0;
 						state = 1;
 					}
 				}
@@ -1583,6 +1532,7 @@ int CheckPosition(void)
 				//记录当前距离车最近的墙
 				side = JudgeSide();
 				checkError = 0;
+				count = 0;
 				state = 10;
 			}
 		}

@@ -298,8 +298,7 @@ void WalkTask(void)
 //		else 
 		{
 					//获取车当前的速度
-					carDeVel = RealVel();
-			//		USART_OUT(UART5,(u8*)"SWITCH %d\t%d\r\n",(int)SWITCHE2,(int)SWITCHC0);
+//					carDeVel = RealVel();
 					rightlaser = Get_Adc_Average(RIGHT_LASER, 20);
 					leftlaser  = Get_Adc_Average(LEFT_LASER, 20);
 					if(leftlaser<1000||rightlaser<1000)
