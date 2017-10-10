@@ -1199,11 +1199,27 @@ int ShootBallW(void)
 	int      success = 0;
 	static float  shootAngle = 0, distance = 2300,aimAngle = 0, V = 0, rps = 0;
 	static int32_t lastPosition = 0, notMove = 0,lastPosition1 = 0,notMove1 = 0;
-	static int8_t step = 0,numFlag = 1,lastNumFlag = 0,Flag = 1;
+	static int8_t step = 0,numFlag = 1,lastNumFlag = 0, angleNormal = 0, rpsNormal = 0,Flag = 1;
 	static float distance1 = 0, distance2 = 0;
   distance1 = sqrt((Position_t.X - WHITEX) * (Position_t.X - WHITEX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
 	distance2 = sqrt((Position_t.X - BLACKX) * (Position_t.X - BLACKX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
-			//检测是否被卡死
+		if(Flag)
+		{
+			if(shootNum >= 14)
+			{
+				noBall = 0;
+				shootNum = 0;
+				
+				//射球完成
+				notMove = 0;
+				step = 0;
+				time = 0;
+				notMove1 = 0;
+				success = 1;
+				Flag = 0;
+			}
+		}
+		//检测是否被卡死
 		if(abs(g_pushPosition - lastPosition1) < 10)
 		{
 			notMove1++;
@@ -1243,7 +1259,7 @@ int ShootBallW(void)
 		}
 	//最多射击30s
 	time++;
-	if(time > 2000)
+	if(time > 3000)
 	{
 		noBall = 0;
 		shootNum = 0;
@@ -1365,6 +1381,7 @@ int ShootBallW(void)
 				{
 					noBall = 0;
 		      shootNum = 0;
+					
 					//射球完成
 					notMove = 0;
 					step = 0;
@@ -1436,25 +1453,49 @@ int ShootBallW(void)
 						//枪的角度和转速到位,推球
 						if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 1 && ballColor)
 						{
-							//位置正常，reset推球电机
-							if(g_pushPosition > 3800)
+							//角度和转速都稳定
+							if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f)
 							{
-								//numFlag取反
-								numFlag = 0;
-								PushBallReset();
+								angleNormal++;
 							}
-							
-							//位置正常，push推球电机
-							if(g_pushPosition < 200)
+							else
 							{
-								numFlag = 1;
-								PushBall();
+								angleNormal = 0;
 							}
-							if(lastNumFlag != numFlag)
+							if(fabs(rps + g_shootFactV / 4096) < 1)
 							{
-								shootNum++;
+								rpsNormal++;
 							}
-							lastNumFlag = numFlag;
+							else
+							{
+								rpsNormal = 0;
+							}
+							//连续3个周期枪稳定才射球
+							if(angleNormal >= 3 && rpsNormal >= 3)
+							{
+								angleNormal = 0;
+								rpsNormal = 0;
+								
+								//位置正常，reset推球电机
+								if(g_pushPosition > 3800)
+								{
+									//numFlag取反
+									numFlag = 0;
+									PushBallReset();
+								}
+								
+								//位置正常，push推球电机
+								if(g_pushPosition < 200)
+								{
+									numFlag = 1;
+									PushBall();
+								}
+								if(lastNumFlag != numFlag)
+								{
+									shootNum++;
+								}
+								lastNumFlag = numFlag;
+							}
 						}
 					}
 				}
@@ -1464,8 +1505,8 @@ int ShootBallW(void)
 			{
 				notShoot++;
 				
-				//0.2s依然卡死，切换到step = 1;
-				if(notShoot > 20)
+				//0.3s依然卡死，切换到step = 1;
+				if(notShoot > 30)
 				{
 					notShoot = 0;
 					step = 1;
