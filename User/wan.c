@@ -49,6 +49,7 @@ extern float             angleError, xError, yError;
 extern float carDeVel;
 extern POSITION_T  lastPosition[20];
 extern int resetStep;
+extern int staticShoot;
 /*======================================================================================
    函数定义	  ：		Send Get函数
    函数参数	  ：
@@ -1202,18 +1203,26 @@ int ShootBallW(void)
 	static int32_t lastPosition = 0, notMove = 0,lastPosition1 = 0,notMove1 = 0;
 	static int8_t step = 0,numFlag = 1,lastNumFlag = 0, angleNormal = 0, rpsNormal = 0,Flag = 1;
 	static float distance1 = 0, distance2 = 0;
-	if(SWITCHC0 == 1 && SWITCHE2 == 1)
+	
+	if(staticShoot)
 	{
 		VelCrl(CAN2, 1, 0);
 		VelCrl(CAN2, 2, 0);
 	}
 	else
 	{
-		//为了让车紧贴墙
-		VelCrl(CAN2, 1, -500);
-		VelCrl(CAN2, 2, 500);
+		if(SWITCHC0 == 1 && SWITCHE2 == 1)
+		{
+			VelCrl(CAN2, 1, 0);
+			VelCrl(CAN2, 2, 0);
+		}
+		else
+		{
+			//为了让车紧贴墙
+			VelCrl(CAN2, 1, -500);
+			VelCrl(CAN2, 2, 500);
+		}
 	}
-	
 	//降转速，减小零飘
 	CollectBallVelCtr(40);
 	
@@ -1227,7 +1236,7 @@ int ShootBallW(void)
 				resetStep = 1;
 				noBall = 0;
 				shootNum = 0;
-				
+				staticShoot = 0;
 				//射球完成
 				notMove = 0;
 				step = 0;
@@ -1275,6 +1284,7 @@ int ShootBallW(void)
 			time = 0;
 			notMove1 = 0;
 			success = 1;
+			staticShoot = 0;
 		}
 	//最多射击30s
 	time++;
@@ -1289,6 +1299,7 @@ int ShootBallW(void)
 			time = 0;
 			notMove1 = 0;
 			success = 1;
+			staticShoot = 0;
 	}
 	//问询航向电机角度、收球电机速度、推球电机的位置
   ReadActualPos(CAN1, GUN_YAW_ID);
@@ -1393,13 +1404,14 @@ int ShootBallW(void)
 					time = 0;
 					notMove1 = 0;
 					success = 1;
+					staticShoot = 0;
 				}
 			}
 		
 			//球出射速度(mm/s)与投球点距离篮筐的距离的关系
 			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 			
-			//自己测的关系
+			//自己测的关系(旧枪)
 			rps = 0.01499f * V - 9.0f;
 //			rps = 0.01499f * V - 7.494f;
 //			rps = 0.01402f * V - 5.457f + 2.8;
@@ -1506,12 +1518,12 @@ int ShootBallW(void)
 				}
 			}
 			//判断球是否卡死
-			if(abs(g_pushPosition - lastPosition) < 5 && ballColor)
+			if(abs(g_pushPosition - lastPosition) < 20 && ballColor)
 			{
 				notShoot++;
 				
 				//0.3s依然卡死，切换到step = 1;
-				if(notShoot > 30)
+				if(notShoot > 10)
 				{
 					notShoot = 0;
 					step = 1;
@@ -1532,12 +1544,12 @@ int ShootBallW(void)
 			notMove++;
 			if(g_pushPosition >= 2400)
 			{
-//				POS_NOTE USART_OUT(UART5,(u8*)"PushBall\r\n");
+				POS_NOTE USART_OUT(UART5,(u8*)"PushBall\r\n");
 				PushBall();
 			}
 			else
 			{
-//				POS_NOTE USART_OUT(UART5,(u8*)"PushReset\r\n");
+				POS_NOTE USART_OUT(UART5,(u8*)"PushReset\r\n");
 				PushBallReset();
 			}
 			
@@ -1550,7 +1562,7 @@ int ShootBallW(void)
 			break;
 	}
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
-//	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);
+	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
 //	 USART_OUT(UART5,(u8*)"%d\t%d\t %d\tf%d\t%d\tf%d\t%d\t%d\r\n",(int)step,(int)notMove,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)(g_shootFactV/4096),(int)ballColor,(int)success);

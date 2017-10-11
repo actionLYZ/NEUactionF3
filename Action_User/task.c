@@ -175,6 +175,7 @@ extern int triggerTime,beginTrigger;
 extern float angleSpeed;
 float distance11 = 0, distance12 = 0;
 int resetStep = 1;
+int staticShoot = 0;
 /*******************************************************/
 
 

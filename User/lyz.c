@@ -40,6 +40,7 @@ extern int triggerTime,beginTrigger;
 extern int shootBegin;
 extern uint8_t     blueToothError;
 extern int resetStep;
+extern int staticShoot;
 /*================================================函数定义区==============================================*/
 
 /*======================================================================================
@@ -407,35 +408,35 @@ void GoGoGo(float fLine,int stat)
 			if(time == 1)
 			{
 				POS_NOTE USART_OUT(UART5,(u8*)"%d\r\n",(int)(laserRight - Get_Adc_Average(RIGHT_LASER, 100)));
-//				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 30 || (laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 30)
-//				{
-//					count++;
-//					if(count > 5)
-//					{
-//						hitNum++;
-//						tempx = Position_t.X;
-//						tempy = Position_t.Y;
-//						aimAngle = Position_t.angle;
-//						state = 9;
-//						count = 0;
-//					}
-//				}
-//				else
-//				{
-//					count = 0;
-//				}
+				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 15 || (laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 15)
+				{
+					count++;
+					if(count > 5)
+					{
+						hitNum++;
+						tempx = Position_t.X;
+						tempy = Position_t.Y;
+						aimAngle = Position_t.angle;
+						state = 9;
+						count = 0;
+					}
+				}
+				else
+				{
+					count = 0;
+				}
 				
 				//检测到左右侧是否有车来
-				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 100 )
-				{
-					state = 14;
-					rightCar = 1;
-				}
-				if((laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 100)
-				{
-					state = 14;
-					leftCar = 1;
-				}
+//				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 100 )
+//				{
+//					state = 14;
+//					rightCar = 1;
+//				}
+//				if((laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 100)
+//				{
+//					state = 14;
+//					leftCar = 1;
+//				}
 				laserLeft =  Get_Adc_Average(LEFT_LASER, 100);
 				laserRight = Get_Adc_Average(RIGHT_LASER, 100);
 			}
@@ -541,6 +542,8 @@ void GoGoGo(float fLine,int stat)
 				count++;
 				if(sqrt(PF(Position_t.X - tempx) + PF(Position_t.Y - tempy)) > 800 || count > 100)
 				{
+					//此时让车静止射球
+					staticShoot = 1;
 					count = 0;
 					state = 5;
 				}
@@ -551,9 +554,10 @@ void GoGoGo(float fLine,int stat)
 				count++;
 				if(sqrt(PF(Position_t.X - tempx) + PF(Position_t.Y - tempy)) > 800 || count > 100)
 				{
+					staticShoot = 0;
 					hitNum = 0;
 					count = 0;
-					state = 5;
+					state = 4;
 				}
 				angClose(-1000,aimAngle,150);
 			}
@@ -665,7 +669,7 @@ bool FirstRound(float firstLine)
 	//第一圈贴框走成功极限条件
 	if(firstLine < 650)
 	{
-		firstLine = 700;
+		firstLine = 650;
 	}
 	switch (state)
 	{
