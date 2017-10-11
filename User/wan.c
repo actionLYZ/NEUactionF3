@@ -48,6 +48,7 @@ extern uint8_t     blueToothError;
 extern float             angleError, xError, yError;
 extern float carDeVel;
 extern POSITION_T  lastPosition[20];
+extern int resetStep;
 /*======================================================================================
    函数定义	  ：		Send Get函数
    函数参数	  ：
@@ -1201,12 +1202,29 @@ int ShootBallW(void)
 	static int32_t lastPosition = 0, notMove = 0,lastPosition1 = 0,notMove1 = 0;
 	static int8_t step = 0,numFlag = 1,lastNumFlag = 0, angleNormal = 0, rpsNormal = 0,Flag = 1;
 	static float distance1 = 0, distance2 = 0;
+	if(SWITCHC0 == 1 && SWITCHE2 == 1)
+	{
+		VelCrl(CAN2, 1, 0);
+		VelCrl(CAN2, 2, 0);
+	}
+	else
+	{
+		//为了让车紧贴墙
+		VelCrl(CAN2, 1, -500);
+		VelCrl(CAN2, 2, 500);
+	}
+	
+	//降转速，减小零飘
+	CollectBallVelCtr(40);
+	
   distance1 = sqrt((Position_t.X - WHITEX) * (Position_t.X - WHITEX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
 	distance2 = sqrt((Position_t.X - BLACKX) * (Position_t.X - BLACKX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
 		if(Flag)
 		{
 			if(shootNum >= 14)
 			{
+				//重置激光矫正中的step
+				resetStep = 1;
 				noBall = 0;
 				shootNum = 0;
 				
@@ -1248,6 +1266,7 @@ int ShootBallW(void)
 		//6s不动或者射了10个球，切换下一状态
 		if (notMove1 > 600)
 		{
+			resetStep = 1;
 			noBall = 0;
 			shootNum = 0;
 			//射球完成
@@ -1261,6 +1280,7 @@ int ShootBallW(void)
 	time++;
 	if(time > 3000)
 	{
+		resetStep = 1;
 		noBall = 0;
 		shootNum = 0;
 			//射球完成
@@ -1279,24 +1299,28 @@ int ShootBallW(void)
 	//行程开关都触发，一直进行角度矫正
   if(SWITCHC0 == 1 && SWITCHE2 == 1)
 	{
-		//靠的墙是Y=0
-		if (Position_t.angle <= 45 && Position_t.angle > -45)
-		{
-			angleError = getPosition_t.angle;  //纠正角度坐标
-		}
-		else if (Position_t.angle <= 135 && Position_t.angle > 45)
-		{
-			angleError  = getPosition_t.angle - 90;
-		}
-		else if (Position_t.angle >= 135 || Position_t.angle <= -135)
-		{
-			angleError  = getPosition_t.angle - 180;
-			angleError  = AvoidOverAngle(angleError);
-		}
-		else
-		{
-			angleError  = getPosition_t.angle + 90;
-		}
+		USART_OUT(UART5,(u8*)"s");
+		LaserCheck();
+		
+//		//靠的墙是Y=0
+//		if (Position_t.angle <= 45 && Position_t.angle > -45)
+//		{
+//			angleError = getPosition_t.angle;  //纠正角度坐标
+//		}
+//		else if (Position_t.angle <= 135 && Position_t.angle > 45)
+//		{
+//			angleError  = getPosition_t.angle - 90;
+//		}
+//		else if (Position_t.angle >= 135 || Position_t.angle <= -135)
+//		{
+//			angleError  = getPosition_t.angle - 180;
+//			angleError  = AvoidOverAngle(angleError);
+//		}
+//		else
+//		{
+//			angleError  = getPosition_t.angle + 90;
+//		}
+		
 	}
 	//计算投球点的坐标
 	posShoot  = ShootPointPos();
@@ -1337,7 +1361,7 @@ int ShootBallW(void)
 			{
 //				USART_OUT(UART5,(u8*)"n%d\t%d\r\n",(int)noBall,(int)success);
 				noBall++;
-				if(noBall > 100 && noBall < 110)
+				if(noBall > 200 && noBall < 210)
 				{
 						if(g_pushPosition > 3800)
 						{
@@ -1350,7 +1374,7 @@ int ShootBallW(void)
 							PushBall();
 						}
 				}
-				if(noBall > 300 && noBall < 310)
+				if(noBall > 400 && noBall < 410)
 				{		
 						if(g_pushPosition > 3800)
 						{
@@ -1363,7 +1387,7 @@ int ShootBallW(void)
 							PushBall();
 						}	
 				}
-				if(noBall > 500 && noBall < 510)
+				if(noBall > 600 && noBall < 610)
 				{	
 						if(g_pushPosition > 3800)
 						{
@@ -1377,8 +1401,9 @@ int ShootBallW(void)
 						}	
 				}
 
-				if(noBall > 600)
+				if(noBall > 650)
 				{
+					resetStep = 1;
 					noBall = 0;
 		      shootNum = 0;
 					
@@ -1395,7 +1420,7 @@ int ShootBallW(void)
 			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 			
 			//自己测的关系
-			rps = 0.01499f * V - 9.8f;
+			rps = 0.01499f * V - 9.0f;
 //			rps = 0.01499f * V - 7.494f;
 //			rps = 0.01402f * V - 5.457f + 2.8;
 		
@@ -1451,30 +1476,30 @@ int ShootBallW(void)
 					else
 					{
 						//枪的角度和转速到位,推球
-						if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && fabs(rps + g_shootFactV / 4096) < 1 && ballColor)
+						if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 0.7f && fabs(rps + g_shootFactV / 4096) < 1 && ballColor)
 						{
-							//角度和转速都稳定
-							if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f)
-							{
-								angleNormal++;
-							}
-							else
-							{
-								angleNormal = 0;
-							}
-							if(fabs(rps + g_shootFactV / 4096) < 1.5)
-							{
-								rpsNormal++;
-							}
-							else
-							{
-								rpsNormal = 0;
-							}
+//							//角度和转速都稳定
+//							if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 0.5f)
+//							{
+//								angleNormal++;
+//							}
+//							else
+//							{
+//								angleNormal = 0;
+//							}
+//							if(fabs(rps + g_shootFactV / 4096) < 1.5)
+//							{
+//								rpsNormal++;
+//							}
+//							else
+//							{
+//								rpsNormal = 0;
+//							}
 							//连续3个周期枪稳定才射球
-							if(angleNormal >= 3 && rpsNormal >= 3)
+//							if(angleNormal >= 3 && rpsNormal >= 3)
 							{
-								angleNormal = 0;
-								rpsNormal = 0;
+//								angleNormal = 0;
+//								rpsNormal = 0;
 								
 								//位置正常，reset推球电机
 								if(g_pushPosition > 3800)
@@ -1614,13 +1639,13 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
-		  R1 += 350;
+		  R1 += 300;
 		}
 		
 		//否则,缩小扫场
 		else
 		{
-			R1 -= 350;
+			R1 -= 300;
 		}
 		
 		//达到预定圈数,success置1,acceSpeed置0
@@ -1840,21 +1865,21 @@ int AfterCircle(uint16_t speed)
 	{
 		case 0:
 			StaightCLose(tempx, 0, 0, speed);
-			if(Position_t.Y > 2500)
+			if(Position_t.Y > 2600)
 				step++;
 			break;
 		case 1:
-			StaightCLose(0, 4200, 90, speed);
-			if(Position_t.X < -300)
+			StaightCLose(0, 4300, 90, speed);
+			if(Position_t.X < -400)
 				step++;
 			break;
 		case 2:
-			StaightCLose(-2100, 0, 180, speed);
-			if(Position_t.Y < 2200)
+			StaightCLose(-2200, 0, 180, speed);
+			if(Position_t.Y < 2100)
 				step++;
 			break;
 		case 3:
-			StaightCLose(0, 400, -90, speed);
+			StaightCLose(0, 300, -90, speed);
 		
 		  //蓝牙坏了
 		  if(blueToothError)
@@ -1870,14 +1895,14 @@ int AfterCircle(uint16_t speed)
 			//蓝牙没坏，正常走形
 			else
 			{
-				if(Position_t.X > 300)
+				if(Position_t.X > 400)
 				{
 					step++;
 				}
 			}
 			break;
 		case 4:
-			StaightCLose(2100, 0, 0, speed);
+			StaightCLose(2200, 0, 0, speed);
 			if(Position_t.Y > 2000)
 			{
 				step = 5;

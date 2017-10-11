@@ -39,6 +39,7 @@ extern float carDeVel;
 extern int triggerTime,beginTrigger;
 extern int shootBegin;
 extern uint8_t     blueToothError;
+extern int resetStep;
 /*================================================函数定义区==============================================*/
 
 /*======================================================================================
@@ -275,9 +276,9 @@ void GoGoGo(float fLine,int stat)
 	}
 	if(carRun)
 	{
+		USART_OUT(UART5,(u8*)"CarV%d\r\n",(int)carDeVel);
 		if (stuckCar(70,300))
 		{
-			USART_OUT(UART5,(u8*)"CarV%d\r\n",(int)carDeVel);
 			side = JudgeSide();
 			if(side == 1)
 			{
@@ -344,7 +345,9 @@ void GoGoGo(float fLine,int stat)
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
 			if(sweepYuan(1800, 1200, 3, 1))
+			{
 				state = 3;
+			}
 		}
 		break;
 		
@@ -425,6 +428,7 @@ void GoGoGo(float fLine,int stat)
 			}
 			if (ShootBallW())
 			{			
+				CollectBallVelCtr(60);
 				shootStart = 0;
 				if(full==0)
 				{
@@ -1953,6 +1957,13 @@ int LaserCheck(void)
 	static int laserGetRight = 0, laserGetLeft = 0;
 	int  side = 0, success = 2;
 	static u8 step = 3, left = 1, right = 1;
+	
+	//每次调用都要重置一次step
+	if(resetStep)
+	{
+		step = 3;
+		resetStep = 0;
+	}
 	switch(step)
 	{
 		case 0:

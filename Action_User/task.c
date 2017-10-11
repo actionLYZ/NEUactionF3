@@ -174,6 +174,7 @@ int shootBegin = 1,tlyError=0;
 extern int triggerTime,beginTrigger;
 extern float angleSpeed;
 float distance11 = 0, distance12 = 0;
+int resetStep = 1;
 /*******************************************************/
 
 
@@ -221,6 +222,7 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
+		
 		begin2time=1;
     blueTooth--;
 		distance11 = sqrt((Position_t.X - WHITEX) * (Position_t.X - WHITEX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
@@ -252,7 +254,7 @@ void WalkTask(void)
 		CountBall();
 //		ShootBallW(); 
 //		RunWithCamera1(2);
-//	 USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)g_plan,(int)carDeVel);
+	  USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)g_plan,(int)carDeVel);
 		USART_OUT(UART5,(u8*)"ZD  %d\t%d\t%d\t%d\r\n",(int)getPosition_t.X,(int)getPosition_t.Y,(int)getPosition_t.angle,(int)angleSpeed);
 		if(shootBegin)
 		{
@@ -273,23 +275,23 @@ void WalkTask(void)
 					ShootBallW();
 				}
 			}
-			else
-			{
-				if(carDeVel < 500)
-				{
-					time2++;
-				}
-				else
-				{
-					time2 = 0;
-				}
-				if(time2 > 400)
-				{
-					shootNum = 0;
-					time2 = 400;
-					ShootBallW();
-				}
-			}
+//			else
+//			{
+//				if(carDeVel < 500)
+//				{
+//					time2++;
+//				}
+//				else
+//				{
+//					time2 = 0;
+//				}
+//				if(time2 > 400)
+//				{
+//					shootNum = 0;
+//					time2 = 400;
+//					ShootBallW();
+//				}
+//			}
 		}
 		
 		//用长度为20的数组记录坐标值
