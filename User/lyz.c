@@ -1988,7 +1988,10 @@ int LaserCheck(void)
 			//如果激光被挡,进入step = 2
 			if (laserGetRight + laserGetLeft < 4700)
 			{	
-				step = 2;
+				right = 1;
+				left = 1;
+				step = 3;
+				success = 0;
 			}
 			
 			//没有被挡,step = 1, 开始矫正

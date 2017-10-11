@@ -1127,7 +1127,7 @@ int RunEdge(void)
 
 	}
 
-	USART_OUT(UART5,(u8*)"edge  %d\t%d\t\r\n",side,sideTimes,avoidBack);
+	USART_OUT(UART5,(u8*)"edge  %d\t%d\t%d\r\n",side,sideTimes,avoidBack);
 	return finish;
 }
 
