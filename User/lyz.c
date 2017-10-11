@@ -818,22 +818,22 @@ int CheckPosition(void)
 		case 0:
 		{
 		  //距离四个角太近，进入
-			if(Position_t.X > 1200 && Position_t.Y < 1200)
+			if(Position_t.X > 1400 && Position_t.Y < 1000)
 			{
 				corner = 1;
 				state = 15;
 			}
-			else if(Position_t.X > 1200 && Position_t.Y > 3600)
+			else if(Position_t.X > 1400 && Position_t.Y > 3800)
 			{
 				corner = 2;
 				state = 15;
 			}
-			else if(Position_t.X < -1200 && Position_t.Y > 3600)
+			else if(Position_t.X < -1400 && Position_t.Y > 3800)
 			{
 				corner = 3;
 				state = 15;
 			}
-			else if(Position_t.X < -1200 && Position_t.Y < 1200)
+			else if(Position_t.X < -1400 && Position_t.Y < 1000)
 			{
 				corner = 4;
 				state = 15;
@@ -1473,12 +1473,10 @@ int CheckPosition(void)
 		break;
 		case 12:
 		{
-			shootBegin = 1;
-			carRun = 1;
-			//判断车在哪面墙
-			side = JudgeSide();
 		
 			//记录当前的角度值
+			tempx = Position_t.X;
+			tempy = Position_t.Y;
 			aimAngle = Position_t.angle;
 		  state = 13;
 		}
@@ -1487,37 +1485,12 @@ int CheckPosition(void)
 		{
 			shootBegin = 1;
 			carRun = 1;
-			angClose(1500,aimAngle,150);
+			angClose(1200,aimAngle,150);
 		  
-			//在第一面墙激光不能用时
-		  if(side == 1)
+			//前进1.2m
+			if(sqrt((Position_t.X - tempx) * (Position_t.X - tempx) + (Position_t.Y - tempy) * (Position_t.Y - tempy)) > 1200)
 			{
-				if(Position_t.Y > 1000)
-				{
-					//state置1，重新矫正
-					state = 1;
-				}
-			}
-			else if(side == 2)
-			{
-				if(Position_t.X < 1400)
-				{
-					state = 1;
-				}
-			}
-			else if(side == 3)
-			{
-				if(Position_t.Y < 3800)
-				{
-					state = 1;
-				}
-			}
-			else
-			{
-				if(Position_t.X > -1400)
-				{
-					state = 1;
-				}
+				state = 1;
 			}
 		}
 		break;

@@ -1903,7 +1903,7 @@ int AfterCircle(uint16_t speed)
 			break;
 		case 4:
 			StaightCLose(2200, 0, 0, speed);
-			if(Position_t.Y > 2000)
+			if(Position_t.Y > 1900)
 			{
 				step = 5;
 				success = 1;
@@ -2276,11 +2276,11 @@ int CrazyRotate(void)
 	int success = 0;
 	static float lastAngle = 0;
 	static u16 count = 0;
-	if(fabs(Position_t.angle - lastAngle) > 1.8)
+	if(fabs(Position_t.angle - lastAngle) > 1.1)
 	{
-		//1.5s
+		//2s
 		count++;
-		if(count > 150)
+		if(count > 200)
 		{
 			count = 0;
 			success = 1;
@@ -2290,7 +2290,7 @@ int CrazyRotate(void)
 	{
 		count = 0;
 	}
-//	USART_OUT(UART5,(u8*)"cra%d\r\n",(int)(Position_t.angle - lastAngle));
+	USART_OUT(UART5,(u8*)"cra%d\r\n",(int)(Position_t.angle - lastAngle));
 	lastAngle = Position_t.angle;
 	return success;
 }
