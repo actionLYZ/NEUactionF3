@@ -223,8 +223,6 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		VelCrl(CAN2, 1, 10000);
-		VelCrl(CAN2, 2, 10000);
 		begin2time=1;
     blueTooth--;
 		distance11 = sqrt((Position_t.X - WHITEX) * (Position_t.X - WHITEX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
@@ -254,7 +252,7 @@ void WalkTask(void)
 			fighting=1;
 		}
 //		CrazyRotate();
-		CountBall();
+//		CountBall();
 //		LaserCheck();
 //		ShootBallW(); 
 //		RunWithCamera1(2);

@@ -643,7 +643,7 @@ void GoGoGo(float fLine,int stat)
 		break;
 		default:
 		{
-			state=7;
+			state=6;
 		}break;
 	}
   USART_OUT(UART5,(u8*)"gogogostate %d\r\n",state);
@@ -2178,8 +2178,8 @@ int LaserCheck(void)
 			break;
 		case 2:
 		{
-			//两侧激光值均小于600，说明车在死角，距离都超出了激光的测量范围，此时函数返回数值3
-			if(laserGetRight < 650 && laserGetLeft < 650)
+			//两侧激光值均小于1000，说明车在死角，距离都超出了激光的测量范围，此时函数返回数值3
+			if(laserGetRight < 1000 || laserGetLeft < 1000)
 			{
 				step = 3;
 				success = 3;

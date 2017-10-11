@@ -1223,9 +1223,7 @@ int ShootBallW(void)
 			VelCrl(CAN2, 2, 500);
 		}
 	}
-	//降转速，减小零飘
-	CollectBallVelCtr(40);
-	
+	USART_OUT(UART5,(u8*)"sta%d\r\n",(int)staticShoot);
   distance1 = sqrt((Position_t.X - WHITEX) * (Position_t.X - WHITEX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
 	distance2 = sqrt((Position_t.X - BLACKX) * (Position_t.X - BLACKX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
 		if(Flag)
@@ -1413,6 +1411,9 @@ int ShootBallW(void)
 			
 			//自己测的关系(旧枪)
 			rps = 0.01499f * V - 9.0f;
+			
+			//新枪
+//			rps = 0.01499f * V - 7.494;
 //			rps = 0.01499f * V - 7.494f;
 //			rps = 0.01402f * V - 5.457f + 2.8;
 		
