@@ -263,6 +263,7 @@ void GoGoGo(float fLine,int stat)
 	static int  state = 1, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0,side = 0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
   static float aimAngle = 0,tempx = 0,tempy = 0;
+	static int leftCar = 0,rightCar = 0;
 //	if(ballNumber>35&&full==0)
 //	{
 //		state=4;
@@ -344,7 +345,7 @@ void GoGoGo(float fLine,int stat)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(1800, 1200, 3, 1))
+			if(sweepYuan(1800, 1200, 2, 1))
 			{
 				state = 3;
 			}
@@ -379,7 +380,7 @@ void GoGoGo(float fLine,int stat)
 				if(blueToothError)
 				{
 					//计算当前坐标和(0,1000)目标点坐标的角度，作为目标角度
-					aimAngle = AvoidOverAngle(atan2(Position_t.Y - 1000,Position_t.X - 1000) - 90);
+					aimAngle = AvoidOverAngle(RADTOANG(atan2(1000 - Position_t.Y,-Position_t.X)) - 90);
 					state = 12;
 				}
 				else
@@ -406,22 +407,34 @@ void GoGoGo(float fLine,int stat)
 			if(time == 1)
 			{
 				POS_NOTE USART_OUT(UART5,(u8*)"%d\r\n",(int)(laserRight - Get_Adc_Average(RIGHT_LASER, 100)));
-				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 30 || (laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 30)
+//				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 30 || (laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 30)
+//				{
+//					count++;
+//					if(count > 5)
+//					{
+//						hitNum++;
+//						tempx = Position_t.X;
+//						tempy = Position_t.Y;
+//						aimAngle = Position_t.angle;
+//						state = 9;
+//						count = 0;
+//					}
+//				}
+//				else
+//				{
+//					count = 0;
+//				}
+				
+				//检测到左右侧是否有车来
+				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 100 )
 				{
-					count++;
-					if(count > 5)
-					{
-						hitNum++;
-						tempx = Position_t.X;
-						tempy = Position_t.Y;
-						aimAngle = Position_t.angle;
-						state = 9;
-						count = 0;
-					}
+					state = 14;
+					rightCar = 1;
 				}
-				else
+				if((laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 100)
 				{
-					count = 0;
+					state = 14;
+					leftCar = 1;
 				}
 				laserLeft =  Get_Adc_Average(LEFT_LASER, 100);
 				laserRight = Get_Adc_Average(RIGHT_LASER, 100);
@@ -578,18 +591,20 @@ void GoGoGo(float fLine,int stat)
 		}
 			break;
 		case 12:
-			//目标点(0,1000)
-		  StaightCLose(0, 1000, aimAngle, 1200);
-		
-			//快到目标点了
-			if(sqrt((Position_t.Y - 1000) * (Position_t.Y - 1000) + Position_t.X * Position_t.X) < 200)
 			{
-				state = 13;
+				//目标点(0,1000)
+				StaightCLose(0, 1000, aimAngle, 800);
+			
+				//快到目标点了
+				if(sqrt((Position_t.Y - 1000) * (Position_t.Y - 1000) + Position_t.X * Position_t.X) < 200)
+				{
+					state = 13;
+				}
 			}
 			break;	
 		case 13:
 			//倒车进入出发区
-			StaightCLose(0, 0, 0, -800);
+			StaightCLose(0, 0, 0, -600);
 		
 			//行程开关触发，开始射球
 	    if(SWITCHC0 && SWITCHE2)
@@ -597,6 +612,31 @@ void GoGoGo(float fLine,int stat)
 				state = 5;
 			}
 			break;
+		case 14:
+		{
+			if(leftCar)
+			{
+				aimAngle = AvoidOverAngle(Position_t.angle + 45);
+				state = 15;
+			}
+			if(rightCar)
+			{
+				state = 15;
+				aimAngle = AvoidOverAngle(Position_t.angle - 45);
+			}
+		}
+			break;
+		case 15:
+		{
+			angClose(1500,aimAngle,200);
+			
+			//快到墙的时候再靠墙矫正射击
+			if(Position_t.X > 1200 || Position_t.X < -1200 || Position_t.Y < 1200 || Position_t.Y > 3600)
+			{
+				state = 4;
+			}
+		}
+		break;
 		default:
 		{
 			state=7;

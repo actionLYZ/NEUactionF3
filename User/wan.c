@@ -1300,27 +1300,7 @@ int ShootBallW(void)
   if(SWITCHC0 == 1 && SWITCHE2 == 1)
 	{
 		USART_OUT(UART5,(u8*)"s");
-		LaserCheck();
-		
-//		//靠的墙是Y=0
-//		if (Position_t.angle <= 45 && Position_t.angle > -45)
-//		{
-//			angleError = getPosition_t.angle;  //纠正角度坐标
-//		}
-//		else if (Position_t.angle <= 135 && Position_t.angle > 45)
-//		{
-//			angleError  = getPosition_t.angle - 90;
-//		}
-//		else if (Position_t.angle >= 135 || Position_t.angle <= -135)
-//		{
-//			angleError  = getPosition_t.angle - 180;
-//			angleError  = AvoidOverAngle(angleError);
-//		}
-//		else
-//		{
-//			angleError  = getPosition_t.angle + 90;
-//		}
-		
+		LaserCheck();		
 	}
 	//计算投球点的坐标
 	posShoot  = ShootPointPos();
@@ -1639,13 +1619,13 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
-		  R1 += 300;
+		  R1 += 400;
 		}
 		
 		//否则,缩小扫场
 		else
 		{
-			R1 -= 300;
+			R1 -= 400;
 		}
 		
 		//达到预定圈数,success置1,acceSpeed置0
