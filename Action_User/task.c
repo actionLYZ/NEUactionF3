@@ -175,6 +175,7 @@ extern int triggerTime,beginTrigger;
 extern float angleSpeed;
 float distance11 = 0, distance12 = 0;
 int resetStep = 1;
+int staticShoot = 0;
 /*******************************************************/
 
 
@@ -222,8 +223,6 @@ void WalkTask(void)
 	while (1)
 	{
 		OSSemPend(PeriodSem, 0, &os_err);
-		VelCrl(CAN2, 1, 10000);
-		VelCrl(CAN2, 2, 10000);
 		begin2time=1;
     blueTooth--;
 		distance11 = sqrt((Position_t.X - WHITEX) * (Position_t.X - WHITEX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
@@ -253,12 +252,12 @@ void WalkTask(void)
 			fighting=1;
 		}
 //		CrazyRotate();
-		CountBall();
+//		CountBall();
 //		LaserCheck();
 //		ShootBallW(); 
 //		RunWithCamera1(2);
 	  USART_OUT(UART5,(u8*)"TLY  %d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError,(int)g_plan,(int)carDeVel);
-		USART_OUT(UART5,(u8*)"ZD  %d\t%d\t%d\t%d\r\n",(int)getPosition_t.X,(int)getPosition_t.Y,(int)getPosition_t.angle,(int)angleSpeed);
+		USART_OUT(UART5,(u8*)"ZD  %d\t%d\t%d\t%d\t%d\r\n",(int)getPosition_t.X,(int)getPosition_t.Y,(int)getPosition_t.angle,(int)angleSpeed,(int)blueToothError);
 		if(shootBegin)
 		{
 			if(distance11 > 1000 && distance12 > 1000)
