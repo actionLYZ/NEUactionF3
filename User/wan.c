@@ -1193,6 +1193,7 @@ void ShootCtr(float rps)
    =======================================================================================*/
 extern int ballColor,youqiu;
 extern int ballSpeed,need;
+extern int notcount;
 int ShootBallW(void)
 {
 	static uint16_t noBall = 0, flag = 0, notShoot = 0,time = 0;
@@ -1215,6 +1216,7 @@ int ShootBallW(void)
 	}
 	
 	//降转速，减小零飘
+	notcount=1;
 	CollectBallVelCtr(40);
 	
   distance1 = sqrt((Position_t.X - WHITEX) * (Position_t.X - WHITEX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
@@ -1233,6 +1235,7 @@ int ShootBallW(void)
 				step = 0;
 				time = 0;
 				notMove1 = 0;
+				notcount=0;
 				success = 1;
 				Flag = 0;
 			}
@@ -1259,6 +1262,7 @@ int ShootBallW(void)
 //			step = 0;
 //			time = 0;
 //			notMove1 = 0;
+//      notcount=0;
 //			success = 1;
 //				Flag
 //			}
@@ -1274,6 +1278,7 @@ int ShootBallW(void)
 			step = 0;
 			time = 0;
 			notMove1 = 0;
+			notcount=0;
 			success = 1;
 		}
 	//最多射击30s
@@ -1288,6 +1293,7 @@ int ShootBallW(void)
 			step = 0;
 			time = 0;
 			notMove1 = 0;
+		notcount=0;
 			success = 1;
 	}
 	//问询航向电机角度、收球电机速度、推球电机的位置
@@ -1295,11 +1301,11 @@ int ShootBallW(void)
 	ReadActualPos(CAN1, PUSH_BALL_ID);
 	
 //	USART_OUT(UART5,(u8*)"S%d\t%d\r\n",(int)SWITCHC0,(int)SWITCHE2);
-	USART_OUT(UART5,(u8*)"shootNum %d\r\n",(int)shootNum);
+//	USART_OUT(UART5,(u8*)"shootNum %d\r\n",(int)shootNum);
 	//行程开关都触发，一直进行角度矫正
   if(SWITCHC0 == 1 && SWITCHE2 == 1)
 	{
-		USART_OUT(UART5,(u8*)"s");
+//		USART_OUT(UART5,(u8*)"s");
 		LaserCheck();
 		
 //		//靠的墙是Y=0
@@ -1412,6 +1418,7 @@ int ShootBallW(void)
 					step = 0;
 					time = 0;
 					notMove1 = 0;
+					notcount=0;
 					success = 1;
 				}
 			}
@@ -2003,7 +2010,7 @@ int Escape(u16 back,u16 turn)
 				step = 3;
 			}
 		}
-		USART_OUT(UART5,(u8*)"status%d\t%d\r\n",(int)status,(int)step);
+//		USART_OUT(UART5,(u8*)"status%d\t%d\r\n",(int)status,(int)step);
 			break;
 		case 1:
 		{
@@ -2261,7 +2268,7 @@ int AngleStuck(void)
 	{
 		count = 0;
 	}
-	USART_OUT(UART5,(u8*)"stuck%d\r\n",(int)(Position_t.angle - lastAngle));
+//	USART_OUT(UART5,(u8*)"stuck%d\r\n",(int)(Position_t.angle - lastAngle));
 	lastAngle = Position_t.angle;
 	return success;
 }
@@ -2290,7 +2297,7 @@ int CrazyRotate(void)
 	{
 		count = 0;
 	}
-	USART_OUT(UART5,(u8*)"cra%d\r\n",(int)(Position_t.angle - lastAngle));
+//	USART_OUT(UART5,(u8*)"cra%d\r\n",(int)(Position_t.angle - lastAngle));
 	lastAngle = Position_t.angle;
 	return success;
 }
@@ -2369,7 +2376,7 @@ int ShootBallWD(void)
 	ReadActualPos(CAN1, PUSH_BALL_ID);
 	
 //	USART_OUT(UART5,(u8*)"S%d\t%d\r\n",(int)SWITCHC0,(int)SWITCHE2);
-	USART_OUT(UART5,(u8*)"shootNum %d\r\n",(int)shootNum);
+//	USART_OUT(UART5,(u8*)"shootNum %d\r\n",(int)shootNum);
 	//行程开关都触发，一直进行角度矫正
   if(SWITCHC0 == 1 && SWITCHE2 == 1)
 	{

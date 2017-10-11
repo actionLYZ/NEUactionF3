@@ -40,6 +40,7 @@ extern int triggerTime,beginTrigger;
 extern int shootBegin;
 extern uint8_t     blueToothError;
 extern int resetStep;
+int notcount=0;
 /*================================================函数定义区==============================================*/
 
 /*======================================================================================
@@ -260,7 +261,7 @@ int changeState=0;
 
 void GoGoGo(float fLine,int stat)
 {
-	static int  state = 1, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0,side = 0; //应该执行的状态
+	static int  state = 10, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0,side = 0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
   static float aimAngle = 0,tempx = 0,tempy = 0;
 //	if(ballNumber>35&&full==0)
@@ -276,7 +277,7 @@ void GoGoGo(float fLine,int stat)
 	}
 	if(carRun)
 	{
-		USART_OUT(UART5,(u8*)"CarV%d\r\n",(int)carDeVel);
+//		USART_OUT(UART5,(u8*)"CarV%d\r\n",(int)carDeVel);
 		if (stuckCar(70,300))
 		{
 			side = JudgeSide();
@@ -306,6 +307,7 @@ void GoGoGo(float fLine,int stat)
 		{
 			g_plan = lastPlan;
 			shootBegin = 1;
+			notcount=0;
 			//先启动3s
 			count++;
 			if(count >= 300)
@@ -330,6 +332,7 @@ void GoGoGo(float fLine,int stat)
 		case 2:
 		{
 			shootBegin = 1;
+			notcount=0;
 			g_plan = lastPlan;
 			LOG_NOTE JudgeState("Circle running....");//开始第一圈跑场
 			carRun = 1;
@@ -355,6 +358,7 @@ void GoGoGo(float fLine,int stat)
 		case 3:
 		{
 			shootBegin = 1;
+			notcount=0;
 			LOG_NOTE JudgeState("Rectangle running....");//开始第一圈跑场
 			carRun = 1;
 			g_plan = lastPlan;
@@ -370,6 +374,7 @@ void GoGoGo(float fLine,int stat)
 		case 4:
 		{
 			shootBegin = 0;
+			notcount=0;
 			carRun = 0;
 			count=0;
 			g_plan = 1;
@@ -379,7 +384,7 @@ void GoGoGo(float fLine,int stat)
 				if(blueToothError)
 				{
 					//计算当前坐标和(0,1000)目标点坐标的角度，作为目标角度
-					aimAngle = AvoidOverAngle(atan2(Position_t.Y - 1000,Position_t.X - 1000) - 90);
+					aimAngle = AvoidOverAngle(atan2(Position_t.Y - 1000,Position_t.X - 0) - 90);
 					state = 12;
 				}
 				else
@@ -475,6 +480,7 @@ void GoGoGo(float fLine,int stat)
 		case 6: 
 		{
 			shootBegin = 1;
+			notcount=0;
 			//先启动3s
 			count++;
 			if(count >= 300)
@@ -494,6 +500,7 @@ void GoGoGo(float fLine,int stat)
 		case 7:
 		{
 			shootBegin = 1;
+			notcount=0;
 			count++;
 			if(count >= 300)
 			{
@@ -522,6 +529,7 @@ void GoGoGo(float fLine,int stat)
 		}
 		case 9:
 		{
+			notcount=0;
 			//第一次有车来
 			if(hitNum == 1)
 			{
@@ -552,7 +560,7 @@ void GoGoGo(float fLine,int stat)
 			break;
 		case 10:
 		{
-
+       notcount=0;
 			 count++;			 
 			 if(count>=300)
 			 {
@@ -569,6 +577,7 @@ void GoGoGo(float fLine,int stat)
 		}break;
 		case 11:
 		{
+			notcount=0;
 			carRun = 1;
 			angClose(-1100,aimAngle,150);
 			if (stuckCar(100,100))
@@ -578,6 +587,7 @@ void GoGoGo(float fLine,int stat)
 		}
 			break;
 		case 12:
+			notcount=0;
 			//目标点(0,1000)
 		  StaightCLose(0, 1000, aimAngle, 1200);
 		
@@ -588,6 +598,7 @@ void GoGoGo(float fLine,int stat)
 			}
 			break;	
 		case 13:
+			notcount=0;
 			//倒车进入出发区
 			StaightCLose(0, 0, 0, -800);
 		

@@ -1127,7 +1127,7 @@ int RunEdge(void)
 
 	}
 
-	USART_OUT(UART5,(u8*)"edge  %d\t%d\t\r\n",side,sideTimes,avoidBack);
+//	USART_OUT(UART5,(u8*)"edge  %d\t%d\t%d\r\n",side,sideTimes,avoidBack);
 	return finish;
 }
 
@@ -1384,6 +1384,7 @@ int ballNumber;
                            
 函数返回值  ：	  无
 =======================================================================================*/
+extern int notcount;
 void CountBall(void)
 {
 	static int ballN=0,sum=0,beginSum=0,pass=0,kunziBall=0;
@@ -1409,7 +1410,7 @@ void CountBall(void)
 	if(g_gather>=250)
 	{
 		beginSum = 0;
-		if(sum>=90&&sum<=230)
+		if(sum>=80&&sum<=230)
 		{
 			ballN=1;
 		}
@@ -1443,14 +1444,18 @@ void CountBall(void)
 		ballN=0;
 	}
 
-	if(ballN)
+	if(notcount==0)
 	{
-		kunziBall +=ballN;
-		//加上光电
-		ballNumber =(kunziBall + photoElectricityCount) / 2;
-		ballN=0;
-		sum=0;
+		if(ballN)
+		{
+			kunziBall +=ballN;
+			//加上光电
+			ballNumber =(kunziBall + photoElectricityCount) / 2;
+			ballN=0;
+			sum=0;
+		}		
 	}
+
 	
 	//给数球一个上限
 	if(ballNumber>50)
@@ -1512,46 +1517,6 @@ int SweepIn(void)
 //			USART_OUT(UART5,(u8*)"sweepin_area_error\r\n");
 		}		
 	}
-  else if(squareNumber==2)
-	{
-		if(Position_t.X>=0&&Position_t.Y<2335.35)
-		{
-			if(check2!=1)
-			{
-			  areaTime++;
-			}
-			inarea1=1;check2=1;
-		}
-		else if(Position_t.X>0&&Position_t.Y>=2335.35)
-		{			
-			if(check2!=2)
-			{
-				areaTime++;
-			}
-			inarea1=2;check2=2;
-		}
-		else if(Position_t.X<=0&&Position_t.Y>2335.35)
-		{			
-			if(check2!=3)
-			{
-			  areaTime++;
-			}
-			inarea1=3;check2=3;
-		}
-		else if(Position_t.X<0&&Position_t.Y<=2335.35)
-		{			
-			if(check2!=4)
-			{
-				areaTime++;
-			}
-			inarea1=4;check2=4;
-		}
-		else
-		{
-      success=1;
-//			USART_OUT(UART5,(u8*)"sweepin_area_error\r\n");
-		}			
-	}
 	
 	if(squareNumber==1)
 	{
@@ -1581,6 +1546,47 @@ int SweepIn(void)
 	{
 		areaTime=0;
 		squareNumber=2;
+	}
+	
+	if(squareNumber==2)
+	{
+		if(Position_t.X>=0&&Position_t.Y<2335.35)
+		{
+			if(check2!=1)
+			{
+			  areaTime++;
+			}
+			inarea2=1;check2=1;
+		}
+		else if(Position_t.X>0&&Position_t.Y>=2335.35)
+		{			
+			if(check2!=2)
+			{
+				areaTime++;
+			}
+			inarea2=2;check2=2;
+		}
+		else if(Position_t.X<=0&&Position_t.Y>2335.35)
+		{			
+			if(check2!=3)
+			{
+			  areaTime++;
+			}
+			inarea2=3;check2=3;
+		}
+		else if(Position_t.X<0&&Position_t.Y<=2335.35)
+		{			
+			if(check2!=4)
+			{
+				areaTime++;
+			}
+			inarea2=4;check2=4;
+		}
+		else
+		{
+      success=1;
+//			USART_OUT(UART5,(u8*)"sweepin_area_error\r\n");
+		}			
 	}
 	if(squareNumber==2)
 	{
@@ -1627,6 +1633,6 @@ int SweepIn(void)
       check2=0;
 		}
 	}
-//	USART_OUT(UART5,(u8*)"%d\t%d\r\n",squareNumber,areaTime);
+	USART_OUT(UART5,(u8*)"%d\t%d\r\n",squareNumber,areaTime);
 	return success;
 }
