@@ -1319,7 +1319,6 @@ int ShootBallW(void)
 	//行程开关都触发，一直进行角度矫正
   if(SWITCHC0 == 1 && SWITCHE2 == 1)
 	{
-		USART_OUT(UART5,(u8*)"s");
 		LaserCheck();		
 	}
 	//计算投球点的坐标

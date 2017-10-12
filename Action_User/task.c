@@ -320,7 +320,7 @@ void WalkTask(void)
 			escapeCount = 1;
 			
 			//逃逸完成后，ifEscape清零(注意铁框的后退时间自己给的)
-			if(Escape(100,120))
+			if(Escape(90,110))
 			{
 				LOG_NOTE JudgeState("Escape Successful !!");
 				ifEscape = 0;

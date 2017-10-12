@@ -959,7 +959,7 @@ int CheckPosition(void)
 			{
 				POS_NOTE USART_OUT(UART5,(u8*)"qiang\r\n");
 				//后退车被困住（被困的条件比较严苛）
-				if(stuckCar(200,2000))
+				if(stuckCar(200,1000))
 				{
 					POS_NOTE USART_OUT(UART5,(u8*)"stuckCar %d\t%d\r\n",(int)SWITCHC0,(int)SWITCHE2);
 					
