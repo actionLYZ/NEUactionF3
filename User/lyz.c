@@ -1526,10 +1526,12 @@ int CheckPosition(void)
 		break;
 		case 12:
 		{
+			shootBegin = 1;
+			carRun = 1;
+			//判断车在哪面墙
+			side = JudgeSide();
 		
 			//记录当前的角度值
-			tempx = Position_t.X;
-			tempy = Position_t.Y;
 			aimAngle = Position_t.angle;
 		  state = 13;
 		}
@@ -1540,10 +1542,35 @@ int CheckPosition(void)
 			carRun = 1;
 			angClose(1200,aimAngle,150);
 		  
-			//前进1.2m
-			if(sqrt((Position_t.X - tempx) * (Position_t.X - tempx) + (Position_t.Y - tempy) * (Position_t.Y - tempy)) > 1200)
+			//在第一面墙激光不能用时
+		  if(side == 1)
 			{
-				state = 1;
+				if(Position_t.Y > 1200)
+				{
+					//state置1，重新矫正
+					state = 1;
+				}
+			}
+			else if(side == 2)
+			{
+				if(Position_t.X < 1200)
+				{
+					state = 1;
+				}
+			}
+			else if(side == 3)
+			{
+				if(Position_t.Y < 3600)
+				{
+					state = 1;
+				}
+			}
+			else
+			{
+				if(Position_t.X > -1200)
+				{
+					state = 1;
+				}
 			}
 		}
 		break;
@@ -1997,10 +2024,7 @@ int LaserCheck(void)
 			//如果激光被挡,进入step = 2
 			if (laserGetRight + laserGetLeft < 4700)
 			{	
-				right = 1;
-				left = 1;
-				step = 3;
-				success = 0;
+        step = 2;
 			}
 			
 			//没有被挡,step = 1, 开始矫正
@@ -2202,13 +2226,13 @@ int LaserCheck(void)
 		  if(side == 1)
 			{	
 				//误差超过300mm，认为右侧被挡
-				if(fabs(Position_t.X - (g_plan * (2400 - laserGetRight))) > 200)
+				if(fabs(Position_t.X - (g_plan * (2400 - laserGetRight))) > 300)
 				{
 					right = 0;
 				}
 				
 				//左侧被挡
-				if(fabs(Position_t.X - (g_plan * (laserGetLeft - 2400))) > 200)
+				if(fabs(Position_t.X - (g_plan * (laserGetLeft - 2400))) > 300)
 				{
 					left = 0;
 				}
@@ -2217,22 +2241,22 @@ int LaserCheck(void)
 			{
 				if(g_plan == 1)
 				{
-					if(fabs(Position_t.Y - (4800 - 64.65 - laserGetRight)) > 200)
+					if(fabs(Position_t.Y - (4800 - 64.65 - laserGetRight)) > 300)
 					{
 						right = 0;
 					}
-					if(fabs(Position_t.Y - (laserGetLeft - 64.65)) > 200)
+					if(fabs(Position_t.Y - (laserGetLeft - 64.65)) > 300)
 					{
 						left = 0;
 					}
 				}
 				else
 				{
-					if(fabs(Position_t.Y - (laserGetRight - 64.65)) > 200)
+					if(fabs(Position_t.Y - (laserGetRight - 64.65)) > 300)
 					{
 						right = 0;
 					}
-					if(fabs(Position_t.Y - (4800 - 64.65 - laserGetLeft)) > 200)
+					if(fabs(Position_t.Y - (4800 - 64.65 - laserGetLeft)) > 300)
 					{
 						left = 0;
 					}
@@ -2240,11 +2264,11 @@ int LaserCheck(void)
 			}
 			else if(side == 3)
 			{
-				if(fabs(Position_t.X - (g_plan * (laserGetRight - 2400))) > 200)
+				if(fabs(Position_t.X - (g_plan * (laserGetRight - 2400))) > 300)
 				{
 					right = 0;
 				}
-				if(fabs(Position_t.X - (g_plan * (2400 - laserGetLeft))) > 200)
+				if(fabs(Position_t.X - (g_plan * (2400 - laserGetLeft))) > 300)
 				{
 					left = 0;
 				}
@@ -2253,22 +2277,22 @@ int LaserCheck(void)
 			{
 				if(g_plan == 1)
 				{
-					if(fabs(Position_t.Y - (laserGetRight - 64.65)) > 200)
+					if(fabs(Position_t.Y - (laserGetRight - 64.65)) > 300)
 					{
 						right = 0;
 					}
-					if(fabs(Position_t.Y - (4800 - 64.65 - laserGetLeft)) > 200)
+					if(fabs(Position_t.Y - (4800 - 64.65 - laserGetLeft)) > 300)
 					{
 						left = 0;
 					}
 				}
 				else
 				{
-					if(fabs(Position_t.Y - (4800 - 64.65 - laserGetRight)) > 200)
+					if(fabs(Position_t.Y - (4800 - 64.65 - laserGetRight)) > 300)
 					{
 						right = 0;
 					}
-					if(fabs(Position_t.Y - (laserGetLeft - 64.65)) > 200)
+					if(fabs(Position_t.Y - (laserGetLeft - 64.65)) > 300)
 					{
 						left = 0;
 					}
