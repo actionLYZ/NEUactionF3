@@ -277,23 +277,23 @@ void WalkTask(void)
 					ShootBallW();
 				}
 			}
-//			else
-//			{
-//				if(carDeVel < 500)
-//				{
-//					time2++;
-//				}
-//				else
-//				{
-//					time2 = 0;
-//				}
-//				if(time2 > 400)
-//				{
-//					shootNum = 0;
-//					time2 = 400;
-//					ShootBallW();
-//				}
-//			}
+			else
+			{
+				if(carDeVel < 500)
+				{
+					time2++;
+				}
+				else
+				{
+					time2 = 0;
+				}
+				if(time2 > 500)
+				{
+					shootNum = 0;
+					time2 = 400;
+					ShootBallWD();
+				}
+			}
 		}
 		
 		//用长度为20的数组记录坐标值
