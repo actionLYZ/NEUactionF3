@@ -415,7 +415,7 @@ void GoGoGo(float fLine,int stat)
 				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 15 || (laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 15)
 				{
 					count++;
-					if(count > 5)
+					if(count > 10)
 					{
 						hitNum++;
 						tempx = Position_t.X;

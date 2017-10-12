@@ -1205,12 +1205,7 @@ int ShootBallW(void)
 	static int8_t step = 0,numFlag = 1,lastNumFlag = 0, angleNormal = 0, rpsNormal = 0,Flag = 1;
 	static float distance1 = 0, distance2 = 0;
 	
-	if(staticShoot)
-	{
-		VelCrl(CAN2, 1, 0);
-		VelCrl(CAN2, 2, 0);
-	}
-	else
+	if(Position_t.Y > 4600 || Position_t.Y < 200 || Position_t.X > 2200 || Position_t.X < -2200)
 	{
 		if(SWITCHC0 == 1 && SWITCHE2 == 1)
 		{
@@ -1223,6 +1218,12 @@ int ShootBallW(void)
 			VelCrl(CAN2, 1, -500);
 			VelCrl(CAN2, 2, 500);
 		}
+
+	}
+	else
+	{
+		VelCrl(CAN2, 1, 0);
+		VelCrl(CAN2, 2, 0);
 	}
 	
 	//降转速，减小零飘
