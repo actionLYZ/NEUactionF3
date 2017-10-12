@@ -1362,15 +1362,15 @@ int ShootBallW(void)
 				noBall++;
 				if(noBall > 200 && noBall < 210)
 				{
-					PushBallReset();
+					PushBall();
 				}
 				if(noBall > 400 && noBall < 410)
 				{		
-					PushBall();
+					PushBallReset();
 				}
 				if(noBall > 600 && noBall < 610)
 				{	
-					PushBallReset();
+					PushBall();
 				}
 
 				if(noBall > 650)
@@ -1563,7 +1563,7 @@ int ShootBallW(void)
 	 USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
-//	 USART_OUT(UART5,(u8*)"%d\t%d\t %d\tf%d\t%d\tf%d\t%d\t%d\r\n",(int)step,(int)notMove,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)(g_shootFactV/4096),(int)ballColor,(int)success);
+	 USART_OUT(UART5,(u8*)"step%d\t%d\t %d\tf%d\t%d\tf%d\t%d\t%d\r\n",(int)step,(int)notMove,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)(g_shootFactV/4096),(int)ballColor,(int)success);
 //	USART_OUT(UART5,(u8*)"%d\r\n",(int)shootNum);
 	return success;
 }
