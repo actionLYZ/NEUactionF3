@@ -78,6 +78,11 @@ typedef union
 //储藏室的高度(mm)
 #define BASKETHIGH              600
 
+#define BALLX                   0
+
+#define WHITEY                  2610.35
+
+#define BLACKY                  1910.35
 //重力加速度(mm/s2)
 #define G                       9800
 
@@ -224,6 +229,6 @@ int Escape(u16 back,u16 turn);
 int AngleStuck(void);
 
 int Escape1(void);
-
+int ShootBallWD(void);
 //检测疯狂自转
 int CrazyRotate(void);

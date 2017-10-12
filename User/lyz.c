@@ -262,7 +262,7 @@ int changeState=0;
 
 void GoGoGo(float fLine,int stat)
 {
-	static int  state = 7, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0,side = 0; //应该执行的状态
+	static int  state = 1, shootTime = 0, count = 0,full=0,laserLeft = 0, laserRight = 0,time = 0,hitNum = 0,side = 0; //应该执行的状态
 	static int  length = WIDTH / 2, wide = WIDTH / 2; //长方形跑场参数
   static float aimAngle = 0,tempx = 0,tempy = 0;
 	static int leftCar = 0,rightCar = 0;
@@ -415,7 +415,7 @@ void GoGoGo(float fLine,int stat)
 				if((laserRight - Get_Adc_Average(RIGHT_LASER, 100)) > 15 || (laserLeft - Get_Adc_Average(LEFT_LASER, 100)) > 15)
 				{
 					count++;
-					if(count > 5)
+					if(count > 10)
 					{
 						hitNum++;
 						tempx = Position_t.X;
@@ -1144,7 +1144,7 @@ int CheckPosition(void)
 				shootBegin = 1;
 				LOG_NOTE JudgeState("continue Check , go ahead");
 				carRun = 1;
-				angClose(1800, aimAngle, 250);
+				angClose(1600, aimAngle, 250);
 				
 				//判断距离第二面墙1米时准备靠墙
 				if(side == 1)
@@ -1373,7 +1373,7 @@ int CheckPosition(void)
 				checkError = 0;
 				state = 10;
 			}
-			angClose(1000,(aimAngle - 45),150);
+			angClose(1000,AvoidOverAngle(aimAngle - 45),150);
 		}
 			break;
 		case 10:

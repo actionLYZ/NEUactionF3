@@ -1205,12 +1205,7 @@ int ShootBallW(void)
 	static int8_t step = 0,numFlag = 1,lastNumFlag = 0, angleNormal = 0, rpsNormal = 0,Flag = 1;
 	static float distance1 = 0, distance2 = 0;
 	
-	if(staticShoot)
-	{
-		VelCrl(CAN2, 1, 0);
-		VelCrl(CAN2, 2, 0);
-	}
-	else
+	if(Position_t.Y > 4600 || Position_t.Y < 200 || Position_t.X > 2200 || Position_t.X < -2200)
 	{
 		if(SWITCHC0 == 1 && SWITCHE2 == 1)
 		{
@@ -1223,6 +1218,12 @@ int ShootBallW(void)
 			VelCrl(CAN2, 1, -500);
 			VelCrl(CAN2, 2, 500);
 		}
+
+	}
+	else
+	{
+		VelCrl(CAN2, 1, 0);
+		VelCrl(CAN2, 2, 0);
 	}
 	
 	//降转速，减小零飘
@@ -1339,7 +1340,7 @@ int ShootBallW(void)
 
 				//枪顺时针转为正，逆时针为负
 				aimAngle = AvoidOverAngle(aimAngle);
-				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2.8;
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2.0;
 			}
 
 			//球是黑球
@@ -1352,7 +1353,7 @@ int ShootBallW(void)
 				aimAngle  = atan2(BALLY - posShoot.Y, BLACKX - posShoot.X);
 				aimAngle  = RADTOANG(aimAngle) - 90;
 				aimAngle  = AvoidOverAngle(aimAngle);
-				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2.8;
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2.0;
 			}
 		
 			// 没球,来回拨动几次
@@ -1362,42 +1363,15 @@ int ShootBallW(void)
 				noBall++;
 				if(noBall > 200 && noBall < 210)
 				{
-						if(g_pushPosition > 3800)
-						{
-							PushBallReset();
-						}
-						
-						//位置正常，push推球电机
-						if(g_pushPosition < 200)
-						{
-							PushBall();
-						}
+					PushBall();
 				}
 				if(noBall > 400 && noBall < 410)
 				{		
-						if(g_pushPosition > 3800)
-						{
-							PushBallReset();
-						}
-						
-						//位置正常，push推球电机
-						if(g_pushPosition < 200)
-						{
-							PushBall();
-						}	
+					PushBallReset();
 				}
 				if(noBall > 600 && noBall < 610)
 				{	
-						if(g_pushPosition > 3800)
-						{
-							PushBallReset();
-						}
-						
-						//位置正常，push推球电机
-						if(g_pushPosition < 200)
-						{
-							PushBall();
-						}	
+					PushBall();
 				}
 
 				if(noBall > 650)
@@ -1421,7 +1395,7 @@ int ShootBallW(void)
 			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
 			
 			//自己测的关系(旧枪)
-			rps = 0.01499f * V - 9.0f;
+			rps = 0.01499f * V - 9.2f;
 			
 			//新枪
 //			rps = 0.01499f * V - 7.494;
@@ -1535,7 +1509,7 @@ int ShootBallW(void)
 				notShoot++;
 				
 				//0.3s依然卡死，切换到step = 1;
-				if(notShoot > 10)
+				if(notShoot > 20)
 				{
 					notShoot = 0;
 					step = 1;
@@ -1554,16 +1528,29 @@ int ShootBallW(void)
 		case 1:
 			LOG_NOTE JudgeState("the ball was stucked !!");
 			notMove++;
-			if(g_pushPosition >= 2400)
+			if(notMove > 10 && notMove < 20)
 			{
-				POS_NOTE USART_OUT(UART5,(u8*)"PushBall\r\n");
 				PushBall();
 			}
-			else
+			if(notMove > 100 && notMove < 110)
 			{
-				POS_NOTE USART_OUT(UART5,(u8*)"PushReset\r\n");
 				PushBallReset();
 			}
+			if(notMove > 150)
+			{
+				notMove = 0;
+				step = 0;
+			}
+	//			if(g_pushPosition >= 2400)
+//			{
+//				 USART_OUT(UART5,(u8*)"PushBall %d\r\n",(int)g_pushPosition);
+//				PushBall();
+//			}
+//			else
+//			{
+//				 USART_OUT(UART5,(u8*)"PushReset %d\r\n",(int)g_pushPosition);
+//				PushBallReset();
+//			}
 			
 			//连续发10次命令
 			if(notMove >= 10)
@@ -1574,10 +1561,10 @@ int ShootBallW(void)
 			break;
 	}
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
-	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);
+	 USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootNum,ballColor,noBall,success,(int)g_pushPosition,(int)notMove,(int)notShoot);
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",(int)rps,(int)g_shootFactV/4096,(int)shootNum);
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError,(int)angleError);
-//	 USART_OUT(UART5,(u8*)"%d\t%d\t %d\tf%d\t%d\tf%d\t%d\t%d\r\n",(int)step,(int)notMove,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)(g_shootFactV/4096),(int)ballColor,(int)success);
+	 USART_OUT(UART5,(u8*)"step%d\t%d\t %d\tf%d\t%d\tf%d\t%d\t%d\r\n",(int)step,(int)notMove,(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)(g_shootFactV/4096),(int)ballColor,(int)success);
 //	USART_OUT(UART5,(u8*)"%d\r\n",(int)shootNum);
 	return success;
 }
@@ -2406,10 +2393,10 @@ int ShootBallWD(void)
 			if (ballColor == WHITE)
 			{
 				noBall = 0;
-				distance = sqrt((posShoot.X - WHITEX) * (posShoot.X - WHITEX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
+				distance = sqrt((posShoot.X - BALLX) * (posShoot.X - BALLX) + (posShoot.Y - WHITEY) * (posShoot.Y - WHITEY));
 
 				//将角度装换成陀螺仪角度坐标系里的角度值
-				aimAngle  = atan2(BALLY - posShoot.Y, WHITEX - posShoot.X);
+				aimAngle  = atan2(WHITEY - posShoot.Y, BALLX - posShoot.X);
 				aimAngle  = RADTOANG(aimAngle) - 90;
 
 				//枪顺时针转为正，逆时针为负
@@ -2421,10 +2408,10 @@ int ShootBallWD(void)
 			else if (ballColor == BLACK)
 			{
 				noBall = 0;
-				distance = sqrt((posShoot.X - BLACKX) * (posShoot.X - BLACKX) + (posShoot.Y - BALLY) * (posShoot.Y - BALLY));
+				distance = sqrt((posShoot.X - BALLX) * (posShoot.X - BALLX) + (posShoot.Y - BLACKY) * (posShoot.Y - BLACKY));
 
 				//将角度转换成陀螺仪角度坐标系里的角度值
-				aimAngle  = atan2(BALLY - posShoot.Y, BLACKX - posShoot.X);
+				aimAngle  = atan2(BLACKY - posShoot.Y, BALLX - posShoot.X);
 				aimAngle  = RADTOANG(aimAngle) - 90;
 				aimAngle  = AvoidOverAngle(aimAngle);
 				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2.8;
@@ -2490,7 +2477,7 @@ int ShootBallWD(void)
 			}
 		
 			//球出射速度(mm/s)与投球点距离篮筐的距离的关系
-			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 - 424.6));
+			V = sqrt(12372.3578 * distance * distance / (distance * 1.2349 + 175.4));
 			
 			//自己测的关系
 			rps = 0.01499f * V - 9.8f;
@@ -2515,7 +2502,6 @@ int ShootBallWD(void)
 			//车速
 			if(carDeVel < 500)
 			{
-				if(distance1 > 1000 && distance2 > 1000)
 				{
 					//如果蓝牙坏了
 					if(blueToothError)
@@ -2623,23 +2609,40 @@ int ShootBallWD(void)
 		case 1:
 			LOG_NOTE JudgeState("the ball was stucked !!");
 			notMove++;
-			if(g_pushPosition >= 2400)
-			{
-//				POS_NOTE USART_OUT(UART5,(u8*)"PushBall\r\n");
-				PushBall();
-			}
-			else
-			{
-//				POS_NOTE USART_OUT(UART5,(u8*)"PushReset\r\n");
-				PushBallReset();
-			}
+		if(notMove > 50 && notMove < 60)
+		{
+			PushBall();
+		}
+		if(notMove > 140 && notMove < 150)
+		{
+			PushBallReset();
+		}
+		if(notMove > 230 && notMove < 240)
+		{
+			PushBall();
+		}
+		if(notMove > 250)
+		{
+			notMove = 0;
+			step = 0;
+		}
+//			if(g_pushPosition >= 2400)
+//			{
+////				POS_NOTE USART_OUT(UART5,(u8*)"PushBall\r\n");
+//				PushBall();
+//			}
+//			else
+//			{
+////				POS_NOTE USART_OUT(UART5,(u8*)"PushReset\r\n");
+//				PushBallReset();
+//			}
 			
-			//连续发10次命令
-			if(notMove >= 10)
-			{
-				notMove = 0;
-				step = 0;
-			}
+//			//连续发10次命令
+//			if(notMove >= 10)
+//			{
+//				notMove = 0;
+//				step = 0;
+//			}
 			break;
 	}
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
