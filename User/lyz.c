@@ -594,27 +594,61 @@ void GoGoGo(float fLine,int stat)
 		case 11:
 		{
 			notcount=0;
-			carRun = 1;
+			count++;
+			if(count >= 300)
+			{
+				shootStart  = 0;
+				carRun      = 1;
+				count = 300;
+			}
+			else
+			{
+				count = 0;
+			}
 			angClose(-1100,aimAngle,150);
 			if (stuckCar(100,100))
 			{
+				count = 0;
 				state = 4;
 			}
 		}
 			break;
 		case 12:
+			count++;
+			if(count >= 300)
+			{
+				shootStart  = 0;
+				carRun      = 1;
+				count = 300;
+			}
+			else
+			{
+				count = 0;
+			}
 			notcount=0;
 			//目标点(0,1000)
 		  StaightCLose(0, 1000, aimAngle, 1200);
 		
 			//快到目标点了
-		if(sqrt((Position_t.Y - 1000) * (Position_t.Y - 1000) + Position_t.X * Position_t.X) < 200)
+		if(sqrt((Position_t.Y - 1000) * (Position_t.Y - 1000) + Position_t.X * Position_t.X) < 300)
 		{
+			count = 0;
 			state = 13;
 		}
 			
 			break;	
 		case 13:
+			count++;
+			if(count >= 300)
+			{
+				shootStart  = 0;
+				carRun      = 1;
+				count = 300;
+			}
+			else
+			{
+				count = 0;
+			}
 			notcount=0;
 			//倒车进入出发区
 			StaightCLose(0, 0, 0, -600);
@@ -622,6 +656,7 @@ void GoGoGo(float fLine,int stat)
 			//行程开关触发，开始射球
 	    if(SWITCHC0 && SWITCHE2)
 			{
+				count = 0;
 				state = 5;
 			}
 			break;
@@ -1143,7 +1178,17 @@ int CheckPosition(void)
 			{
 				shootBegin = 1;
 				LOG_NOTE JudgeState("continue Check , go ahead");
+				count++;
+			if(count >= 200)
+			{
+				count = 200;
+				shootBegin = 1;
 				carRun = 1;
+			}
+			else
+			{
+				carRun = 0;
+			}
 				angClose(1600, aimAngle, 250);
 				
 				//判断距离第二面墙1米时准备靠墙
@@ -1153,6 +1198,7 @@ int CheckPosition(void)
 					{
 						if(Position_t.X < -1600)
 						{
+							count = 0;
 							state = 6;
 						}
 					}
@@ -1160,6 +1206,7 @@ int CheckPosition(void)
 					{
 						if(Position_t.X > 1600)
 						{
+							count = 0;
 							state = 6;
 						}
 					}
@@ -1170,6 +1217,7 @@ int CheckPosition(void)
 					{
 						if(Position_t.Y < 750)
 						{
+							count = 0;
 							state = 6;
 						}
 					}
@@ -1177,6 +1225,7 @@ int CheckPosition(void)
 					{
 						if(Position_t.Y > 3900)
 						{
+							count = 0;
 							state = 6;
 						}
 					}
@@ -1187,6 +1236,7 @@ int CheckPosition(void)
 					{
 						if(Position_t.X > 1400)
 						{
+							count = 0;
 							state = 6;
 						}
 					}
@@ -1194,6 +1244,7 @@ int CheckPosition(void)
 					{
 						if(Position_t.X < -1400)
 						{
+							count = 0;
 							state = 6;
 						}
 					}
@@ -1204,6 +1255,7 @@ int CheckPosition(void)
 					{
 						if(Position_t.Y < 950)
 						{
+							count = 0;
 							state = 6;
 						}
 					}
@@ -1211,6 +1263,7 @@ int CheckPosition(void)
 					{
 						if(Position_t.Y > 3700)
 						{
+							count = 0;
 							state = 6;
 						}
 					}
@@ -1431,9 +1484,9 @@ int CheckPosition(void)
 		case 11:
 		{
 			count++;
-			if(count >= 300)
+			if(count >= 200)
 			{
-				count = 300;
+				count = 200;
 				shootBegin = 1;
 				carRun = 1;
 			}
@@ -1539,7 +1592,17 @@ int CheckPosition(void)
 		case 13:
 		{
 			shootBegin = 1;
-			carRun = 1;
+			count++;
+			if(count >= 200)
+			{
+				count = 200;
+				shootBegin = 1;
+				carRun = 1;
+			}
+			else
+			{
+				carRun = 0;
+			}
 			angClose(1200,aimAngle,150);
 		  
 			//在第一面墙激光不能用时
@@ -1548,6 +1611,7 @@ int CheckPosition(void)
 				if(Position_t.Y > 1200)
 				{
 					//state置1，重新矫正
+					count = 0;
 					state = 1;
 				}
 			}
@@ -1555,6 +1619,7 @@ int CheckPosition(void)
 			{
 				if(Position_t.X < 1200)
 				{
+					count = 0;
 					state = 1;
 				}
 			}
@@ -1562,6 +1627,7 @@ int CheckPosition(void)
 			{
 				if(Position_t.Y < 3600)
 				{
+					count = 0;
 					state = 1;
 				}
 			}
@@ -1569,6 +1635,7 @@ int CheckPosition(void)
 			{
 				if(Position_t.X > -1200)
 				{
+					count = 0;
 					state = 1;
 				}
 			}
@@ -1577,8 +1644,18 @@ int CheckPosition(void)
 		case 14:
 		{
 			shootBegin = 1;
-			carRun = 1;
 			count++;
+			if(count >= 200)
+			{
+				count = 200;
+				shootBegin = 1;
+				carRun = 1;
+			}
+			else
+			{
+				carRun = 0;
+			}
+			
 		  if(count > 200 || sqrt(PF(tempx - Position_t.X) + PF(tempy - Position_t.Y)) > 500)
 			{
 				checkError++;
@@ -1603,7 +1680,17 @@ int CheckPosition(void)
 		case 15:
 		{
 			shootBegin = 1;
-			carRun = 1;
+			count++;
+			if(count >= 200)
+			{
+				count = 200;
+				shootBegin = 1;
+				carRun = 1;
+			}
+			else
+			{
+				carRun = 0;
+			}
 			if(corner == 1)
 			{
 				aimAngle = 0;
@@ -1627,6 +1714,7 @@ int CheckPosition(void)
 			  if(Position_t.Y > 1400)
 				{
 					aimAngle = 90;
+					count = 0;
 					state = 2;
 				}
 			}
@@ -1634,6 +1722,7 @@ int CheckPosition(void)
 			{
 				if(Position_t.X < 1000)
 				{
+					count = 0;
 					aimAngle = 180;
 					state = 2;
 				}
@@ -1642,6 +1731,7 @@ int CheckPosition(void)
 			{
 				if(Position_t.Y < 3400)
 				{
+					count = 0;
 					aimAngle = -90;
 					state = 2;
 				}
@@ -1650,6 +1740,7 @@ int CheckPosition(void)
 			{
 				if(Position_t.X > -1000)
 				{
+					count = 0;
 					aimAngle = 0;
 					state = 2;
 				}
