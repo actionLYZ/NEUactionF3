@@ -1339,7 +1339,7 @@ int ShootBallW(void)
 
 				//枪顺时针转为正，逆时针为负
 				aimAngle = AvoidOverAngle(aimAngle);
-				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2.8;
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2.0;
 			}
 
 			//球是黑球
@@ -1352,7 +1352,7 @@ int ShootBallW(void)
 				aimAngle  = atan2(BALLY - posShoot.Y, BLACKX - posShoot.X);
 				aimAngle  = RADTOANG(aimAngle) - 90;
 				aimAngle  = AvoidOverAngle(aimAngle);
-				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2.8;
+				shootAngle = AvoidOverAngle(g_plan * Position_t.angle - aimAngle) + 2.0;
 			}
 		
 			// 没球,来回拨动几次
