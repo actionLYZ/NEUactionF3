@@ -1373,7 +1373,7 @@ int CheckPosition(void)
 				checkError = 0;
 				state = 10;
 			}
-			angClose(1000,(aimAngle - 45),150);
+			angClose(1000,AvoidOverAngle(aimAngle - 45),150);
 		}
 			break;
 		case 10:
