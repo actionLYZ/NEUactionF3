@@ -252,7 +252,7 @@ void WalkTask(void)
 			fighting=1;
 		}
 //		CrazyRotate();
-//		CountBall();
+		CountBall();
 //		LaserCheck();
 //		ShootBallW(); 
 //		RunWithCamera1(2);

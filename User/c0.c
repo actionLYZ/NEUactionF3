@@ -954,34 +954,88 @@ void New_Route(int dow, int righ, int u, int lef)
 int RunEdge(void)
 {
 	int         finish = 0;
-	static int  side = 0,sideTimes=0,avoidBack=0;
+	static int  side = 0,sideTimes=0,avoidBack=0,edgearea=0;
 	
+		if (Position_t.X >= 1450&&Position_t.Y<3800)
+		{
+			edgearea = 2;
+		}
+		else if (Position_t.Y >= 3800&&Position_t.X>-1450)
+		{
+			edgearea = 3;
+		}
+		else if (Position_t.X <= -1450&&Position_t.Y>950)
+		{
+			edgearea = 4;
+		}
+		else if (Position_t.Y <= 950&&Position_t.X<1450)
+		{
+			edgearea = 1;
+		}	
+	  else if(Position_t.Y <= (1450 - Position_t.X) && Position_t.Y < (1450 + Position_t.X))
+		{
+			edgearea = 11;
+		}
+		else if(Position_t.Y > (1450 - Position_t.X) && Position_t.Y <= (1450 + Position_t.X))
+		{
+			edgearea = 12;
+		}
+		else if(Position_t.Y >= (1450 - Position_t.X) && Position_t.Y > (1450 + Position_t.X))
+		{
+			edgearea = 13;
+		}
+		else if(Position_t.Y < (1450 - Position_t.X) && Position_t.Y >= (1450 + Position_t.X))
+		{
+			edgearea = 14;
+		}	
+		else 
+		{
+			USART_OUT(UART5,(u8*)"edgearea erroe\r\n");
+		}
   if(!ifEscape)
 	{
-		if (Position_t.X >= 1450&&Position_t.Y<3800&&side!=2)
+		if (edgearea==2||edgearea==12)
 		{
-			side = 2;sideTimes++;
+			if(side!=2)
+			{
+				sideTimes++;
+			}
+			side = 2;
 		}
-		if (Position_t.Y >= 3800&&Position_t.X>1450&&side!=3)
+		else if (edgearea==3||edgearea==13)
 		{
-			side = 3;sideTimes++;
+			if(side!=3)
+			{
+				sideTimes++;
+			}
+			side = 3;
 		}
-		if (Position_t.X <= -1450&&Position_t.Y>950&&side!=4)
+		else if (edgearea==4||edgearea==14)
 		{
-			side = 4;sideTimes++;
+			if(side!=4)
+			{
+				sideTimes++;
+			}
+			side = 4;
 		}
-		if (Position_t.Y <= 950&&Position_t.X<1450&&side!=1)
+		else if (edgearea==1||edgearea==11)
 		{
-			side = 1;sideTimes++;
+			if(side!=1)
+			{
+				sideTimes++;
+			}			
+			side = 1;
 		}
 		if(sideTimes>=6)
 		{
 			side = 0;
 			sideTimes = 0;
 			avoidBack=0;
+			edgearea=1;
 			finish = 1;
 		}
-	}
+	}	
+
   if(sideTimes==1&&avoidBack==0)
 	{
 		if(g_plan==1)
@@ -1626,7 +1680,7 @@ int SweepIn(void)
 		{
 			success=1;
 			walkTime=0;
-			squareNumber=0;
+			squareNumber=1;
 			inarea1=0;
       inarea2=0;
       check1=0;
