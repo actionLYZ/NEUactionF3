@@ -2609,23 +2609,40 @@ int ShootBallWD(void)
 		case 1:
 			LOG_NOTE JudgeState("the ball was stucked !!");
 			notMove++;
-			if(g_pushPosition >= 2400)
-			{
-//				POS_NOTE USART_OUT(UART5,(u8*)"PushBall\r\n");
-				PushBall();
-			}
-			else
-			{
-//				POS_NOTE USART_OUT(UART5,(u8*)"PushReset\r\n");
-				PushBallReset();
-			}
+		if(notMove > 50 && notMove < 60)
+		{
+			PushBall();
+		}
+		if(notMove > 140 && notMove < 150)
+		{
+			PushBallReset();
+		}
+		if(notMove > 230 && notMove < 240)
+		{
+			PushBall();
+		}
+		if(notMove > 250)
+		{
+			notMove = 0;
+			step = 0;
+		}
+//			if(g_pushPosition >= 2400)
+//			{
+////				POS_NOTE USART_OUT(UART5,(u8*)"PushBall\r\n");
+//				PushBall();
+//			}
+//			else
+//			{
+////				POS_NOTE USART_OUT(UART5,(u8*)"PushReset\r\n");
+//				PushBallReset();
+//			}
 			
-			//连续发10次命令
-			if(notMove >= 10)
-			{
-				notMove = 0;
-				step = 0;
-			}
+//			//连续发10次命令
+//			if(notMove >= 10)
+//			{
+//				notMove = 0;
+//				step = 0;
+//			}
 			break;
 	}
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
