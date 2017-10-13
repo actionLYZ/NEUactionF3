@@ -956,19 +956,19 @@ int RunEdge(void)
 	int         finish = 0;
 	static int  side = 0,sideTimes=0,avoidBack=0,edgearea=0;
 	
-		if (Position_t.X >= 1450&&Position_t.Y<3800)
+		if (Position_t.X >= 1250&&Position_t.Y<3600)
 		{
 			edgearea = 2;
 		}
-		else if (Position_t.Y >= 3800&&Position_t.X>-1450)
+		else if (Position_t.Y >= 3600&&Position_t.X>-1250)
 		{
 			edgearea = 3;
 		}
-		else if (Position_t.X <= -1450&&Position_t.Y>950)
+		else if (Position_t.X <= -1250&&Position_t.Y>1150)
 		{
 			edgearea = 4;
 		}
-		else if (Position_t.Y <= 950&&Position_t.X<1450)
+		else if (Position_t.Y <= 1150&&Position_t.X<1250)
 		{
 			edgearea = 1;
 		}	
@@ -1036,91 +1036,91 @@ int RunEdge(void)
 		}
 	}	
 
-  if(sideTimes==1&&avoidBack==0)
-	{
-		if(g_plan==1)
-		{
-			switch(side)
-			{
-				case 1:
-				{
-					ClLineAngle(-90,1000);
-					if(Position_t.angle>-95&&Position_t.angle<-85)
-					{
-						avoidBack=1;
-					}
-				}break;
-				case 2:
-				{
-					ClLineAngle(0,1000);
-					if(fabs(Position_t.angle)<5)
-					{
-						avoidBack=1;
-					}
-				}break;
-				case 3:
-				{
-					ClLineAngle(90,1000);
-					if(Position_t.angle>85&&Position_t.angle<95)
-					{
-						avoidBack=1;
-					}
-				}break;
-				case 4:
-				{
-					ClLineAngle(180,1000);
-					if(fabs(Position_t.angle)>175)
-					{
-						avoidBack=1;
-					}
-				}break;
-				default:
-					break;
-			}	
- 
-		}
-    else
-		{
-			switch(side)
-			{
-				case 1:
-				{
-					TurnAngle(90,1000);
-					if(Position_t.angle<95&&Position_t.angle>85)
-					{
-						avoidBack=1;
-					}
-				}break;
-				case 2:
-				{
-					TurnAngle(0,1000);
-					if(fabs(Position_t.angle)<5)
-					{
-						avoidBack=1;
-					}
-				}break;
-				case 3:
-				{
-					TurnAngle(-90,1000);
-					if(Position_t.angle<-85&&Position_t.angle>-95)
-					{
-						avoidBack=1;
-					}
-				}break;
-				case 4:
-				{
-					TurnAngle(180,1000);
-					if(fabs(Position_t.angle)>175)
-					{
-						avoidBack=1;
-					}
-				}break;
-				default:
-					break;
-			}				
-		}				
-	}
-	if(avoidBack)
+//  if(sideTimes==1&&avoidBack==0)
+//	{
+//		if(g_plan==1)
+//		{
+//			switch(side)
+//			{
+//				case 1:
+//				{
+//					ClLineAngle(-90,1000);
+//					if(Position_t.angle>-95&&Position_t.angle<-85)
+//					{
+//						avoidBack=1;
+//					}
+//				}break;
+//				case 2:
+//				{
+//					ClLineAngle(0,1000);
+//					if(fabs(Position_t.angle)<5)
+//						avoidBack=1;
+//					}//					{
+
+//				}break;
+//				case 3:
+//				{
+//					ClLineAngle(90,1000);
+//					if(Position_t.angle>85&&Position_t.angle<95)
+//					{
+//						avoidBack=1;
+//					}
+//				}break;
+//				case 4:
+//				{
+//					ClLineAngle(180,1000);
+//					if(fabs(Position_t.angle)>175)
+//					{
+//						avoidBack=1;
+//					}
+//				}break;
+//				default:
+//					break;
+//			}	
+// 
+//		}
+//    else
+//		{
+//			switch(side)
+//			{
+//				case 1:
+//				{
+//					TurnAngle(90,1000);
+//					if(Position_t.angle<95&&Position_t.angle>85)
+//					{
+//						avoidBack=1;
+//					}
+//				}break;
+//				case 2:
+//				{
+//					TurnAngle(0,1000);
+//					if(fabs(Position_t.angle)<5)
+//					{
+//						avoidBack=1;
+//					}
+//				}break;
+//				case 3:
+//				{
+//					TurnAngle(-90,1000);
+//					if(Position_t.angle<-85&&Position_t.angle>-95)
+//					{
+//						avoidBack=1;
+//					}
+//				}break;
+//				case 4:
+//				{
+//					TurnAngle(180,1000);
+//					if(fabs(Position_t.angle)>175)
+//					{
+//						avoidBack=1;
+//					}
+//				}break;
+//				default:
+//					break;
+//			}				
+//		}				
+//	}
+//	if(avoidBack)
 	{
 		if(g_plan==1)
 		{
@@ -1143,7 +1143,7 @@ int RunEdge(void)
 
 				case 4:
 				{
-					ClLine(-2250, 0, 180, 1000);
+					ClLine(-2150, 0, 180, 1000);
 				} break;
 
 				default:

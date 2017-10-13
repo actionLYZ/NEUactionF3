@@ -1507,8 +1507,8 @@ int ShootBallW(void)
 			{
 				notShoot++;
 				
-				//0.3s依然卡死，切换到step = 1;
-				if(notShoot > 30)
+				//0.2s依然卡死，切换到step = 1;
+				if(notShoot > 20)
 				{
 					notShoot = 0;
 					step = 1;
@@ -1527,23 +1527,31 @@ int ShootBallW(void)
 		case 1:
 			LOG_NOTE JudgeState("the ball was stucked !!");
 			notMove++;
-			if(notMove > 50 && notMove < 60)
+			if(g_pushPosition > 2400)
 			{
 				PushBall();
 			}
-			if(notMove > 140 && notMove < 150)
+			else
 			{
 				PushBallReset();
 			}
-			if(notMove > 230 && notMove < 240)
-			{
-				PushBall();
-			}
-			if(notMove > 250)
-			{
-				notMove = 0;
-				step = 0;
-			}
+//			if(notMove > 50 && notMove < 60)
+//			{
+//				PushBall();
+//			}
+//			if(notMove > 140 && notMove < 150)
+//			{
+//				PushBallReset();
+//			}
+//			if(notMove > 230 && notMove < 240)
+//			{
+//				PushBall();
+//			}
+				if(notMove > 20)
+				{
+					notMove = 0;
+					step = 0;
+				}
 	//			if(g_pushPosition >= 2400)
 //			{
 //				 USART_OUT(UART5,(u8*)"PushBall %d\r\n",(int)g_pushPosition);
