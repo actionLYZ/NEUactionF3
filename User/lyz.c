@@ -470,7 +470,7 @@ void GoGoGo(float fLine,int stat)
 					}break;
 					case 2:
 					{
-						state=6;
+						state=10;
 					}break;
 					default: 
 					{

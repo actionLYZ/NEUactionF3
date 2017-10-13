@@ -1599,78 +1599,78 @@ int SweepIn(void)
 	if(areaTime>=5&&squareNumber==1)
 	{
 		areaTime=0;
-		squareNumber=2;
-	}
-	
-	if(squareNumber==2)
-	{
-		if(Position_t.X>=0&&Position_t.Y<2335.35)
-		{
-			if(check2!=1)
-			{
-			  areaTime++;
-			}
-			inarea2=1;check2=1;
-		}
-		else if(Position_t.X>0&&Position_t.Y>=2335.35)
-		{			
-			if(check2!=2)
-			{
-				areaTime++;
-			}
-			inarea2=2;check2=2;
-		}
-		else if(Position_t.X<=0&&Position_t.Y>2335.35)
-		{			
-			if(check2!=3)
-			{
-			  areaTime++;
-			}
-			inarea2=3;check2=3;
-		}
-		else if(Position_t.X<0&&Position_t.Y<=2335.35)
-		{			
-			if(check2!=4)
-			{
-				areaTime++;
-			}
-			inarea2=4;check2=4;
-		}
-		else
-		{
-      success=1;
-//			USART_OUT(UART5,(u8*)"sweepin_area_error\r\n");
-		}			
-	}
-	if(squareNumber==2)
-	{
-		switch(inarea2)
-		{
-			case 1:
-			{
-				StaightCLose(600,0,0,1000);
-			}break;
-			case 2:
-			{
-				StaightCLose(0,3400.35,90,1000);
-			}break;
-			case 3:
-			{
-				StaightCLose(-600,0,180,1000);
-			}break;
-			case 4:
-			{
-				StaightCLose(0,1255.35,-90,1000);
-			}break;
-			default:
-			 break;			
-		}
-	}
-	if(areaTime>=5&&squareNumber==2)
-	{
-		areaTime=0;
 		squareNumber=3;
 	}
+//	
+//	if(squareNumber==2)
+//	{
+//		if(Position_t.X>=0&&Position_t.Y<2335.35)
+//		{
+//			if(check2!=1)
+//			{
+//			  areaTime++;
+//			}
+//			inarea2=1;check2=1;
+//		}
+//		else if(Position_t.X>0&&Position_t.Y>=2335.35)
+//		{			
+//			if(check2!=2)
+//			{
+//				areaTime++;
+//			}
+//			inarea2=2;check2=2;
+//		}
+//		else if(Position_t.X<=0&&Position_t.Y>2335.35)
+//		{			
+//			if(check2!=3)
+//			{
+//			  areaTime++;
+//			}
+//			inarea2=3;check2=3;
+//		}
+//		else if(Position_t.X<0&&Position_t.Y<=2335.35)
+//		{			
+//			if(check2!=4)
+//			{
+//				areaTime++;
+//			}
+//			inarea2=4;check2=4;
+//		}
+//		else
+//		{
+//      success=1;
+////			USART_OUT(UART5,(u8*)"sweepin_area_error\r\n");
+//		}			
+//	}
+//	if(squareNumber==2)
+//	{
+//		switch(inarea2)
+//		{
+//			case 1:
+//			{
+//				StaightCLose(600,0,0,1000);
+//			}break;
+//			case 2:
+//			{
+//				StaightCLose(0,3400.35,90,1000);
+//			}break;
+//			case 3:
+//			{
+//				StaightCLose(-600,0,180,1000);
+//			}break;
+//			case 4:
+//			{
+//				StaightCLose(0,1255.35,-90,1000);
+//			}break;
+//			default:
+//			 break;			
+//		}
+//	}
+//	if(areaTime>=5&&squareNumber==2)
+//	{
+//		areaTime=0;
+//		squareNumber=3;
+//	}
 	if(squareNumber==3)
 	{
 		walkTime++;
@@ -1687,6 +1687,6 @@ int SweepIn(void)
       check2=0;
 		}
 	}
-	USART_OUT(UART5,(u8*)"%d\t%d\r\n",squareNumber,areaTime);
+	USART_OUT(UART5,(u8*)"%d\t%d\t%d\r\n",squareNumber,areaTime,check1);
 	return success;
 }

@@ -1508,7 +1508,7 @@ int ShootBallW(void)
 				notShoot++;
 				
 				//0.3s依然卡死，切换到step = 1;
-				if(notShoot > 20)
+				if(notShoot > 30)
 				{
 					notShoot = 0;
 					step = 1;
@@ -1527,15 +1527,19 @@ int ShootBallW(void)
 		case 1:
 			LOG_NOTE JudgeState("the ball was stucked !!");
 			notMove++;
-			if(notMove > 10 && notMove < 20)
+			if(notMove > 50 && notMove < 60)
 			{
 				PushBall();
 			}
-			if(notMove > 100 && notMove < 110)
+			if(notMove > 140 && notMove < 150)
 			{
 				PushBallReset();
 			}
-			if(notMove > 150)
+			if(notMove > 230 && notMove < 240)
+			{
+				PushBall();
+			}
+			if(notMove > 250)
 			{
 				notMove = 0;
 				step = 0;
@@ -1550,13 +1554,6 @@ int ShootBallW(void)
 //				 USART_OUT(UART5,(u8*)"PushReset %d\r\n",(int)g_pushPosition);
 //				PushBallReset();
 //			}
-			
-			//连续发10次命令
-			if(notMove >= 10)
-			{
-				notMove = 0;
-				step = 0;
-			}
 			break;
 	}
 //	POS_NOTE USART_OUT(UART5,(u8*)"%d\tf%d\t%d\tf%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\r\n",(int)shootAngle,(int)(g_shootAngle * 90 / 4096),(int)rps,(int)g_shootFactV/4096,(int)(g_shootV / 4096),(int)distance,(int)Position_t.X,(int)Position_t.Y,(int)Position_t.angle,(int)xError,(int)yError);
