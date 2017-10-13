@@ -1677,7 +1677,7 @@ int SweepIn(void)
 		walkTime++;
 		VelCrl(CAN2, 1, 15000);
 	  VelCrl(CAN2, 2, -15000);		
-		if(walkTime>50)
+		if(walkTime>100)
 		{
 			success=1;
 			walkTime=0;

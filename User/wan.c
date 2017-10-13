@@ -1856,21 +1856,21 @@ int AfterCircle(uint16_t speed)
 	{
 		case 0:
 			StaightCLose(tempx, 0, 0, speed);
-			if(Position_t.Y > 2600)
+			if(Position_t.Y > 2500)
 				step++;
 			break;
 		case 1:
 			StaightCLose(0, 4300, 90, speed);
-			if(Position_t.X < -400)
+			if(Position_t.X < -300)
 				step++;
 			break;
 		case 2:
-			StaightCLose(-2200, 0, 180, speed);
-			if(Position_t.Y < 2100)
+			StaightCLose(-2100, 0, 180, speed);
+			if(Position_t.Y < 2200)
 				step++;
 			break;
 		case 3:
-			StaightCLose(0, 300, -90, speed);
+			StaightCLose(0, 400, -90, speed);
 		
 		  //蓝牙坏了
 		  if(blueToothError)
@@ -1886,21 +1886,27 @@ int AfterCircle(uint16_t speed)
 			//蓝牙没坏，正常走形
 			else
 			{
-				if(Position_t.X > 400)
+				if(Position_t.X > 300)
 				{
 					step++;
 				}
 			}
 			break;
 		case 4:
-			StaightCLose(2200, 0, 0, speed);
-			if(Position_t.Y > 1900)
+			StaightCLose(2100, 0, 0, speed);
+			if(Position_t.Y > 1500)
 			{
-				step = 5;
-				success = 1;
+				step = 6;
 			}
 			break;
-			
+		case 6:
+			StaightCLose(0, 4300, 90, speed);
+		if(Position_t.X < 1000)
+		{
+			step = 5;
+			success = 1;
+		}
+			break;
 			//记录当前的X坐标，以便更好的切换到矩形扫场
 		case 5:
 			tempx = Position_t.X;

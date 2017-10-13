@@ -296,16 +296,16 @@ void WalkTask(void)
 			}
 		}
 		
-		//用长度为20的数组记录坐标值
-    count++;
-		count = count % 20;
-		lastPosition[count].angle = Position_t.angle;
-		
-		if(angleSpeed>260)
-		{
-			//用200ms之前的角度-当前的角度，进行一次角度矫正
-			angleError += (Position_t.angle - lastPosition[((count+1)%20)].angle);
-		}
+//		//用长度为20的数组记录坐标值
+//    count++;
+//		count = count % 20;
+//		lastPosition[count].angle = Position_t.angle;
+//		
+//		if(angleSpeed>260)
+//		{
+//			//用200ms之前的角度-当前的角度，进行一次角度矫正
+//			angleError += (Position_t.angle - lastPosition[((count+1)%20)].angle);
+//		}
 		
 
 					
