@@ -348,7 +348,7 @@ void GoGoGo(float fLine,int stat)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(1800, 1200, 2, 1))
+			if(sweepYuan(1800, 1200, 3, 1))
 			{
 				state = 3;
 			}
