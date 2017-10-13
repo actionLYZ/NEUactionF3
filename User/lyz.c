@@ -727,14 +727,14 @@ bool FirstRound(float firstLine)
 			{
 				StaightCLose(-1000, 0, 180, speed);
 			}
-			if (Position_t.Y <= 900 + FIR_ADV)
+			if (Position_t.Y <= 1200 + FIR_ADV)
 				state = 4;
 		} break;
 
 	//	//下边，目标角度-90度
 		case 4:
 		{
-			StaightCLose(0, 900, -90, speed);
+			StaightCLose(0, 1200, -90, speed);
 //			if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
 			if (Position_t.X >= 0)
 				return true;
