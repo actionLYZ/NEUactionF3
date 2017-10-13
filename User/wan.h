@@ -232,3 +232,5 @@ int Escape1(void);
 int ShootBallWD(void);
 //检测疯狂自转
 int CrazyRotate(void);
+
+int sweepYuanW(float V, float R, uint8_t circleNum, uint8_t status);

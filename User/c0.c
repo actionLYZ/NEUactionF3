@@ -1600,7 +1600,7 @@ int SweepIn(void)
 	if(areaTime>=5&&squareNumber==1)
 	{
 		areaTime=0;
-		squareNumber=3;
+//		squareNumber=3;
 	}
 //	
 //	if(squareNumber==2)

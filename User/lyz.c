@@ -348,9 +348,9 @@ void GoGoGo(float fLine,int stat)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(2000, 1500, 2, 1))
+			if(sweepYuan(2000, 1200, 2, 1))
 			{
-				state = 4;
+				state = 3;
 			}
 		}
 		break;
@@ -452,32 +452,33 @@ void GoGoGo(float fLine,int stat)
 				{
 					shootTime++;
 				}
-				switch (shootTime)
-				{
-					case 3:
-					{
-						state = 6;
-					} 
-					break;
+				state = 16;
+//				switch (shootTime)
+//				{
+//					case 3:
+//					{
+//						state = 6;
+//					} 
+//					break;
 
-					case 1: 
-						state = 7;
-					break;						
-					case 0:
-					{
-						state=7;
-						shootTime=1;
-					}break;
-					case 2:
-					{
-						state=10;
-					}break;
-					default: 
-					{
-						state = 6;
-					}
-					break;
-				}
+//					case 1: 
+//						state = 7;
+//					break;						
+//					case 0:
+//					{
+//						state=7;
+//						shootTime=1;
+//					}break;
+//					case 2:
+//					{
+//						state=10;
+//					}break;
+//					default: 
+//					{
+//						state = 6;
+//					}
+//					break;
+//				}
 	       
 				//球数等于进的减去射出去的
         ballNumber=ballNumber-shootNum;
@@ -587,7 +588,7 @@ void GoGoGo(float fLine,int stat)
 			shootBegin = 1;
 			if(SweepIn())
 			{
-				state=4;
+//				state=4;
 				count=0;
 			}
 		}break;
@@ -650,6 +651,14 @@ void GoGoGo(float fLine,int stat)
 			}
 		}
 		break;
+		case 17:
+		{
+			
+		}break;
+		case 16:
+		{
+			sweepYuanW(2000, 1000, 2, 1);
+		}break;
 		default:
 		{
 			state=6;

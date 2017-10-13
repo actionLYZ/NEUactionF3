@@ -1235,7 +1235,7 @@ int ShootBallW(void)
 	distance2 = sqrt((Position_t.X - BLACKX) * (Position_t.X - BLACKX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
 		if(Flag)
 		{
-			if(shootNum >= 14)
+			if(shootNum >= 3)
 			{
 				//重置激光矫正中的step
 				resetStep = 1;
@@ -2661,4 +2661,98 @@ int ShootBallWD(void)
 }
 
 
+int sweepYuanW(float V, float R, uint8_t circleNum, uint8_t status)
+{
+  float disError = 0, disOutput = 0, aimAng = 0, angError = 0, angOutput = 0, V1 = 0, V2 = 0;
+	uint8_t success = 0;
+	static uint8_t Flag = 0, circle = 0;
+	static uint16_t R1 = 0;
+	
+	//只是为了让开始时R1 = R
+	circleFlag++;
+  if(circleFlag <= 100)
+	{
+		R1 = R;
+	}
+  if(circleFlag > 100)
+	{
+		circleFlag = 100;
+	}		
 
+	// 逆时针，先缓慢加速
+	if(g_plan == 1)
+	{
+		V1 = 4096 * V * (R1 + WHEEL_TREAD / 2) / (106.8 * PI * R1);
+		V2 = 4096 * V * (R1 - WHEEL_TREAD / 2) / (106.8 * PI * R1);	
+	}
+	
+	//顺时针
+	else
+	{
+		V2 = 4096 * V * (R1 + WHEEL_TREAD / 2) / (106.8 * PI * R1);
+		V1 = 4096 * V * (R1 - WHEEL_TREAD / 2) / (106.8 * PI * R1);	
+	}
+	
+	//让小车走一圈半径改变一次
+	if(0 < Position_t.X && 1950 < Position_t.Y && Position_t.Y < 2100)
+	{
+		Flag++;
+	}
+	else
+	{
+		Flag = 0;
+	}
+	if(Flag == 1)
+	{
+		//记录扫场的圈数
+		circle++;
+		
+		//status=1,扩大扫场
+		if(status == 1)
+		{
+		  R1 += 0;
+		}
+		
+		//否则,缩小扫场
+		else
+		{
+			R1 -= 0;
+		}
+		
+		//达到预定圈数,success置1,acceSpeed置0
+		if(circle == circleNum)
+		{
+			circleFlag = 0;
+			success = 1;
+		}
+	}
+	
+  //陀螺仪到圆心的距离
+	disError = sqrt((Position_t.X - 0) * (Position_t.X - 0) + (Position_t.Y - 2335.35) * (Position_t.Y - 2335.35)) - R1;
+	
+	//距离P调节系数
+	disOutput = g_plan * disError * 10;
+
+	//目标角度与小车位置到圆心的角度相同
+	aimAng = atan2(Position_t.Y - 2335.35,Position_t.X - 0) * 180.0 / PI;
+	
+	//防止第二象限被撞后出现原地大角度调节到目标角度的现象
+	if(aimAng < 180 && aimAng > 0 && Position_t.angle < -90 && Position_t.angle > -180)
+	{
+		Position_t.angle += 360;
+	}
+	
+	//防止第三象限别撞后出现原地大角度调节到目标角度的现象
+	if(aimAng < 0 && aimAng > -180 && Position_t.angle < 180 && Position_t.angle > 90)
+	{
+		Position_t.angle -= 360;
+	}
+	angError = aimAng - Position_t.angle;
+	
+	//角度P调节系数
+	angOutput = g_plan * angError * 400;
+	
+	VelCrl(CAN2, 1,V1+disOutput+angOutput);
+	VelCrl(CAN2, 2,-V2+disOutput+angOutput);
+	return success;
+}

@@ -347,10 +347,10 @@ void WalkTask(void)
 				GoGoGo(firstLine,1);
 				
 				//两分四十立马矫正射球
-				if(fullTime>=160000)
+				if(fullTime>=120000)
 				{				
 	//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
-					if(fullTime>=160000&&fullTime<=160100)
+					if(fullTime>=120000&&fullTime<=120100)
 					{
 						changeState=1;
 					}
@@ -386,10 +386,10 @@ void WalkTask(void)
 				GoGoGo(firstLine,4);	
 				
 				//两分四十立马矫正射球
-				if(fullTime>=160000)
+				if(fullTime>=150000)
 				{				
 	//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
-					if(fullTime>=160000&&fullTime<=160100)
+					if(fullTime>=150000&&fullTime<=150100)
 					{
 						changeState=1;
 					}
