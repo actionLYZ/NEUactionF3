@@ -31,7 +31,7 @@
 #define BALL_WEIGHT             (0.046f) //高尔夫球的重量（单位：kg）
 #define PF(a)    ((a) * (a))
 
-#define cameraSpeed (1500)
+#define cameraSpeed (1300)
 
 //宏定义电机转一圈的脉冲数
 #define COUNT_PER_ROUND         (4096.0f)

@@ -334,7 +334,7 @@ void WalkTask(void)
 			
 			LOG_NOTE JudgeState("Start Bigger Escape !!");
 			//更大幅度的避障
-			if(Escape(110,140))
+			if(Escape(110,120))
 			{
 				ifEscape2 = 0;
 			}
