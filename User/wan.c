@@ -1860,21 +1860,21 @@ int AfterCircle(uint16_t speed)
 	{
 		case 0:
 			StaightCLose(tempx, 0, 0, speed);
-			if(Position_t.Y > 2400)
+			if(Position_t.Y > 2300)
 				step++;
 			break;
 		case 1:
 			StaightCLose(0, 4300, 90, speed);
-			if(Position_t.X < -200)
+			if(Position_t.X < 0)
 				step++;
 			break;
 		case 2:
 			StaightCLose(-2000, 0, 180, speed);
-			if(Position_t.Y < 2250)
+			if(Position_t.Y < 2350)
 				step++;
 			break;
 		case 3:
-			StaightCLose(0, 450, -90, speed);
+			StaightCLose(0, 400, -90, speed);
 		
 		  //蓝牙坏了
 		  if(blueToothError)
