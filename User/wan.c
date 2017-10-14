@@ -50,6 +50,7 @@ extern float carDeVel;
 extern POSITION_T  lastPosition[20];
 extern int resetStep;
 extern int staticShoot;
+extern int FlagCO;
 /*======================================================================================
    函数定义	  ：		Send Get函数
    函数参数	  ：
@@ -1233,9 +1234,9 @@ int ShootBallW(void)
 	USART_OUT(UART5,(u8*)"sta%d\r\n",(int)staticShoot);
   distance1 = sqrt((Position_t.X - WHITEX) * (Position_t.X - WHITEX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
 	distance2 = sqrt((Position_t.X - BLACKX) * (Position_t.X - BLACKX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
-		if(Flag)
+		if(FlagCO)
 		{
-			if(shootNum >= 14)
+			if(shootNum >= 6)
 			{
 				//重置激光矫正中的step
 				resetStep = 1;
@@ -1249,7 +1250,7 @@ int ShootBallW(void)
 				notMove1 = 0;
 				notcount=0;
 				success = 1;
-				Flag = 0;
+				FlagCO = 0;
 			}
 		}
 		//检测是否被卡死

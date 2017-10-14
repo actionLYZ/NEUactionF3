@@ -254,6 +254,7 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 }
 extern int carRun,fighting;
 int changeState=0;
+extern int FlagCO;
 /*======================================================================================
    函数定义	：		开始跑场
    函数参数	：		方案：暂定1为逆时针(右侧激光触发)，-1为顺时针(左侧激光触发)
@@ -368,6 +369,7 @@ void GoGoGo(float fLine,int stat)
 				//之后的矫正坐标函数令g_plan = 1;
 				g_plan = 1;
 				state = 4;
+				FlagCO=1;
 			}
 		}
 			break;
@@ -524,6 +526,7 @@ void GoGoGo(float fLine,int stat)
 			if (RunEdge())
 			{
 				state     = 4;
+				FlagCO=1;
 				//shootTime = 0;
 				count = 0;
 			}
@@ -588,6 +591,7 @@ void GoGoGo(float fLine,int stat)
 			if(SweepIn())
 			{
 				state=4;
+				FlagCO=1;
 				count=0;
 			}
 		}break;
