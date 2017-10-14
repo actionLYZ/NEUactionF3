@@ -1899,13 +1899,19 @@ int AfterCircle(uint16_t speed)
 			break;
 		case 4:
 			StaightCLose(2000, 0, 0, speed);
-			if(Position_t.Y > 1700)
+			if(Position_t.Y > 2300)
+			{
+				step = 6;
+			}
+			break;
+		case 6:
+			StaightCLose(0, 4300, 90, speed);
+			if(Position_t.X < 600)
 			{
 				step = 5;
 				success = 1;
 			}
 			break;
-			
 			//记录当前的X坐标，以便更好的切换到矩形扫场
 		case 5:
 			tempx = Position_t.X;
