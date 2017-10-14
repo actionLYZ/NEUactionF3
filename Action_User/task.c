@@ -56,6 +56,7 @@ uint8_t     circleFlag = 0;           //画圆标志位
 uint8_t     shootNum = 0;             //记录射球的个数
 int16_t     blueTooth = 500;
 uint8_t     blueToothError = 0;
+int         FlagCO = 0;
 int lastPlan = 0;
 extern float             angleError, xError , yError ;
 float carDeVel = 0;
@@ -347,12 +348,13 @@ void WalkTask(void)
 				GoGoGo(firstLine,1);
 				
 				//两分四十立马矫正射球
-				if(fullTime>=160000)
+				if(fullTime>=130000)
 				{				
 	//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
-					if(fullTime>=160000&&fullTime<=160100)
+					if(fullTime>=130000&&fullTime<=130100)
 					{
 						changeState=1;
+						FlagCO=0;
 					}
 					GoGoGo(firstLine,4);
 				}
@@ -386,12 +388,13 @@ void WalkTask(void)
 				GoGoGo(firstLine,4);	
 				
 				//两分四十立马矫正射球
-				if(fullTime>=160000)
+				if(fullTime>=130000)
 				{				
 	//				GPIO_SetBits(GPIOE,GPIO_Pin_7);
-					if(fullTime>=160000&&fullTime<=160100)
+					if(fullTime>=130000&&fullTime<=130100)
 					{
 						changeState=1;
+						FlagCO=0;
 					}
 					GoGoGo(firstLine,4);
 				}

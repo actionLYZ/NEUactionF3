@@ -254,6 +254,7 @@ void StaightCLose(float aimx, float aimy, float angle, float speed)
 }
 extern int carRun,fighting;
 int changeState=0;
+extern int FlagCO;
 /*======================================================================================
    函数定义	：		开始跑场
    函数参数	：		方案：暂定1为逆时针(右侧激光触发)，-1为顺时针(左侧激光触发)
@@ -348,7 +349,7 @@ void GoGoGo(float fLine,int stat)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(2100, 1100, 3, 1))
+			if(sweepYuan(2200, 1000, 3, 1))
 			{
 				state = 3;
 			}
@@ -363,11 +364,12 @@ void GoGoGo(float fLine,int stat)
 			LOG_NOTE JudgeState("Rectangle running....");//开始第一圈跑场
 			carRun = 1;
 			g_plan = lastPlan;
-			if(AfterCircle(2000))
+			if(AfterCircle(2100))
 			{
 				//之后的矫正坐标函数令g_plan = 1;
 				g_plan = 1;
 				state = 4;
+				FlagCO=1;
 			}
 		}
 			break;
@@ -524,6 +526,7 @@ void GoGoGo(float fLine,int stat)
 			if (RunEdge())
 			{
 				state     = 4;
+				FlagCO=1;
 				//shootTime = 0;
 				count = 0;
 			}
@@ -588,6 +591,7 @@ void GoGoGo(float fLine,int stat)
 			if(SweepIn())
 			{
 				state=4;
+				FlagCO=1;
 				count=0;
 			}
 		}break;
@@ -753,14 +757,14 @@ bool FirstRound(float firstLine)
 			{
 				StaightCLose(-1000, 0, 180, speed);
 			}
-			if (Position_t.Y <= 1250 + FIR_ADV)
+			if (Position_t.Y <= 1335 + FIR_ADV)
 				state = 4;
 		} break;
 
 	//	//下边，目标角度-90度
 		case 4:
 		{
-			StaightCLose(0, 1250, -90, speed);
+			StaightCLose(0, 1335, -90, speed);
 //			if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
 			if (Position_t.X >= 0)
 				return true;
