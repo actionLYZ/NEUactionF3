@@ -1428,7 +1428,7 @@ int ShootBallW(void)
 						if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.0f && ballColor)
 						{
 							//位置正常，reset推球电机
-							if(g_pushPosition > 3800)
+							if(g_pushPosition > 4000)
 							{
 								//numFlag取反
 								numFlag = 0;
@@ -1453,7 +1453,7 @@ int ShootBallW(void)
 					else
 					{
 						//枪的角度和转速到位,推球
-						if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 0.7f && fabs(rps + g_shootFactV / 4096) < 1 && ballColor)
+						if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 1.5f && fabs(rps + g_shootFactV / 4096) < 1.5 && ballColor)
 						{
 //							//角度和转速都稳定
 //							if(fabs(shootAngle - g_shootAngle * 90 / 4096) < 0.5f)

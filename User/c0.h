@@ -49,7 +49,7 @@
 #define PUSH_BALL_ID            (6)
 
 //宏定义送弹机构送弹时电机位置
-#define PUSH_POSITION           (4000)
+#define PUSH_POSITION           (4600)
 
 //宏定义送弹机构收回时电机位置
 #define PUSH_RESET_POSITION     (5)
