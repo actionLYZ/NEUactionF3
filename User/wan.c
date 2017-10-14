@@ -1634,13 +1634,13 @@ int sweepYuan(float V, float R, uint8_t circleNum, uint8_t status)
 		//status=1,扩大扫场
 		if(status == 1)
 		{
-		  R1 += 400;
+		  R1 += 350;
 		}
 		
 		//否则,缩小扫场
 		else
 		{
-			R1 -= 400;
+			R1 -= 350;
 		}
 		
 		//达到预定圈数,success置1,acceSpeed置0
@@ -1860,27 +1860,27 @@ int AfterCircle(uint16_t speed)
 	{
 		case 0:
 			StaightCLose(tempx, 0, 0, speed);
-			if(Position_t.Y > 2600)
+			if(Position_t.Y > 2400)
 				step++;
 			break;
 		case 1:
 			StaightCLose(0, 4300, 90, speed);
-			if(Position_t.X < -300)
+			if(Position_t.X < -200)
 				step++;
 			break;
 		case 2:
-			StaightCLose(-2100, 0, 180, speed);
-			if(Position_t.Y < 2200)
+			StaightCLose(-2000, 0, 180, speed);
+			if(Position_t.Y < 2250)
 				step++;
 			break;
 		case 3:
-			StaightCLose(0, 400, -90, speed);
+			StaightCLose(0, 450, -90, speed);
 		
 		  //蓝牙坏了
 		  if(blueToothError)
 			{
 				//在出发点附近停车矫正
-				if(Position_t.X > -450)
+				if(Position_t.X > -550)
 				{
 					step = 5;
 					success = 1;
@@ -1890,15 +1890,15 @@ int AfterCircle(uint16_t speed)
 			//蓝牙没坏，正常走形
 			else
 			{
-				if(Position_t.X > 300)
+				if(Position_t.X > 200)
 				{
 					step++;
 				}
 			}
 			break;
 		case 4:
-			StaightCLose(2100, 0, 0, speed);
-			if(Position_t.Y > 1900)
+			StaightCLose(2000, 0, 0, speed);
+			if(Position_t.Y > 1700)
 			{
 				step = 5;
 				success = 1;

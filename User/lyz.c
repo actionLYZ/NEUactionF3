@@ -348,7 +348,7 @@ void GoGoGo(float fLine,int stat)
 	//				wide = 2125 - WIDTH / 2 - 100;
 	//		}
 	//		if (length >= 1700 - WIDTH / 2 - 100 && wide >= 2125 - WIDTH / 2 - 100)
-			if(sweepYuan(1800, 1200, 3, 1))
+			if(sweepYuan(2100, 1100, 3, 1))
 			{
 				state = 3;
 			}
@@ -363,7 +363,7 @@ void GoGoGo(float fLine,int stat)
 			LOG_NOTE JudgeState("Rectangle running....");//开始第一圈跑场
 			carRun = 1;
 			g_plan = lastPlan;
-			if(AfterCircle(1800))
+			if(AfterCircle(2000))
 			{
 				//之后的矫正坐标函数令g_plan = 1;
 				g_plan = 1;
@@ -705,21 +705,21 @@ bool FirstRound(float firstLine)
 	static int state = 0;
   static float speed = 1500;
 	speed += 5;
-	if(speed > 1800)
+	if(speed > 1900)
 	{
-		speed = 1800;
+		speed = 1900;
 	}
 	
 	//第一圈贴框走成功极限条件
 	if(firstLine < 650)
 	{
-		firstLine = 650;
+		firstLine = 700;
 	}
 	switch (state)
 	{
 		case 0:
 		{
-			angClose(1200,-45,200);
+			angClose(1500,-45,250);
 			if(Position_t.Y > 500)
 			{
 				state = 1;
@@ -753,14 +753,14 @@ bool FirstRound(float firstLine)
 			{
 				StaightCLose(-1000, 0, 180, speed);
 			}
-			if (Position_t.Y <= 1150 + FIR_ADV)
+			if (Position_t.Y <= 1250 + FIR_ADV)
 				state = 4;
 		} break;
 
 	//	//下边，目标角度-90度
 		case 4:
 		{
-			StaightCLose(0, 1150, -90, speed);
+			StaightCLose(0, 1250, -90, speed);
 //			if (Position_t.X >= 275 + WIDTH / 2 - FIR_ADV)
 			if (Position_t.X >= 0)
 				return true;

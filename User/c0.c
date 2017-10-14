@@ -955,36 +955,36 @@ int RunEdge(void)
 {
 	int         finish = 0;
 	static int  side = 0,sideTimes=0,avoidBack=0,edgearea=0;
-	
-		if (Position_t.X >= 1250&&Position_t.Y<3600)
+	g_plan = 1;
+		if (Position_t.X >= 950&&Position_t.Y<3300)
 		{
 			edgearea = 2;
 		}
-		else if (Position_t.Y >= 3600&&Position_t.X>-1250)
+		else if (Position_t.Y >= 3300&&Position_t.X>-950)
 		{
 			edgearea = 3;
 		}
-		else if (Position_t.X <= -1250&&Position_t.Y>1150)
+		else if (Position_t.X <= -950&&Position_t.Y>1450)
 		{
 			edgearea = 4;
 		}
-		else if (Position_t.Y <= 1150&&Position_t.X<1250)
+		else if (Position_t.Y <= 1450&&Position_t.X<950)
 		{
 			edgearea = 1;
 		}	
-	  else if(Position_t.Y <= (1450 - Position_t.X) && Position_t.Y < (1450 + Position_t.X))
+	  else if(Position_t.Y <= (2400 - Position_t.X) && Position_t.Y < (2400 + Position_t.X))
 		{
 			edgearea = 11;
 		}
-		else if(Position_t.Y > (1450 - Position_t.X) && Position_t.Y <= (1450 + Position_t.X))
+		else if(Position_t.Y > (2400 - Position_t.X) && Position_t.Y <= (2400 + Position_t.X))
 		{
 			edgearea = 12;
 		}
-		else if(Position_t.Y >= (1450 - Position_t.X) && Position_t.Y > (1450 + Position_t.X))
+		else if(Position_t.Y >= (2400 - Position_t.X) && Position_t.Y > (2400 + Position_t.X))
 		{
 			edgearea = 13;
 		}
-		else if(Position_t.Y < (1450 - Position_t.X) && Position_t.Y >= (1450 + Position_t.X))
+		else if(Position_t.Y < (2400 - Position_t.X) && Position_t.Y >= (2400 + Position_t.X))
 		{
 			edgearea = 14;
 		}	
@@ -1128,22 +1128,22 @@ int RunEdge(void)
 			{
 				case 1:
 				{
-					ClLine(0, 245-POSYSTEM_TO_BACK, -90, 1000);
+					ClLine(0, 245-POSYSTEM_TO_BACK, -90, 1500);
 				} break;
 
 				case 2:
 				{
-					ClLine(2155, 0, 0, 1000);
+					ClLine(2155, 0, 0, 1500);
 				} break;
 
 				case 3:
 				{
-					ClLine(0, 4555-POSYSTEM_TO_BACK, 90, 1000);
+					ClLine(0, 4555-POSYSTEM_TO_BACK, 90, 1500);
 				} break;
 
 				case 4:
 				{
-					ClLine(-2150, 0, 180, 1000);
+					ClLine(-2150, 0, 180, 1500);
 				} break;
 
 				default:
