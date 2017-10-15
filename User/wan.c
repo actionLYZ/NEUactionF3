@@ -1236,7 +1236,7 @@ int ShootBallW(void)
 	distance2 = sqrt((Position_t.X - BLACKX) * (Position_t.X - BLACKX) + (Position_t.Y - BALLY) * (Position_t.Y - BALLY));
 		if(FlagCO)
 		{
-			if(shootNum >= 6)
+			if(shootNum >= 10)
 			{
 				//重置激光矫正中的step
 				resetStep = 1;
@@ -1480,7 +1480,7 @@ int ShootBallW(void)
 //								rpsNormal = 0;
 								
 								//位置正常，reset推球电机
-								if(g_pushPosition > 3800)
+								if(g_pushPosition > 4000)
 								{
 									//numFlag取反
 									numFlag = 0;

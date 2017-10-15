@@ -458,8 +458,36 @@ PolarCoo_t Closer_Point(int8_t a[20], uint8_t b[20], int sum)
 	int   m = 0, o = 0;
   if(fabs(X)<1800)
 	{
-		while ((X - (m+1) * 480) > -2400)
-			m++;
+    if(X<=-1300)
+		{
+			m=1;
+		}
+		else if(X>-1300&&X<=-800)
+		{
+			m=2;
+		}
+		else if(X>-800&&X<=-300)
+		{
+			m=3;
+		}
+		else if(X>300&&X<=800)
+		{
+			m=6;
+		}
+		else if(X>800&&X<=1300)
+		{
+			m=7;
+		}
+		else if(X>1300&&X<1800)
+		{
+			m=8;
+		}
+		
+		else
+		{
+			while ((X - (m+1) * 480) > -2400)
+			  m++;
+		}
 		
 	}
   else
@@ -478,25 +506,46 @@ PolarCoo_t Closer_Point(int8_t a[20], uint8_t b[20], int sum)
 	{
 		o=0;
 	}
-	else if(Y>=600&&Y<1700)
+	else if(Y>600&&Y<=1100)
 	{
-		while ((Y - (o+1) * 400) > 160)
-			o++;
+		o=1;
 	}
-  else if(Y>=1700&&Y<3240)
+	else if(Y>1100&&Y<=1700)
 	{
-		while ((Y - (o+1) * 480) > 0)
-			o++;
+		o=2;
 	}
-	else if(Y>=3240&&Y<4200)
+	else if(Y>3100&&Y<=3600)
 	{
-		while ((Y - (o+1) * 480) > -120)
-			o++;
+		o=7;
+	}
+	else if(Y>3600&&Y<4200)
+	{
+		o=8;
 	}
 	else if(Y>=4200)
 	{
 		o=9;
 	}
+	else 
+	{
+		if(Y>=600&&Y<1700)
+		{
+			while ((Y - (o+1) * 400) > 160)
+				o++;
+		}
+		else if(Y>=1700&&Y<3240)
+		{
+			while ((Y - (o+1) * 480) > 0)
+				o++;
+		}
+		else if(Y>=3240&&Y<4200)
+		{
+			while ((Y - (o+1) * 480) > -120)
+				o++;
+		}	
+	}
+
+
 	wirte.ver = o;
 	return wirte;
 }
@@ -741,10 +790,10 @@ void New_Route(int dow, int righ, int u, int lef)
 		{
 			if(righ!=4)
 			{
-				if(Position_t.X > (240 + righ * 480 - AD_CAMERA))
+				if(Position_t.X > (230 + righ * 480 - AD_CAMERA))
 				{
 					side = 2;notyet=0;					
-					aim=240 + righ * 480;
+					aim=230 + righ * 480;
 				}
 				else 
 				{
@@ -841,7 +890,22 @@ void New_Route(int dow, int righ, int u, int lef)
 			
 		if (Position_t.X < -300 )
 		{
-			if(dow!=1)
+			if(dow==3)
+			{
+				if(Position_t.Y < (1400 + AD_CAMERA))
+				{
+					side = 1;notyet=0;
+					aim=1400;
+				}
+				else
+				{
+					if(Position_t.Y>=1700)
+					{
+						area=4;notyet=1;
+					}
+				}				
+			}
+			else if(dow!=1)
 			{
 				if(Position_t.Y < (-80 + dow * 480 + AD_CAMERA))
 				{
